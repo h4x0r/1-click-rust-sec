@@ -123,7 +123,7 @@ The installer automatically checks:
 Automatically installs missing security tools:
 
 **Core Local Helpers (installed by script):**
-- `.security-controls/bin/gitleaklite` - Secret detection (script-only)
+- `.security-controls/bin/gitleakslite` - Secret detection (script-only)
 - `.security-controls/bin/pincheck` - GitHub Actions and container image pinning (script-only)
 
 **Rust-Specific Tools:**
@@ -280,7 +280,7 @@ git push origin main
 ### Validate Tools Installation
 ```bash
 # Check local helpers
-.security-controls/bin/gitleaklite --help
+.security-controls/bin/gitleakslite --help
 .security-controls/bin/pincheck --help
 
 # Check Rust security tools (if Rust project)
@@ -289,7 +289,7 @@ cargo license --version
 
 # Test secret detection
 echo "password=secret123" > test.txt
-.security-controls/bin/gitleaklite detect --no-banner
+.security-controls/bin/gitleakslite detect --no-banner
 rm test.txt
 ```
 
@@ -370,10 +370,10 @@ git push --no-verify
 
 ```bash
 # Manual run
-.security-controls/bin/gitleaklite detect --no-banner
+.security-controls/bin/gitleakslite detect --no-banner
 
 # Check specific files
-.security-controls/bin/gitleaklite detect --no-banner
+.security-controls/bin/gitleakslite detect --no-banner
 ```
 
 ### SHA Pinning Checker (script-only)
@@ -494,12 +494,12 @@ Permission denied: .git/hooks/pre-push
 
 #### Tools not found in PATH
 ```bash
-⚠️ gitleaklite not found - skipping secret detection
+⚠️ gitleakslite not found - skipping secret detection
 ```
 **Solutions**:
 - **Re-run installer** to restore helpers (no external installs needed)
-- **Ensure helper exists**: `ls -l .security-controls/bin/gitleaklite`
-- **Use explicit path**: `./.security-controls/bin/gitleaklite --help`
+- **Ensure helper exists**: `ls -l .security-controls/bin/gitleakslite`
+- **Use explicit path**: `./.security-controls/bin/gitleakslite --help`
 
 ### Performance Issues
 
@@ -779,7 +779,7 @@ done
 
 ### Post-Installation Verification
 - [ ] Test pre-push hook (`git push --dry-run`)
-- [ ] Verify helper functionality (`.security-controls/bin/gitleaklite --help`, `.security-controls/bin/pincheck --help`)
+- [ ] Verify helper functionality (`.security-controls/bin/gitleakslite --help`, `.security-controls/bin/pincheck --help`)
 - [ ] Check CI workflow (make test commit)
 - [ ] Review security reports (GitHub Security tab)
 - [ ] Confirm artifact generation (SBOMs, reports)

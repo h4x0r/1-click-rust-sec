@@ -47,7 +47,7 @@
 | **Linting** | ✅ cargo clippy | ✅ cargo clippy | ✅ Yes | Code quality & bug prevention |
 | **Security Audit** | ✅ cargo audit | ✅ cargo audit | ✅ Yes | Vulnerable dependency detection |
 | **Test Suite** | ✅ cargo test | ✅ cargo test | ✅ Yes | Code correctness validation |
-| **Secret Detection** | ✅ gitleaklite (script helper) | ✅ gitleaks | ✅ Yes | Prevent secret exposure |
+| **Secret Detection** | ✅ gitleakslite (script helper) | ✅ gitleaks | ✅ Yes | Prevent secret exposure |
 | **License Compliance** | ✅ cargo-license | ✅ cargo-license | ⚠️ Warning | Legal compliance check |
 | **SHA Pinning** | ✅ pincheck (script helper) | ✅ pinact | ✅ Yes | Supply chain protection |
 | **Commit Signing** | ✅ gitsign check | ✅ gitsign verify | ⚠️ Warning | Cryptographic integrity |
@@ -84,7 +84,7 @@
 | **Linting** | `cargo clippy` | ✅ **Critical** | ~10s | Bug prevention + best practices |
 | **Security Audit** | `cargo audit` | ✅ **Critical** | ~5s | **Vulnerable dependency blocking** |
 | **Test Suite** | `cargo test` | ✅ **Critical** | ~30s | Functional correctness validation |
-| **Secret Detection** | `gitleaklite` (script helper) | ✅ **CRITICAL** | ~5s | **🔥 Credential exposure prevention** |
+| **Secret Detection** | `gitleakslite` (script helper) | ✅ **CRITICAL** | ~5s | **🔥 Credential exposure prevention** |
 | **License Compliance** | `cargo-license` | ⚠️ **Warning** | ~3s | Legal risk identification |
 | **SHA Pinning** | `pincheck` (script helper; CI uses pinact) | ✅ **Critical** | ~2s | **Supply chain attack prevention** |
 | **Commit Signing** | `gitsign` | ⚠️ **Warning** | ~1s | Cryptographic integrity verification |
@@ -225,7 +225,7 @@ graph TD
 | **Linting** | `cargo clippy` | Catch bugs, enforce best practices | ~10s |
 | **Security Audit** | `cargo audit` | Block known vulnerable dependencies | ~5s |
 | **Test Suite** | `cargo test` | Ensure functional correctness | ~30s |
-| **Secret Detection** | `gitleaklite` (script helper) | **CRITICAL**: Prevent credential exposure | ~5s |
+| **Secret Detection** | `gitleakslite` (script helper) | **CRITICAL**: Prevent credential exposure | ~5s |
 | **SHA Pinning** | `pincheck` (script helper; CI uses pinact) | Prevent supply chain attacks via GitHub Actions | ~2s |
 | **Large File Detection** | `find` | Prevent repository bloat and sensitive data exposure | ~2s |
 

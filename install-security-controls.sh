@@ -959,8 +959,8 @@ echo
 # 7. Secret Detection (script-only helper)
 if [[ "$ENABLE_SECRET_SCAN" == "true" ]]; then
     print_status $YELLOW "🔍 Running secret detection (staged changes)..."
-    if [[ -x ".security-controls/bin/gitleaklite" ]]; then
-        if .security-controls/bin/gitleaklite protect --staged --no-banner --redact; then
+    if [[ -x ".security-controls/bin/gitleakslite" ]]; then
+        if .security-controls/bin/gitleakslite protect --staged --no-banner --redact; then
             print_status $GREEN "✅ No secrets detected in staged changes"
         else
             print_status $RED "❌ Secrets detected in staged changes"
@@ -968,7 +968,7 @@ if [[ "$ENABLE_SECRET_SCAN" == "true" ]]; then
             FAILED=1
         fi
     else
-        print_status $YELLOW "⚠️ Secret scanner helper missing: .security-controls/bin/gitleaklite"
+        print_status $YELLOW "⚠️ Secret scanner helper missing: .security-controls/bin/gitleakslite"
         echo "   Re-run installer to restore helpers"
     fi
 else
@@ -1308,15 +1308,15 @@ echo
 # 1. Secret Detection (script-only helper)
 if [[ "$ENABLE_SECRET_SCAN" == "true" ]]; then
     print_status $YELLOW "🔍 Running secret detection (staged changes)..."
-    if [[ -x ".security-controls/bin/gitleaklite" ]]; then
-        if .security-controls/bin/gitleaklite protect --staged --no-banner --redact; then
+    if [[ -x ".security-controls/bin/gitleakslite" ]]; then
+        if .security-controls/bin/gitleakslite protect --staged --no-banner --redact; then
             print_status $GREEN "✅ No secrets detected in staged changes"
         else
             print_status $RED "❌ Secrets detected in staged changes"
             FAILED=1
         fi
     else
-        print_status $YELLOW "⚠️ Secret scanner helper missing: .security-controls/bin/gitleaklite"
+        print_status $YELLOW "⚠️ Secret scanner helper missing: .security-controls/bin/gitleakslite"
         echo "   Re-run installer to restore helpers"
     fi
 else
@@ -2651,11 +2651,11 @@ print_status $GREEN "✅ Installed script-only pincheck at $script_path"
 
 }
 
-install_gitleaklite_script() {
-print_section "Installing script-only gitleaklite helper"
+install_gitleakslite_script() {
+print_section "Installing script-only gitleakslite helper"
 
     local bin_dir="$CONTROL_STATE_DIR/bin"
-    local script_path="$bin_dir/gitleaklite"
+local script_path="$bin_dir/gitleakslite"
 
     if [[ "$DRY_RUN" == true ]]; then
         print_status $BLUE "[DRY RUN] Would write $script_path"
@@ -2669,11 +2669,11 @@ set -euo pipefail
 
 usage() {
   cat <<USG
-gitleaklite (script) - minimal secret scanner
+gitleakslite (script) - minimal secret scanner
 
 Usage:
-  gitleaklite protect --staged [--redact] [--no-banner] [--config PATH]
-  gitleaklite detect [--redact] [--no-banner] [--config PATH]
+  gitleakslite protect --staged [--redact] [--no-banner] [--config PATH]
+  gitleakslite detect [--redact] [--no-banner] [--config PATH]
 
 USG
 }
@@ -2782,7 +2782,7 @@ main() {
 main "$@"
 GLSCRIPT_EOF
     chmod +x "$script_path"
-print_status $GREEN "✅ Installed script-only gitleaklite at $script_path"
+print_status $GREEN "✅ Installed script-only gitleakslite at $script_path"
 }
 
 # Show installation summary
@@ -2936,7 +2936,7 @@ main() {
 
     # Install script-only helpers
 install_pincheck_script
-install_gitleaklite_script
+install_gitleakslite_script
 
     if [[ "$INSTALL_HOOKS" == true ]]; then
         install_pre_push_hook
