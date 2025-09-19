@@ -14,6 +14,7 @@ readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly YELLOW='\033[1;33m'
 readonly BLUE='\033[0;34m'
+# shellcheck disable=SC2034 # Color reserved for future use
 readonly PURPLE='\033[0;35m'
 readonly CYAN='\033[0;36m'
 readonly NC='\033[0m' # No Color
@@ -408,7 +409,9 @@ test_yubikey_signing() {
     print_status $BLUE "🧪 Creating test commit to verify YubiKey signing..."
     
     # Create test file
-    local test_file="gitsign-test-$(date +%s).txt"
+local test_file
+# shellcheck disable=SC2155 # Accept masking for readability here
+test_file="gitsign-test-$(date +%s).txt"
     echo "YubiKey Gitsign Test - $(date)" > "$test_file"
     
     print_status $YELLOW "📝 Creating test commit (YubiKey touch will be required)..."
@@ -591,7 +594,8 @@ parse_arguments() {
     COMMAND=""
     GLOBAL_CONFIG=false
     FORCE=false
-    DRY_RUN=false
+# shellcheck disable=SC2034 # Reserved; future dry-run behavior
+DRY_RUN=false
     
     while [[ $# -gt 0 ]]; do
         case $1 in

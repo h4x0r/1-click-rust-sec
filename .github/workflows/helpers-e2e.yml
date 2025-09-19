@@ -16,9 +16,10 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Run installer and test helpers
+        id: e2e
         run: |
           set -euo pipefail
-          mkdir -p sandbox/.github/workflows
+          mkdir -p sandbox/.github/workflows artifacts
           cp install-security-controls.sh sandbox/
           cd sandbox
           git init -q
@@ -26,7 +27,7 @@ jobs:
           git config user.name Sandbox
 
           # Install helpers only (no CI/docs)
-          bash ./install-security-controls.sh --non-rust --no-ci --no-docs --force
+          bash ./install-security-controls.sh --non-rust --no-ci --no-docs --force | tee ../artifacts/installer.log
 
           # Create workflow with unpinned action and image
           cat > .github/workflows/test.yml <<'YAML'
@@ -41,31 +42,68 @@ jobs:
           YAML
 
           # pincheck should fail before autopin
-          if ./.security-controls/bin/pincheck pincheck --dir .github/workflows; then
-            echo "pincheck unexpectedly passed" >&2
-            exit 1
+          if ./.security-controls/bin/pincheck pincheck --dir .github/workflows | tee -a ../artifacts/helpers-e2e.log; then
+            echo "pincheck unexpectedly passed" | tee -a ../artifacts/helpers-e2e.log >&2
+            echo "rc=1" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           # autopin should update files and return rc=2
-          if ./.security-controls/bin/pincheck autopin --dir .github/workflows --actions --images; then
-            echo "autopin returned success (expected rc=2 when changes made)" >&2
-            exit 1
+          set +e
+          ./.security-controls/bin/pincheck autopin --dir .github/workflows --actions --images | tee -a ../artifacts/helpers-e2e.log
+          rc=$?
+          set -e
+          if [[ $rc -ne 2 ]]; then
+            echo "autopin did not return rc=2 (got $rc)" | tee -a ../artifacts/helpers-e2e.log >&2
+            echo "rc=1" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
-          test $? -eq 2
 
           # Now pincheck should pass
-          ./.security-controls/bin/pincheck pincheck --dir .github/workflows
+          ./.security-controls/bin/pincheck pincheck --dir .github/workflows | tee -a ../artifacts/helpers-e2e.log
 
           # Secret scanner detect should fail on obvious secret
           echo "password=secret123" > secret.txt
-          if ./.security-controls/bin/gitleakslite detect --no-banner; then
-            echo "gitleakslite unexpectedly passed detect" >&2
-            exit 1
+          if ./.security-controls/bin/gitleakslite detect --no-banner | tee -a ../artifacts/helpers-e2e.log; then
+            echo "gitleakslite unexpectedly passed detect" | tee -a ../artifacts/helpers-e2e.log >&2
+            echo "rc=1" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           # Secret scanner protect should fail on staged secret
           git add secret.txt
-          if ./.security-controls/bin/gitleakslite protect --staged --no-banner --redact; then
-            echo "gitleakslite unexpectedly passed protect --staged" >&2
-            exit 1
+          if ./.security-controls/bin/gitleakslite protect --staged --no-banner --redact | tee -a ../artifacts/helpers-e2e.log; then
+            echo "gitleakslite unexpectedly passed protect --staged" | tee -a ../artifacts/helpers-e2e.log >&2
+            echo "rc=1" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+
+          echo "rc=0" >> "$GITHUB_OUTPUT"
+
+      - name: Upload E2E logs
+        if: always()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: helpers-e2e-logs
+          path: |
+            artifacts/helpers-e2e.log
+            artifacts/installer.log
+
+      - name: Comment on PR with E2E failure
+        if: ${{ github.event_name == 'pull_request' && steps.e2e.outputs.rc != '0' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          SNIP=$(head -n 120 artifacts/helpers-e2e.log | sed 's/`/\`/g')
+          BODY=$(jq -n --arg snip "$SNIP" '{body: ("Helpers E2E failed. First lines:\n\n```\n" + $snip + "\n```\n") }')
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            -d "${BODY}"
+
+      - name: Fail if E2E failed
+        if: ${{ steps.e2e.outputs.rc != '0' }}
+        run: exit 1

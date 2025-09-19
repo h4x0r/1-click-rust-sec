@@ -149,6 +149,13 @@ jobs:
             echo "rc=$?" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Upload pinact check log
+        if: always()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: pinact-check-log
+          path: /tmp/pinact-check.log
+
       - name: Comment on PR with pinning issues
         if: ${{ github.event_name == 'pull_request' && steps.pinact_check.outputs.rc != '0' }}
         env:

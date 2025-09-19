@@ -15,14 +15,18 @@ readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly YELLOW='\033[1;33m'
 readonly BLUE='\033[0;34m'
+# shellcheck disable=SC2034 # Color reserved for future use
 readonly PURPLE='\033[0;35m'
 readonly CYAN='\033[0;36m'
 readonly NC='\033[0m' # No Color
 
 # Configuration
 readonly SCRIPT_VERSION="1.5.0"
+# shellcheck disable=SC2034 # Placeholder for future use
 readonly REQUIRED_TOOLS_FILE="security-tools-requirements.txt"
+# shellcheck disable=SC2034 # Placeholder for future use
 readonly PRE_PUSH_HOOK_FILE="security-pre-push-hook"
+# shellcheck disable=SC2034 # Placeholder for future use
 readonly CI_WORKFLOW_FILE="security-ci-workflow.yml"
 readonly DOCS_DIR="docs/security"
 
@@ -37,6 +41,7 @@ readonly REMOTE_CHANGELOG_URL="https://raw.githubusercontent.com/4n6h4x0r/1-clic
 readonly CONTROL_STATE_DIR=".security-controls"
 readonly CONFIG_ENV_FILE="$CONTROL_STATE_DIR/config.env"
 readonly GITLEAKS_CONFIG_FILE="$CONTROL_STATE_DIR/gitleaks.toml"
+# shellcheck disable=SC2034 # Baseline reserved
 readonly GITLEAKS_BASELINE_FILE="$CONTROL_STATE_DIR/gitleaks-baseline.json"
 
 # Hooks path (optional chaining)
@@ -54,9 +59,11 @@ INSTALL_DOCS=true
 USE_HOOKS_PATH=false
 
 # Upgrade functionality flags
+# shellcheck disable=SC2034 # Reserved flag
 UPGRADE_MODE=false
 CHECK_UPDATE=false
 BACKUP_MODE=false
+# shellcheck disable=SC2034 # Reserved flag
 RESTORE_MODE=false
 SHOW_VERSION=false
 # Function to print colored output
