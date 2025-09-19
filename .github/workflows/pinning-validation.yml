@@ -143,13 +143,19 @@ jobs:
         run: |
           set -euo pipefail
           OUT="/tmp/pinact-check.log"
+          # Run pinact and capture actual exit of pinact (not tee)
           if pinact run --check | tee "$OUT"; then
-            echo "rc=0" >> "$GITHUB_OUTPUT"
+            status=${PIPESTATUS[0]:-0}
           else
-            echo "rc=$?" >> "$GITHUB_OUTPUT"
+            status=${PIPESTATUS[0]:-1}
           fi
+          echo "rc=${status}" >> "$GITHUB_OUTPUT"
 
 
       - name: Fail if pinact check failed
         if: ${{ steps.pinact_check.outputs.rc != '0' }}
-        run: exit 1
+        run: |
+          echo "pinact --check failed (rc=${{ steps.pinact_check.outputs.rc }})"
+          echo "--- pinact --check (first 120 lines) ---"
+          sed -n '1,120p' /tmp/pinact-check.log || true
+          exit 1
