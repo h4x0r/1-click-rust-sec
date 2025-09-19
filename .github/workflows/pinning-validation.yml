@@ -74,7 +74,7 @@ jobs:
           openssl dgst -sha256 -verify /tmp/pinact.pub -signature /tmp/checksums.txt.sig.bin /tmp/checksums.txt
           
           # Checksum verification of the tarball
-          grep " ${TAR}$" /tmp/checksums.txt | sha256sum -c -
+          grep " ${TAR}$" /tmp/checksums.txt | sed "s# ${TAR}$# /tmp/${TAR}#" | sha256sum -c -
           
           # SLSA provenance verification for the tarball
           slsa-verifier verify-artifact \
