@@ -1681,7 +1681,8 @@ jobs:
           /tmp/checksums.txt
         
         # OpenSSL verification as defense in depth
-        openssl x509 -in /tmp/checksums.txt.pem -pubkey -noout > /tmp/pinact.pub
+        base64 -d /tmp/checksums.txt.pem > /tmp/checksums.txt.pem.dec
+        openssl x509 -in /tmp/checksums.txt.pem.dec -pubkey -noout > /tmp/pinact.pub
         base64 -d /tmp/checksums.txt.sig > /tmp/checksums.txt.sig.bin
         openssl dgst -sha256 -verify /tmp/pinact.pub -signature /tmp/checksums.txt.sig.bin /tmp/checksums.txt
         
@@ -2003,7 +2004,8 @@ jobs:
           /tmp/checksums.txt
         
         # OpenSSL verification as defense in depth
-        openssl x509 -in /tmp/checksums.txt.pem -pubkey -noout > /tmp/pinact.pub
+        base64 -d /tmp/checksums.txt.pem > /tmp/checksums.txt.pem.dec
+        openssl x509 -in /tmp/checksums.txt.pem.dec -pubkey -noout > /tmp/pinact.pub
         base64 -d /tmp/checksums.txt.sig > /tmp/checksums.txt.sig.bin
         openssl dgst -sha256 -verify /tmp/pinact.pub -signature /tmp/checksums.txt.sig.bin /tmp/checksums.txt
         
