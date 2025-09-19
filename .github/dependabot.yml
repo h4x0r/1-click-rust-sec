@@ -1,0 +1,13 @@
+version: 1
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "ci(actions)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"

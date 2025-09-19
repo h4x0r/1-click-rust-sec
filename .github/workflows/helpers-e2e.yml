@@ -1,0 +1,71 @@
+name: Helpers E2E
+
+on:
+  pull_request:
+  push:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+jobs:
+  e2e-helpers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Run installer and test helpers
+        run: |
+          set -euo pipefail
+          mkdir -p sandbox/.github/workflows
+          cp install-security-controls.sh sandbox/
+          cd sandbox
+          git init -q
+          git config user.email sandbox@example.com
+          git config user.name Sandbox
+
+          # Install helpers only (no CI/docs)
+          bash ./install-security-controls.sh --non-rust --no-ci --no-docs --force
+
+          # Create workflow with unpinned action and image
+          cat > .github/workflows/test.yml <<'YAML'
+          name: test
+          on: [push]
+          jobs:
+            t:
+              runs-on: ubuntu-latest
+              container: busybox:latest
+              steps:
+                - uses: actions/checkout@v4
+          YAML
+
+          # pincheck should fail before autopin
+          if ./.security-controls/bin/pincheck pincheck --dir .github/workflows; then
+            echo "pincheck unexpectedly passed" >&2
+            exit 1
+          fi
+
+          # autopin should update files and return rc=2
+          if ./.security-controls/bin/pincheck autopin --dir .github/workflows --actions --images; then
+            echo "autopin returned success (expected rc=2 when changes made)" >&2
+            exit 1
+          fi
+          test $? -eq 2
+
+          # Now pincheck should pass
+          ./.security-controls/bin/pincheck pincheck --dir .github/workflows
+
+          # Secret scanner detect should fail on obvious secret
+          echo "password=secret123" > secret.txt
+          if ./.security-controls/bin/gitleakslite detect --no-banner; then
+            echo "gitleakslite unexpectedly passed detect" >&2
+            exit 1
+          fi
+
+          # Secret scanner protect should fail on staged secret
+          git add secret.txt
+          if ./.security-controls/bin/gitleakslite protect --staged --no-banner --redact; then
+            echo "gitleakslite unexpectedly passed protect --staged" >&2
+            exit 1
+          fi

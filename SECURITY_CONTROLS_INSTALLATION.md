@@ -231,6 +231,20 @@ Creates `docs/security/` with:
 
 ## ⚙️ Configuration Options
 
+### Optional: Pre-commit hooks
+
+This repo ships with a .pre-commit-config.yaml to run shellcheck, shfmt, markdownlint, and basic hygiene checks locally.
+
+Quick start:
+
+```bash
+brew install pre-commit  # or pipx install pre-commit
+pre-commit install
+pre-commit run --all-files
+```
+
+Integrating pre-commit reduces CI churn by catching issues before you push.
+
 ### Command Line Flags
 
 | Flag | Purpose | Example |

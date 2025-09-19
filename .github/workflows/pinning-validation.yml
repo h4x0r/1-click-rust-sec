@@ -138,6 +138,34 @@ jobs:
         run: |
           pinact --version || true
 
-      - name: Validate pins with pinact
+      - name: Validate pins with pinact (capture result)
+        id: pinact_check
         run: |
-          pinact run --check
+          set -euo pipefail
+          OUT="/tmp/pinact-check.log"
+          if pinact run --check | tee "$OUT"; then
+            echo "rc=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "rc=$?" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment on PR with pinning issues
+        if: ${{ github.event_name == 'pull_request' && steps.pinact_check.outputs.rc != '0' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          echo "Posting PR comment with failed pinact summary..."
+          SNIP=$(head -n 60 /tmp/pinact-check.log | sed 's/`/\`/g')
+          BODY=$(jq -n --arg snip "$SNIP" '
+            {body: ("Pinning Validation failed. Here are the first 60 lines of pinact --check output:\n\n```\n" + $snip + "\n```\n\nSuggested next steps:\n- Run `pinact run` locally to update pins, or\n- Run `.security-controls/bin/pincheck autopin --dir .github/workflows --actions --images` and commit the changes.") }')
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            -d "${BODY}"
+
+      - name: Fail if pinact check failed
+        if: ${{ steps.pinact_check.outputs.rc != '0' }}
+        run: exit 1
