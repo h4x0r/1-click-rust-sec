@@ -850,8 +850,12 @@ run_pin_checks() {
             if (in_services && ind <= serv_indent) { in_services=0 }
             if ((in_container || in_services) && l ~ /^image:[[:space:]]*/) {
               img=l; sub(/^image:[[:space:]]*/, "", img)
-              gsub(/^\"|\"$/, "", img); gsub(/^\047|\047$/, "", img)
+              gsub(/^"|"$/, "", img); gsub(/^\047|\047$/, "", img)
               if (img !~ /@sha256:/) { printf "   %s: image not pinned: %s\n", FNAME, img; bad++ }
+            }
+            if (l ~ /^uses:[[:space:]]*/) {
+              val=l; sub(/^uses:[[:space:]]*/, "", val); gsub(/^"|"$/, "", val); gsub(/^\047|\047$/, "", val)
+              printf "USES %s\n", val >> UFILE
             }
           }
           END{ if (bad>0) exit 2 }' "$f" || violations=$((violations+1))
@@ -1030,8 +1034,10 @@ if [[ -x ".security-controls/bin/pincheck" ]]; then
         print_status $GREEN "✅ All GitHub Actions are properly pinned"
     else
         print_status $YELLOW "🛠  Auto-pinning unpinned references..."
-        if .security-controls/bin/pincheck autopin --dir .github/workflows --actions --images --quiet; then :; fi
+        set +e
+        .security-controls/bin/pincheck autopin --dir .github/workflows --actions --images --quiet
         rc=$?
+        set -e
         if [[ $rc -eq 2 ]]; then
             print_status $YELLOW "✏️  Updated workflow pins. Please commit the changes and push again."
             git --no-pager diff -- .github/workflows | sed -n '1,120p' || true
@@ -1369,11 +1375,11 @@ if [[ -x ".security-controls/bin/pincheck" ]]; then
         if .security-controls/bin/pincheck pincheck --dir .github/workflows; then
             print_status $GREEN "✅ All GitHub Actions are properly pinned"
         else
-            print_status $YELLOW "🛠  Auto-pinning unpinned references..."
-if .security-controls/bin/pincheck autopin --dir .github/workflows --actions --images --quiet; then
-                :
-            fi
+print_status $YELLOW "🛠  Auto-pinning unpinned references..."
+            set +e
+            .security-controls/bin/pincheck autopin --dir .github/workflows --actions --images --quiet
             rc=$?
+            set -e
             if [[ $rc -eq 2 ]]; then
                 print_status $YELLOW "✏️  Updated workflow pins. Please commit the changes and push again."
                 git --no-pager diff -- .github/workflows | sed -n '1,120p' || true
@@ -1583,15 +1589,15 @@ jobs:
           VERSION=v3.4.2
           BASE="https://github.com/suzuki-shunsuke/pinact/releases/download/${VERSION}"
 
-          # Fetch checksums and signature (try both naming conventions)
-          curl -fsSLo /tmp/checksums.txt "${BASE}/checksums.txt" || \
-          curl -fsSLo /tmp/checksums.txt "${BASE}/pinact_${VERSION#v}_checksums.txt"
+          # Fetch checksums and signature (prefer versioned filenames; fallback to plain)
+          curl -fsSLo /tmp/checksums.txt "${BASE}/pinact_${VERSION#v}_checksums.txt" || \
+          curl -fsSLo /tmp/checksums.txt "${BASE}/checksums.txt"
 
-          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/checksums.txt.pem" || \
-          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/pinact_${VERSION#v}_checksums.txt.pem"
+          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/pinact_${VERSION#v}_checksums.txt.pem" || \
+          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/checksums.txt.pem"
 
-          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/checksums.txt.sig" || \
-          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/pinact_${VERSION#v}_checksums.txt.sig"
+          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/pinact_${VERSION#v}_checksums.txt.sig" || \
+          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/checksums.txt.sig"
           
           # Sigstore verification of checksums.txt certificate and signature (GitHub OIDC issuer)
           cosign verify-blob \
@@ -2748,18 +2754,18 @@ check_images_in_yaml() {
       if (in_services && ind <= serv_indent) { in_services=0 }
       if ((in_container || in_services) && l ~ /^image:[[:space:]]*/) {
         img=l; sub(/^image:[[:space:]]*/, "", img)
-        gsub(/^\"|\"$/, "", img); gsub(/^\047|\047$/, "", img)
+        gsub(/^"|"$/, "", img); gsub(/^\047|\047$/, "", img)
         if (img !~ /@sha256:/) { printf "%s: image not pinned: %s\n", FNAME, img; violations++ }
       }
       if (!in_container && !in_services && l ~ /^image:[[:space:]]*/) {
         img=l; sub(/^image:[[:space:]]*/, "", img)
-        gsub(/^\"|\"$/, "", img); gsub(/^\047|\047$/, "", img)
+        gsub(/^"|"$/, "", img); gsub(/^\047|\047$/, "", img)
         if (img ~ /[A-Za-z0-9_\-]+\/[A-Za-z0-9_\-]+/ && img !~ /@sha256:/) {
           printf "%s: image not pinned: %s\n", FNAME, img; violations++
         }
       }
       if (l ~ /^uses:[[:space:]]*/) {
-        val=l; sub(/^uses:[[:space:]]*/, "", val); gsub(/^\"|\"$/, "", val); gsub(/^\047|\047$/, "", val)
+        val=l; sub(/^uses:[[:space:]]*/, "", val); gsub(/^"|"$/, "", val); gsub(/^\047|\047$/, "", val)
         printf "USES %s\n", val >> UFILE
       }
     }
@@ -2809,7 +2815,7 @@ resolve_image_digest() {
   [[ -z "$tag" || "$tag" == "$name" ]] && tag="latest"
   local repo_path="$ns/$name"
 
-  local accept='application/vnd.oci.image.index.v1+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json'
+  local accept='application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.index.v1+json, application/vnd.oci.image.manifest.v1+json'
   local url="https://${registry}/v2/${repo_path}/manifests/${tag}"
 
   local auth_header=()

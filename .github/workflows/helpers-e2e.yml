@@ -47,11 +47,14 @@ jobs:
           fi
 
           # autopin should update files and return rc=2
-          if ./.security-controls/bin/pincheck autopin --dir .github/workflows --actions --images; then
-            echo "autopin returned success (expected rc=2 when changes made)" >&2
+          set +e
+          ./.security-controls/bin/pincheck autopin --dir .github/workflows --actions --images
+          rc=$?
+          set -e
+          if [ "$rc" -ne 2 ]; then
+            echo "autopin exit code $rc (expected 2 when changes made)" >&2
             exit 1
           fi
-          test $? -eq 2
 
           # Now pincheck should pass
           ./.security-controls/bin/pincheck pincheck --dir .github/workflows

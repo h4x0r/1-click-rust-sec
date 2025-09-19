@@ -58,15 +58,15 @@ jobs:
           VERSION=v3.4.2
           BASE="https://github.com/suzuki-shunsuke/pinact/releases/download/${VERSION}"
 
-          # Fetch checksums and signature (try both naming conventions)
-          curl -fsSLo /tmp/checksums.txt "${BASE}/checksums.txt" || \
-          curl -fsSLo /tmp/checksums.txt "${BASE}/pinact_${VERSION#v}_checksums.txt"
+          # Fetch checksums and signature (prefer versioned filenames; fallback to plain)
+          curl -fsSLo /tmp/checksums.txt "${BASE}/pinact_${VERSION#v}_checksums.txt" || \
+          curl -fsSLo /tmp/checksums.txt "${BASE}/checksums.txt"
 
-          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/checksums.txt.pem" || \
-          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/pinact_${VERSION#v}_checksums.txt.pem"
+          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/pinact_${VERSION#v}_checksums.txt.pem" || \
+          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/checksums.txt.pem"
 
-          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/checksums.txt.sig" || \
-          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/pinact_${VERSION#v}_checksums.txt.sig"
+          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/pinact_${VERSION#v}_checksums.txt.sig" || \
+          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/checksums.txt.sig"
           
           # Cosign verification of checksums.txt certificate and signature (GitHub OIDC issuer)
           cosign verify-blob \
