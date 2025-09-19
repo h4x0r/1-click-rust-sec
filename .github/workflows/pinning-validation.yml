@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pinning:
     name: Validate GitHub Actions and container image pins
@@ -32,7 +36,7 @@ jobs:
           mkdir -p "$HOME/.local/bin"
           export PATH="$HOME/.local/bin:$PATH"
           
-          # 1) Install cosign v2.6.0 and verify with OpenSSL and SHA256
+          # 1) Install cosign v2.6.0 and verify with SHA256
           COSIGN_VERSION=v2.6.0
           COSIGN_BASE="https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}"
           COSIGN_BIN="cosign-linux-amd64"
@@ -53,10 +57,11 @@ jobs:
           # 3) Download pinact v3.4.2 artifacts and verify signature + provenance + checksum
           VERSION=v3.4.2
           BASE="https://github.com/suzuki-shunsuke/pinact/releases/download/${VERSION}"
-          TAR="pinact_linux_amd64.tar.gz"
-          curl -fsSLo /tmp/checksums.txt "${BASE}/pinact_3.4.2_checksums.txt"
-          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/pinact_3.4.2_checksums.txt.pem"
-          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/pinact_3.4.2_checksums.txt.sig"
+          CHECKSUMS="pinact_${VERSION#v}_checksums.txt"
+          TAR="pinact_${VERSION#v}_linux_amd64.tar.gz"
+          curl -fsSLo /tmp/checksums.txt "${BASE}/${CHECKSUMS}"
+          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/pinact_${VERSION#v}_checksums.txt.pem"
+          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/pinact_${VERSION#v}_checksums.txt.sig"
           curl -fsSLo /tmp/${TAR} "${BASE}/${TAR}"
           curl -fsSLo /tmp/multiple.intoto.jsonl "${BASE}/multiple.intoto.jsonl"
           
@@ -68,9 +73,8 @@ jobs:
             --certificate-identity-regexp '^https://github.com/suzuki-shunsuke/(pinact|go-release-workflow)/.*' \
             /tmp/checksums.txt
           
-          # OpenSSL verification as defense in depth
-          base64 -d /tmp/checksums.txt.pem > /tmp/checksums.txt.pem.dec
-          openssl x509 -in /tmp/checksums.txt.pem.dec -pubkey -noout > /tmp/pinact.pub
+          # OpenSSL verification as defense in depth (use PEM directly; decode only the signature)
+          openssl x509 -in /tmp/checksums.txt.pem -pubkey -noout > /tmp/pinact.pub
           base64 -d /tmp/checksums.txt.sig > /tmp/checksums.txt.sig.bin
           openssl dgst -sha256 -verify /tmp/pinact.pub -signature /tmp/checksums.txt.sig.bin /tmp/checksums.txt
           
@@ -81,7 +85,7 @@ jobs:
           slsa-verifier verify-artifact \
             --provenance-path /tmp/multiple.intoto.jsonl \
             --source-uri github.com/suzuki-shunsuke/pinact \
-            --source-tag v3.4.2 \
+            --source-tag "${VERSION}" \
             /tmp/${TAR}
           
           # Extract and install pinact

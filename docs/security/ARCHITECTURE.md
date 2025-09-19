@@ -1,4 +1,3 @@
-# Security Controls Architecture
 
 ## 🎯 Executive Summary
 

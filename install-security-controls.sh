@@ -862,6 +862,9 @@ fi
 : "${LARGE_FILE_MAX_MB:=10}"
 : "${ENABLE_TECH_DEBT_CHECK:=true}"
 : "${ENABLE_EMPTY_FILE_CHECK:=true}"
+: "${ENABLE_LINT:=true}"
+: "${ENABLE_TESTS:=true}"
+: "${TEST_SCOPE:=all}"
 
 # Track if any checks fail
 FAILED=0
@@ -880,6 +883,7 @@ fi
 
 echo
 # 2. Cargo Clippy Check
+if [[ "${ENABLE_LINT}" == "true" ]]; then
 print_status $YELLOW "🔧 Running linting checks (cargo clippy)..."
 if cargo clippy --all-targets --all-features -- -D warnings; then
     print_status $GREEN "✅ No clippy warnings found"
@@ -887,6 +891,9 @@ else
     print_status $RED "❌ Clippy warnings found"
     echo "   Fix warnings before pushing"
     FAILED=1
+fi
+else
+print_status $BLUE "ℹ️ Linting disabled via config (ENABLE_LINT=false)"
 fi
 
 echo
@@ -946,13 +953,22 @@ fi
 
 echo
 # 6. Test Suite
+if [[ "${ENABLE_TESTS}" == "true" ]]; then
 print_status $YELLOW "🧪 Running test suite..."
-if cargo test --all; then
-    print_status $GREEN "✅ All tests passed"
+if [[ "${TEST_SCOPE}" == "unit" ]]; then
+    TEST_CMD=(cargo test --lib)
 else
-    print_status $RED "❌ Tests failed"
+    TEST_CMD=(cargo test --all)
+fi
+if "${TEST_CMD[@]}"; then
+    print_status $GREEN "✅ Tests passed (${TEST_SCOPE})"
+else
+    print_status $RED "❌ Tests failed (${TEST_SCOPE})"
     echo "   Fix failing tests before pushing"
     FAILED=1
+fi
+else
+print_status $BLUE "ℹ️ Tests disabled via config (ENABLE_TESTS=false)"
 fi
 
 echo
@@ -999,9 +1015,17 @@ if [[ -x ".security-controls/bin/pincheck" ]]; then
     if .security-controls/bin/pincheck pincheck --dir .github/workflows; then
         print_status $GREEN "✅ All GitHub Actions are properly pinned"
     else
-        print_status $RED "❌ Some GitHub Actions are not properly pinned"
-echo "   Run: .security-controls/bin/pincheck pincheck --dir .github/workflows"
-        FAILED=1
+        print_status $YELLOW "🛠  Auto-pinning unpinned references..."
+        if .security-controls/bin/pincheck autopin --dir .github/workflows --actions --images --quiet; then :; fi
+        rc=$?
+        if [[ $rc -eq 2 ]]; then
+            print_status $YELLOW "✏️  Updated workflow pins. Please commit the changes and push again."
+            git --no-pager diff -- .github/workflows | sed -n '1,120p' || true
+            FAILED=1
+        else
+            print_status $RED "❌ Some references remain unpinned or autopin failed"
+            FAILED=1
+        fi
     fi
 else
 print_status $YELLOW "⚠️ Pinning checker helper missing: .security-controls/bin/pincheck"
@@ -1497,6 +1521,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pinning:
     name: Validate GitHub Actions and container image pins
@@ -1540,10 +1568,11 @@ jobs:
           # 3) Download pinact v3.4.2 artifacts and verify signature + provenance + checksum
           VERSION=v3.4.2
           BASE="https://github.com/suzuki-shunsuke/pinact/releases/download/${VERSION}"
-          TAR="pinact_linux_amd64.tar.gz"
-          curl -fsSLo /tmp/checksums.txt "${BASE}/pinact_3.4.2_checksums.txt"
-          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/pinact_3.4.2_checksums.txt.pem"
-          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/pinact_3.4.2_checksums.txt.sig"
+          CHECKSUMS="pinact_${VERSION#v}_checksums.txt"
+          TAR="pinact_${VERSION#v}_linux_amd64.tar.gz"
+          curl -fsSLo /tmp/checksums.txt "${BASE}/${CHECKSUMS}"
+          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/pinact_${VERSION#v}_checksums.txt.pem"
+          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/pinact_${VERSION#v}_checksums.txt.sig"
           curl -fsSLo /tmp/${TAR} "${BASE}/${TAR}"
           curl -fsSLo /tmp/multiple.intoto.jsonl "${BASE}/multiple.intoto.jsonl"
           
@@ -1555,9 +1584,8 @@ jobs:
             --certificate-identity-regexp '^https://github.com/suzuki-shunsuke/(pinact|go-release-workflow)/.*' \
             /tmp/checksums.txt
           
-          # OpenSSL verification as defense in depth (base64-wrapped PEM and signature)
-          base64 -d /tmp/checksums.txt.pem > /tmp/checksums.txt.pem.dec
-          openssl x509 -in /tmp/checksums.txt.pem.dec -pubkey -noout > /tmp/pinact.pub
+          # OpenSSL verification as defense in depth (use PEM directly; decode only the signature)
+          openssl x509 -in /tmp/checksums.txt.pem -pubkey -noout > /tmp/pinact.pub
           base64 -d /tmp/checksums.txt.sig > /tmp/checksums.txt.sig.bin
           openssl dgst -sha256 -verify /tmp/pinact.pub -signature /tmp/checksums.txt.sig.bin /tmp/checksums.txt
           
@@ -1568,7 +1596,7 @@ jobs:
           slsa-verifier verify-artifact \
             --provenance-path /tmp/multiple.intoto.jsonl \
             --source-uri github.com/suzuki-shunsuke/pinact \
-            --source-tag v3.4.2 \
+            --source-tag "${VERSION}" \
             /tmp/${TAR}
           
           # Extract and install pinact
@@ -2499,6 +2527,11 @@ ENABLE_LARGE_FILE_CHECK=true
 LARGE_FILE_MAX_MB=10
 ENABLE_TECH_DEBT_CHECK=true
 ENABLE_EMPTY_FILE_CHECK=true
+# New toggles
+ENABLE_LINT=true
+ENABLE_TESTS=true
+# unit: cargo test --lib, all: cargo test --all
+TEST_SCOPE=all
 CONF_EOF
         print_status $GREEN "✅ Created $CONFIG_ENV_FILE"
     else
