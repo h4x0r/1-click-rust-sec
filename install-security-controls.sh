@@ -1482,6 +1482,109 @@ install_pre_push_hook() {
     fi
 }
 
+# Generate Pinning Validation workflow (standalone)
+generate_pinning_workflow() {
+    cat << 'EOF'
+name: Pinning Validation
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+jobs:
+  pinning:
+    name: Validate GitHub Actions and container image pins
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Quick local pincheck (if present)
+        run: |
+          if [ -x ./.security-controls/bin/pincheck ]; then
+            ./.security-controls/bin/pincheck pincheck --dir .github/workflows
+          else
+            echo "Local pincheck helper not present; skipping quick check."
+          fi
+
+      - name: Install and verify tools, then install pinact v3.4.2
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/bin"
+          export PATH="$HOME/.local/bin:$PATH"
+          
+          # 1) Install cosign v2.6.0 and verify with SHA256
+          COSIGN_VERSION=v2.6.0
+          COSIGN_BASE="https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}"
+          COSIGN_BIN="cosign-linux-amd64"
+          COSIGN_SHA="ea5c65f99425d6cfbb5c4b5de5dac035f14d09131c1a0ea7c7fc32eab39364f9"
+          curl -fsSLo /tmp/${COSIGN_BIN} "${COSIGN_BASE}/${COSIGN_BIN}"
+          echo "${COSIGN_SHA}  /tmp/${COSIGN_BIN}" | sha256sum -c -
+          install -m 0755 /tmp/${COSIGN_BIN} "$HOME/.local/bin/cosign"
+          
+          # 2) Install slsa-verifier v2.7.1 and verify SHA256
+          SLSA_VERIFIER_VERSION=v2.7.1
+          SLSA_BIN="slsa-verifier-linux-amd64"
+          SLSA_BASE="https://github.com/slsa-framework/slsa-verifier/releases/download/${SLSA_VERIFIER_VERSION}"
+          SLSA_SHA="946dbec729094195e88ef78e1734324a27869f03e2c6bd2f61cbc06bd5350339"
+          curl -fsSLo /tmp/${SLSA_BIN} "${SLSA_BASE}/${SLSA_BIN}"
+          echo "${SLSA_SHA}  /tmp/${SLSA_BIN}" | sha256sum -c -
+          install -m 0755 /tmp/${SLSA_BIN} "$HOME/.local/bin/slsa-verifier"
+          
+          # 3) Download pinact v3.4.2 artifacts and verify signature + provenance + checksum
+          VERSION=v3.4.2
+          BASE="https://github.com/suzuki-shunsuke/pinact/releases/download/${VERSION}"
+          TAR="pinact_linux_amd64.tar.gz"
+          curl -fsSLo /tmp/checksums.txt "${BASE}/pinact_3.4.2_checksums.txt"
+          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/pinact_3.4.2_checksums.txt.pem"
+          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/pinact_3.4.2_checksums.txt.sig"
+          curl -fsSLo /tmp/${TAR} "${BASE}/${TAR}"
+          curl -fsSLo /tmp/multiple.intoto.jsonl "${BASE}/multiple.intoto.jsonl"
+          
+          # Sigstore verification of checksums.txt certificate and signature (GitHub OIDC issuer)
+          cosign verify-blob \
+            --certificate /tmp/checksums.txt.pem \
+            --signature /tmp/checksums.txt.sig \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --certificate-identity-regexp '^https://github.com/suzuki-shunsuke/(pinact|go-release-workflow)/.*' \
+            /tmp/checksums.txt
+          
+          # OpenSSL verification as defense in depth (base64-wrapped PEM and signature)
+          base64 -d /tmp/checksums.txt.pem > /tmp/checksums.txt.pem.dec
+          openssl x509 -in /tmp/checksums.txt.pem.dec -pubkey -noout > /tmp/pinact.pub
+          base64 -d /tmp/checksums.txt.sig > /tmp/checksums.txt.sig.bin
+          openssl dgst -sha256 -verify /tmp/pinact.pub -signature /tmp/checksums.txt.sig.bin /tmp/checksums.txt
+          
+          # Checksum verification of the tarball
+          awk -v tar="${TAR}" -v path="/tmp/${TAR}" '$2==tar { print $1, path }' /tmp/checksums.txt | sha256sum -c -
+          
+          # SLSA provenance verification for the tarball
+          slsa-verifier verify-artifact \
+            --provenance-path /tmp/multiple.intoto.jsonl \
+            --source-uri github.com/suzuki-shunsuke/pinact \
+            --source-tag v3.4.2 \
+            /tmp/${TAR}
+          
+          # Extract and install pinact
+          tar -xzf /tmp/${TAR}
+          install -m 0755 pinact "$HOME/.local/bin/pinact"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Verify pinact version (non-blocking)
+        run: |
+          pinact --version || true
+
+      - name: Validate pins with pinact
+        run: |
+          pinact run --check
+EOF
+}
+
 # Generate CI workflow
 generate_ci_workflow() {
     if [[ "$RUST_PROJECT" == true ]]; then
@@ -1629,85 +1732,6 @@ jobs:
         name: software-bill-of-materials
         path: sbom.json
 
-  pinning-validation:
-    name: Pinning Validation
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-    - name: Validate pins with pincheck (script helper)
-      run: ./.security-controls/bin/pincheck pincheck --dir .github/workflows
-
-    - name: Install and verify tools, then install pinact v3.4.2
-      run: |
-        set -euo pipefail
-        mkdir -p "$HOME/.local/bin"
-        export PATH="$HOME/.local/bin:$PATH"
-        
-        # 1) Install cosign v2.6.0 and verify with OpenSSL and SHA256
-        COSIGN_VERSION=v2.6.0
-        COSIGN_BASE="https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}"
-        COSIGN_BIN="cosign-linux-amd64"
-        COSIGN_SHA="ea5c65f99425d6cfbb5c4b5de5dac035f14d09131c1a0ea7c7fc32eab39364f9"
-        curl -fsSLo /tmp/${COSIGN_BIN} "${COSIGN_BASE}/${COSIGN_BIN}"
-        echo "${COSIGN_SHA}  /tmp/${COSIGN_BIN}" | sha256sum -c -
-        install -m 0755 /tmp/${COSIGN_BIN} "$HOME/.local/bin/cosign"
-        
-        # 2) Install slsa-verifier v2.7.1 and verify SHA256
-        SLSA_VERIFIER_VERSION=v2.7.1
-        SLSA_BIN="slsa-verifier-linux-amd64"
-        SLSA_BASE="https://github.com/slsa-framework/slsa-verifier/releases/download/${SLSA_VERIFIER_VERSION}"
-        SLSA_SHA="946dbec729094195e88ef78e1734324a27869f03e2c6bd2f61cbc06bd5350339"
-        curl -fsSLo /tmp/${SLSA_BIN} "${SLSA_BASE}/${SLSA_BIN}"
-        echo "${SLSA_SHA}  /tmp/${SLSA_BIN}" | sha256sum -c -
-        install -m 0755 /tmp/${SLSA_BIN} "$HOME/.local/bin/slsa-verifier"
-        
-        # 3) Download pinact v3.4.2 artifacts and verify signature + provenance + checksum
-        VERSION=v3.4.2
-        BASE="https://github.com/suzuki-shunsuke/pinact/releases/download/${VERSION}"
-        TAR="pinact_linux_amd64.tar.gz"
-        curl -fsSLo /tmp/checksums.txt "${BASE}/pinact_3.4.2_checksums.txt"
-        curl -fsSLo /tmp/checksums.txt.pem "${BASE}/pinact_3.4.2_checksums.txt.pem"
-        curl -fsSLo /tmp/checksums.txt.sig "${BASE}/pinact_3.4.2_checksums.txt.sig"
-        curl -fsSLo /tmp/${TAR} "${BASE}/${TAR}"
-        curl -fsSLo /tmp/multiple.intoto.jsonl "${BASE}/multiple.intoto.jsonl"
-        
-        # Cosign verification of checksums.txt certificate and signature (GitHub OIDC issuer)
-        cosign verify-blob \
-          --certificate /tmp/checksums.txt.pem \
-          --signature /tmp/checksums.txt.sig \
-          --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-          --certificate-identity-regexp '^https://github.com/suzuki-shunsuke/(pinact|go-release-workflow)/.*' \
-          /tmp/checksums.txt
-        
-        # OpenSSL verification as defense in depth
-        base64 -d /tmp/checksums.txt.pem > /tmp/checksums.txt.pem.dec
-        openssl x509 -in /tmp/checksums.txt.pem.dec -pubkey -noout > /tmp/pinact.pub
-        base64 -d /tmp/checksums.txt.sig > /tmp/checksums.txt.sig.bin
-        openssl dgst -sha256 -verify /tmp/pinact.pub -signature /tmp/checksums.txt.sig.bin /tmp/checksums.txt
-        
-        # Checksum verification of the tarball
-        awk -v tar="${TAR}" -v path="/tmp/${TAR}" '$2==tar { print $1, path }' /tmp/checksums.txt | sha256sum -c -
-        
-        # SLSA provenance verification for the tarball
-        slsa-verifier verify-artifact \
-          --provenance-path /tmp/multiple.intoto.jsonl \
-          --source-uri github.com/suzuki-shunsuke/pinact \
-          --source-tag v3.4.2 \
-          /tmp/${TAR}
-        
-        # Extract and install pinact
-        tar -xzf /tmp/${TAR}
-        install -m 0755 pinact "$HOME/.local/bin/pinact"
-        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
-    - name: Validate pins with official pinact
-      run: |
-        if command -v pinact >/dev/null 2>&1; then
-          pinact run --check
-        else
-          echo "pinact not installed; skipping"
-        fi
 
   license-compliance:
     name: License Compliance
@@ -1952,85 +1976,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  pinning-validation:
-    name: Pinning Validation
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-    - name: Validate pins with pincheck (script helper)
-      run: ./.security-controls/bin/pincheck pincheck --dir .github/workflows
-
-    - name: Install and verify tools, then install pinact v3.4.2
-      run: |
-        set -euo pipefail
-        mkdir -p "$HOME/.local/bin"
-        export PATH="$HOME/.local/bin:$PATH"
-        
-        # 1) Install cosign v2.6.0 and verify with OpenSSL and SHA256
-        COSIGN_VERSION=v2.6.0
-        COSIGN_BASE="https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}"
-        COSIGN_BIN="cosign-linux-amd64"
-        COSIGN_SHA="ea5c65f99425d6cfbb5c4b5de5dac035f14d09131c1a0ea7c7fc32eab39364f9"
-        curl -fsSLo /tmp/${COSIGN_BIN} "${COSIGN_BASE}/${COSIGN_BIN}"
-        echo "${COSIGN_SHA}  /tmp/${COSIGN_BIN}" | sha256sum -c -
-        install -m 0755 /tmp/${COSIGN_BIN} "$HOME/.local/bin/cosign"
-        
-        # 2) Install slsa-verifier v2.7.1 and verify SHA256
-        SLSA_VERIFIER_VERSION=v2.7.1
-        SLSA_BIN="slsa-verifier-linux-amd64"
-        SLSA_BASE="https://github.com/slsa-framework/slsa-verifier/releases/download/${SLSA_VERIFIER_VERSION}"
-        SLSA_SHA="946dbec729094195e88ef78e1734324a27869f03e2c6bd2f61cbc06bd5350339"
-        curl -fsSLo /tmp/${SLSA_BIN} "${SLSA_BASE}/${SLSA_BIN}"
-        echo "${SLSA_SHA}  /tmp/${SLSA_BIN}" | sha256sum -c -
-        install -m 0755 /tmp/${SLSA_BIN} "$HOME/.local/bin/slsa-verifier"
-        
-        # 3) Download pinact v3.4.2 artifacts and verify signature + provenance + checksum
-        VERSION=v3.4.2
-        BASE="https://github.com/suzuki-shunsuke/pinact/releases/download/${VERSION}"
-        TAR="pinact_linux_amd64.tar.gz"
-        curl -fsSLo /tmp/checksums.txt "${BASE}/pinact_3.4.2_checksums.txt"
-        curl -fsSLo /tmp/checksums.txt.pem "${BASE}/pinact_3.4.2_checksums.txt.pem"
-        curl -fsSLo /tmp/checksums.txt.sig "${BASE}/pinact_3.4.2_checksums.txt.sig"
-        curl -fsSLo /tmp/${TAR} "${BASE}/${TAR}"
-        curl -fsSLo /tmp/multiple.intoto.jsonl "${BASE}/multiple.intoto.jsonl"
-        
-        # Cosign verification of checksums.txt certificate and signature (GitHub OIDC issuer)
-        cosign verify-blob \
-          --certificate /tmp/checksums.txt.pem \
-          --signature /tmp/checksums.txt.sig \
-          --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-          --certificate-identity-regexp '^https://github.com/suzuki-shunsuke/(pinact|go-release-workflow)/.*' \
-          /tmp/checksums.txt
-        
-        # OpenSSL verification as defense in depth
-        base64 -d /tmp/checksums.txt.pem > /tmp/checksums.txt.pem.dec
-        openssl x509 -in /tmp/checksums.txt.pem.dec -pubkey -noout > /tmp/pinact.pub
-        base64 -d /tmp/checksums.txt.sig > /tmp/checksums.txt.sig.bin
-        openssl dgst -sha256 -verify /tmp/pinact.pub -signature /tmp/checksums.txt.sig.bin /tmp/checksums.txt
-        
-        # Checksum verification of the tarball
-        awk -v tar="${TAR}" -v path="/tmp/${TAR}" '$2==tar { print $1, path }' /tmp/checksums.txt | sha256sum -c -
-        
-        # SLSA provenance verification for the tarball
-        slsa-verifier verify-artifact \
-          --provenance-path /tmp/multiple.intoto.jsonl \
-          --source-uri github.com/suzuki-shunsuke/pinact \
-          --source-tag v3.4.2 \
-          /tmp/${TAR}
-        
-        # Extract and install pinact
-        tar -xzf /tmp/${TAR}
-        install -m 0755 pinact "$HOME/.local/bin/pinact"
-        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
-    - name: Validate pins with official pinact
-      run: |
-        if command -v pinact >/dev/null 2>&1; then
-          pinact run --check
-        else
-          echo "pinact not installed; skipping"
-        fi
 
   vulnerability-scanning:
     name: Vulnerability Scanning
@@ -2093,28 +2038,53 @@ install_ci_workflow() {
     
     local workflows_dir=".github/workflows"
     local workflow_file="$workflows_dir/security.yml"
+    local pinning_file="$workflows_dir/pinning-validation.yml"
     
     # Create workflows directory if it doesn't exist
     if [[ "$DRY_RUN" == false ]]; then
         mkdir -p "$workflows_dir"
     fi
     
-    # Check if workflow already exists
+    # Check if security workflow already exists
     if [[ -f "$workflow_file" ]] && [[ "$FORCE_INSTALL" == false ]]; then
         print_status $YELLOW "⚠️  Security workflow already exists"
         read -p "Replace existing workflow? (y/N): " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_status $BLUE "📝 Skipping CI workflow installation"
+            print_status $BLUE "📝 Skipping security CI workflow installation"
+        else
+            if [[ "$DRY_RUN" == true ]]; then
+                print_status $BLUE "[DRY RUN] Would install CI workflow to $workflow_file"
+            else
+                generate_ci_workflow > "$workflow_file"
+                print_status $GREEN "✅ Security CI workflow installed: $workflow_file"
+            fi
+        fi
+    else
+        if [[ "$DRY_RUN" == true ]]; then
+            print_status $BLUE "[DRY RUN] Would install CI workflow to $workflow_file"
+        else
+            generate_ci_workflow > "$workflow_file"
+            print_status $GREEN "✅ Security CI workflow installed: $workflow_file"
+        fi
+    fi
+
+    # Install dedicated Pinning Validation workflow separately
+    if [[ -f "$pinning_file" ]] && [[ "$FORCE_INSTALL" == false ]]; then
+        print_status $YELLOW "⚠️  Pinning Validation workflow already exists"
+        read -p "Replace existing pinning workflow? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            print_status $BLUE "📝 Skipping pinning workflow installation"
             return 0
         fi
     fi
-    
+
     if [[ "$DRY_RUN" == true ]]; then
-        print_status $BLUE "[DRY RUN] Would install CI workflow to $workflow_file"
+        print_status $BLUE "[DRY RUN] Would install Pinning Validation workflow to $pinning_file"
     else
-        generate_ci_workflow > "$workflow_file"
-        print_status $GREEN "✅ Security CI workflow installed: $workflow_file"
+        generate_pinning_workflow > "$pinning_file"
+        print_status $GREEN "✅ Pinning Validation workflow installed: $pinning_file"
     fi
 }
 
