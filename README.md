@@ -13,6 +13,7 @@ Deploy 23 comprehensive security controls with cryptographic verification and ze
 [![Pinning Validation](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/pinning-validation.yml/badge.svg?branch=main)](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/pinning-validation.yml)
 [![Shell Lint](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/shell-lint.yml/badge.svg?branch=main)](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/shell-lint.yml)
 [![Docs Deploy](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/docs-deploy.yml/badge.svg?branch=main)](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/docs-deploy.yml)
+[![Helpers E2E](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/helpers-e2e.yml/badge.svg?branch=main)](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/helpers-e2e.yml)
 
 ## 🎯 Quick Start (Verified Installation)
 

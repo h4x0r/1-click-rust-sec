@@ -9,6 +9,13 @@ on:
       - 'SECURITY_CONTROLS_INSTALLATION.md'
       - 'SECURITY_CONTROLS_ARCHITECTURE.md'
       - 'docs/security/**'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'SECURITY_CONTROLS_INSTALLATION.md'
+      - 'SECURITY_CONTROLS_ARCHITECTURE.md'
+      - 'docs/security/**'
   workflow_dispatch:
 
 permissions:
@@ -40,6 +47,7 @@ jobs:
           path: site
 
   deploy:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs: build
     runs-on: ubuntu-latest
     environment:
