@@ -1570,9 +1570,10 @@ jobs:
           BASE="https://github.com/suzuki-shunsuke/pinact/releases/download/${VERSION}"
           CHECKSUMS="pinact_${VERSION#v}_checksums.txt"
           TAR="pinact_${VERSION#v}_linux_amd64.tar.gz"
-          curl -fsSLo /tmp/checksums.txt "${BASE}/${CHECKSUMS}"
-          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/pinact_${VERSION#v}_checksums.txt.pem"
-          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/pinact_${VERSION#v}_checksums.txt.sig"
+          # pinact releases publish checksums artifacts without the version prefix
+          curl -fsSLo /tmp/checksums.txt "${BASE}/checksums.txt"
+          curl -fsSLo /tmp/checksums.txt.pem "${BASE}/checksums.txt.pem"
+          curl -fsSLo /tmp/checksums.txt.sig "${BASE}/checksums.txt.sig"
           curl -fsSLo /tmp/${TAR} "${BASE}/${TAR}"
           curl -fsSLo /tmp/multiple.intoto.jsonl "${BASE}/multiple.intoto.jsonl"
           
