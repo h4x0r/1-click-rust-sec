@@ -1,6 +1,7 @@
 name: Pinning Validation
 
 on:
+  workflow_dispatch:
   push:
     branches: ["**"]
   pull_request:

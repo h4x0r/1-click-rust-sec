@@ -1488,6 +1488,7 @@ generate_pinning_workflow() {
 name: Pinning Validation
 
 on:
+  workflow_dispatch:
   push:
     branches: ["**"]
   pull_request:
@@ -2181,6 +2182,10 @@ Local runtime dependencies are minimal: git, curl, jq, and (for Rust projects) t
 cargo install cargo-audit cargo-license
 ```
 
+## 🔐 Enable Sigstore commit signing (YubiKey)
+
+See docs/security/YUBIKEY_SIGSTORE_GUIDE.md for a hardware-backed, keyless commit signing workflow using YubiKey + Sigstore. It improves supply-chain integrity with short-lived certs and public transparency logs.
+
 ## 📊 Security Benefits
 
 - **Zero Secret Exposure**: Secrets blocked at source
@@ -2207,15 +2212,268 @@ EOF
         print_status $GREEN "✅ Security README installed: $readme_file"
     fi
     
-    # Install architecture documentation
+# Install architecture documentation
     local arch_file="$DOCS_DIR/ARCHITECTURE.md"
     if [[ "$DRY_RUN" == true ]]; then
         print_status $BLUE "[DRY RUN] Would install architecture documentation to $arch_file"
     else
         # Copy from the embedded architecture documentation
-        # This would be the full SECURITY_CONTROLS_ARCHITECTURE.md content
         echo "# Security Controls Architecture - See main repository for full details" > "$arch_file"
         print_status $GREEN "✅ Architecture documentation installed: $arch_file"
+    fi
+
+    # Install YubiKey + Sigstore guide
+    local yubi_file="$DOCS_DIR/YUBIKEY_SIGSTORE_GUIDE.md"
+    if [[ "$DRY_RUN" == true ]]; then
+        print_status $BLUE "[DRY RUN] Would install YubiKey guide to $yubi_file"
+    else
+        cat << 'YUBI_EOF' > "$yubi_file"
+# YubiKey + Sigstore Integration Guide
+
+## 🔑 Hardware-Backed Git Commit Signing
+
+This guide explains how to use YubiKey hardware security keys with Sigstore for keyless, short-lived credential Git commit signing.
+
+---
+
+## 🎯 Overview
+
+### What is YubiKey + Sigstore Signing?
+
+**YubiKey + Sigstore** combines:
+- **Hardware Security**: Private keys never leave your YubiKey
+- **Keyless Signing**: No long-lived private keys to manage
+- **Short-lived Credentials**: Certificates valid for only 5-10 minutes
+- **Transparency**: All signatures logged publicly in Rekor
+- **OIDC Authentication**: Identity verified via GitHub/Google/etc.
+
+### Security Model
+
+```
+YubiKey (Hardware Root of Trust)
+    ↓
+GitHub OIDC (Identity Provider) 
+    ↓
+Fulcio CA (Short-lived Certificate Authority)
+    ↓
+gitsign (Git Signing Tool)
+    ↓
+Signed Commit + Rekor Transparency Log
+```
+
+---
+
+## 🛡️ Security Benefits
+
+### **Hardware Security (YubiKey)**
+- **Tamper-resistant**: Hardware-based cryptographic operations
+- **Phishing-resistant**: FIDO2/WebAuthn prevents credential theft
+- **Physical presence**: Touch required for every signature
+- **Private keys never exposed**: Keys generated and stored in hardware
+
+### **Keyless Architecture (Sigstore)**
+- **No key management**: No long-lived private keys to rotate/backup
+- **Short-lived certificates**: 5-10 minute validity reduces exposure
+- **Identity-based**: Certificates tied to verified OIDC identity
+- **Transparency logging**: All signatures publicly auditable
+
+### **Combined Benefits**
+- **Non-repudiation**: Cryptographic proof of authorship
+- **Supply chain security**: Verify commit authenticity
+- **Compliance ready**: Meets enterprise security requirements
+- **Zero maintenance**: No key lifecycle management
+
+---
+
+## 🏗️ Technical Architecture
+
+### OIDC Flow with YubiKey
+
+1. **Commit Attempt**: Developer runs `git commit`
+2. **gitsign Triggers**: Git calls gitsign for signing
+3. **OIDC Challenge**: gitsign opens browser for authentication
+4. **YubiKey Authentication**: GitHub requires YubiKey touch
+5. **Token Exchange**: Valid OIDC token received
+6. **Certificate Request**: gitsign requests cert from Fulcio
+7. **Short-lived Certificate**: Fulcio issues 5-10 minute certificate
+8. **Commit Signing**: Certificate signs commit
+9. **Transparency Log**: Signature recorded in Rekor
+
+### Key Components
+
+| Component | Purpose | Technology |
+|-----------|---------|------------|
+| **YubiKey** | Hardware root of trust | FIDO2/WebAuthn |
+| **GitHub** | OIDC identity provider | OAuth 2.0 + WebAuthn |
+| **Fulcio** | Certificate authority | X.509 certificates |
+| **gitsign** | Git signing integration | Sigstore client |
+| **Rekor** | Transparency log | Merkle tree logging |
+
+---
+
+## 🚀 Quick Setup
+
+### **Prerequisites**
+- YubiKey 5 series with FIDO2 support
+- GitHub account with YubiKey registered as security key
+- Go installed (for gitsign installation)
+
+### **1-Command Setup**
+```bash
+# Download the YubiKey toggle script
+curl -O https://raw.githubusercontent.com/4n6h4x0r/1-click-rust-sec/main/yubikey-gitsign-toggle.sh
+curl -O https://raw.githubusercontent.com/4n6h4x0r/1-click-rust-sec/main/yubikey-gitsign-toggle.sh.sha256
+
+# Verify integrity
+sha256sum -c yubikey-gitsign-toggle.sh.sha256
+
+# Run interactive setup
+chmod +x yubikey-gitsign-toggle.sh
+./yubikey-gitsign-toggle.sh setup
+```
+
+### **Manual Setup**
+```bash
+# Install gitsign
+go install github.com/sigstore/gitsign@latest
+
+# Configure Git for Sigstore
+git config --global gitsign.fulcio-url "https://fulcio.sigstore.dev"
+git config --global gitsign.rekor-url "https://rekor.sigstore.dev"
+git config --global gitsign.oidc-issuer "https://token.actions.githubusercontent.com"
+git config --global gitsign.oidc-client-id "sigstore"
+
+# Enable signing
+git config --global commit.gpgsign true
+git config --global tag.gpgsign true
+git config --global gpg.x509.program gitsign
+git config --global gpg.format x509
+```
+
+---
+
+## 🔧 Configuration Details
+
+### Sigstore Endpoints
+
+| Endpoint | Purpose | URL |
+|----------|---------|-----|
+| **Fulcio** | Certificate Authority | `https://fulcio.sigstore.dev` |
+| **Rekor** | Transparency Log | `https://rekor.sigstore.dev` |
+| **OIDC Issuer** | GitHub Identity Provider | `https://token.actions.githubusercontent.com` |
+
+### Git Configuration
+
+```bash
+# Core signing configuration
+commit.gpgsign=true                    # Sign all commits
+tag.gpgsign=true                       # Sign all tags
+gpg.format=x509                        # Use X.509 certificates
+gpg.x509.program=gitsign               # Use gitsign as signing program
+
+# Sigstore-specific configuration
+gitsign.fulcio-url=https://fulcio.sigstore.dev
+gitsign.rekor-url=https://rekor.sigstore.dev
+gitsign.oidc-issuer=https://token.actions.githubusercontent.com
+gitsign.oidc-client-id=sigstore
+```
+
+---
+
+## 🎮 Usage Workflow
+
+### **Daily Development**
+
+1. **Regular Development**: Code, stage changes normally
+2. **Commit**: Run `git commit -m "Your commit message"`
+3. **Browser Opens**: gitsign opens browser for GitHub OAuth
+4. **YubiKey Touch**: GitHub prompts for YubiKey authentication
+5. **Touch YubiKey**: Physical touch authenticates your identity
+6. **Automatic Signing**: gitsign receives certificate and signs commit
+7. **Transparency Logging**: Signature automatically logged to Rekor
+
+### **Verification**
+
+```bash
+# Verify your signed commits
+git log --show-signature
+
+# Check specific commit
+git log --show-signature -1 HEAD
+
+# Output example:
+# gitsign: Good signature from [your-github-email]
+# gitsign: Certificate was issued by Fulcio
+# gitsign: Certificate identity: https://github.com/your-username
+```
+
+### **Toggle On/Off**
+
+```bash
+# Check current status
+./yubikey-gitsign-toggle.sh status
+
+# Disable temporarily
+./yubikey-gitsign-toggle.sh disable
+
+# Re-enable
+./yubikey-gitsign-toggle.sh enable
+
+# Test signing
+./yubikey-gitsign-toggle.sh test
+```
+
+---
+
+## 🔒 Security Considerations
+
+- Use multiple registered YubiKeys for redundancy
+- Keep your tooling up-to-date (gitsign, cosign)
+- Verify signatures and Rekor transparency log entries regularly
+
+---
+
+## 🔬 Advanced Configuration
+
+### **Custom OIDC Provider**
+
+```bash
+# Use custom OIDC provider (e.g., Google)
+git config --global gitsign.oidc-issuer "https://accounts.google.com"
+git config --global gitsign.oidc-client-id "your-client-id"
+```
+
+### **Enterprise Fulcio Instance**
+
+```bash
+# Use private Fulcio instance
+git config --global gitsign.fulcio-url "https://fulcio.your-company.com"
+git config --global gitsign.rekor-url "https://rekor.your-company.com"
+```
+
+### **CI/CD Integration**
+
+- GitHub Actions provides OIDC tokens; gitsign can verify runner identity where applicable.
+
+---
+
+## 🎯 Best Practices
+
+- Keep YubiKey connected during development to minimize prompts
+- Register backup YubiKeys
+- Treat --no-verify pushes as emergencies only
+
+---
+
+## 🔗 Resources
+
+- Sigstore Documentation: https://docs.sigstore.dev/
+- gitsign: https://github.com/sigstore/gitsign
+- YubiKey Manager: https://developers.yubico.com/yubikey-manager/
+- Rekor: https://github.com/sigstore/rekor
+
+YUBI_EOF
+        print_status $GREEN "✅ YubiKey guide installed: $yubi_file"
     fi
 }
 
