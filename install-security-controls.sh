@@ -823,27 +823,34 @@ run_pin_checks() {
         return 0
     }
     while IFS= read -r -d '' f; do
-        awk -v FNAME="$f" '
+        rm -f "$f.uses.tmp"
+        awk -v FNAME="$f" -v UFILE="$f.uses.tmp" '
           function ltrim(s) { sub(/^\s+/, "", s); return s }
           function indent(s) { match(s, /^ */); return RLENGTH }
           BEGIN{ in_container=0; cont_indent=0; in_services=0; serv_indent=0; bad=0 }
           /^[[:space:]]*#/ { next }
           {
             line=$0; ind=indent(line); l=ltrim(line)
-            if (l ~ /^container:/) { in_container=1; cont_indent=ind; next }
-            if (in_container && ind <= cont_indent) { in_container=0 }
+            if (l ~ /^container:/) {
+              if (l ~ /^container:[[:space:]]*[^\{\[]/) {
+                img=l; sub(/^container:[[:space:]]*/, "", img)
+                if (img !~ /@sha256:/) { printf "   %s: jobs.container: image not pinned: %s\n", FNAME, img; bad++ }
+              } else {
+                in_container=1; cont_indent=ind
+              }
+            } else if (in_container && ind <= cont_indent) { in_container=0 }
             if (l ~ /^services:/) { in_services=1; serv_indent=ind; next }
             if (in_services && ind <= serv_indent) { in_services=0 }
             if ((in_container || in_services) && l ~ /^image:[[:space:]]*/) {
               img=l; sub(/^image:[[:space:]]*/, "", img)
-              gsub(/^\"|\"$|^\'|\'$/, "", img)
+              gsub(/^\"|\"$/, "", img); gsub(/^\047|\047$/, "", img)
               if (img !~ /@sha256:/) { printf "   %s: image not pinned: %s\n", FNAME, img; bad++ }
             }
           }
           END{ if (bad>0) exit 2 }' "$f" || violations=$((violations+1))
         while IFS= read -r uses; do
             check_uses_line "$f" "$uses" || violations=$((violations+1))
-        done < <(grep -E '^[[:space:]]*uses:[[:space:]]*' "$f" | sed -E 's/^[[:space:]]*uses:[[:space:]]*//; s/["\'']//g')
+        done < "$f.uses.tmp"
     done < <(find "$wf_dir" -type f \( -name "*.yml" -o -name "*.yaml" \) -print0)
     [[ $violations -eq 0 ]]
 }
