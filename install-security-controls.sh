@@ -2828,7 +2828,7 @@ rewrite_actions_in_file() {
   while IFS= read -r line; do
     if [[ "$line" =~ ^[[:space:]]*uses:[[:space:]]* ]]; then
       local raw="${line#*uses:}"
-      raw=$(echo "$raw" | sed -E 's/^[[:space:]]+//; s/["\'\']//g')
+      raw=$(echo "$raw" | sed -E "s/^[[:space:]]+//; s/[\"']+//g")
       if [[ "$raw" == docker://* ]]; then
         : # handled by images rewrite
       else
@@ -2862,9 +2862,9 @@ rewrite_images_in_file() {
   local file="$1" changed=0 tmp
   tmp=$(mktemp)
   while IFS= read -r line; do
-    local ltrimmed=$(echo "$line" | sed -E 's/^\s+//')
+    local ltrimmed=$(echo "$line" | sed -E "s/^[[:space:]]+//")
     if [[ "$ltrimmed" =~ ^(image:|container:) ]]; then
-      local val=$(echo "$line" | sed -E 's/^[^:]+:\s*//; s/["\'\']//g')
+      local val=$(echo "$line" | sed -E "s/^[^:]+:[[:space:]]*//; s/[\"']+//g")
       if [[ "$val" != *"@sha256:"* ]]; then
         local pinned
         pinned=$(resolve_image_digest "$val" || true)
@@ -2878,7 +2878,7 @@ rewrite_images_in_file() {
       fi
     fi
     if [[ "$ltrimmed" =~ ^uses:\s*docker:// ]]; then
-      local val=$(echo "$line" | sed -E 's/^\s*uses:\s*//; s/["\'\']//g')
+      local val=$(echo "$line" | sed -E "s/^[[:space:]]*uses:[[:space:]]*//; s/[\"']+//g")
       if [[ "$val" != *"@sha256:"* ]]; then
         local pinned
         pinned=$(resolve_image_digest "$val" || true)
