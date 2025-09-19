@@ -103,6 +103,7 @@ jobs:
             cat /tmp/checksums.txt >&2
             exit 1
           fi
+          echo "Selected tarball: ${TARBALL}"
 
           # Download the tarball using the discovered name
           curl -fsSLo "/tmp/${TARBALL}" "${BASE}/${TARBALL}"
@@ -118,6 +119,7 @@ jobs:
 
           # SLSA provenance verification for the tarball (if provenance is available)
           if [[ -n "${PROV}" ]]; then
+            echo "Selected provenance: ${PROV}"
             slsa-verifier verify-artifact \
               --provenance-path "${PROV}" \
               --source-uri github.com/suzuki-shunsuke/pinact \
