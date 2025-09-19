@@ -156,6 +156,15 @@ jobs:
         if: ${{ steps.pinact_check.outputs.rc != '0' }}
         run: |
           echo "pinact --check failed (rc=${{ steps.pinact_check.outputs.rc }})"
-          echo "--- pinact --check (first 120 lines) ---"
-          sed -n '1,120p' /tmp/pinact-check.log || true
+          echo "--- pinact --check (first 400 lines) ---"
+          sed -n '1,400p' /tmp/pinact-check.log || true
+          echo "--- suspected violations (grep) ---"
+          grep -nE 'unpinned|not pinned|missing @|image not pinned|ref not a 40-hex|docker action not pinned' /tmp/pinact-check.log || true
           exit 1
+
+      - name: Upload pinact log on failure
+        if: ${{ steps.pinact_check.outputs.rc != '0' }}
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: pinact-check-log
+          path: /tmp/pinact-check.log
