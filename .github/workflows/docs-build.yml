@@ -23,16 +23,44 @@ jobs:
           mkdocs build --strict -d site
 
       - name: Check links (Markdown) with lychee
+        id: lychee
+        continue-on-error: true
         uses: lycheeverse/lychee-action@2b973e86fc7b1f6b36a93795fe2c9c6ae1118621 # v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: >-
-            --config lychee.toml
+            --config lychee.toml --format markdown --output lychee-report.md
             docs/**/*.md README.md SECURITY_CONTROLS_INSTALLATION.md SECURITY_CONTROLS_ARCHITECTURE.md docs/security/*.md
+
+      - name: Upload link-check report
+        if: always()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: lychee-report
+          path: lychee-report.md
+
+      - name: Comment on PR with lychee failures
+        if: ${{ github.event_name == 'pull_request' && steps.lychee.outcome == 'failure' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          SNIP=$(head -n 200 lychee-report.md | sed 's/`/\`/g')
+          BODY=$(jq -n --arg snip "$SNIP" '{body: ("Docs link check failed. First lines of report:\n\n" + $snip) }')
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            -d "${BODY}"
 
       - name: Upload site artifact
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           name: mkdocs-site
           path: site/
+
+      - name: Fail if lychee failed
+        if: ${{ steps.lychee.outcome == 'failure' }}
+        run: exit 1
