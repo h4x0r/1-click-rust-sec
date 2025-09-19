@@ -76,9 +76,17 @@ jobs:
             --certificate-identity-regexp '^https://github.com/suzuki-shunsuke/(pinact|go-release-workflow)/.*' \
             /tmp/checksums.txt
           
-          # OpenSSL verification as defense in depth (use PEM directly; decode only the signature)
-          openssl x509 -in /tmp/checksums.txt.pem -pubkey -noout > /tmp/pinact.pub
-          base64 -d /tmp/checksums.txt.sig > /tmp/checksums.txt.sig.bin
+          # OpenSSL verification as defense in depth
+          # 1) Extract pubkey from certificate: try PEM directly, else decode base64-wrapped cert
+          if ! openssl x509 -in /tmp/checksums.txt.pem -pubkey -noout > /tmp/pinact.pub 2>/dev/null; then
+            base64 -d /tmp/checksums.txt.pem > /tmp/checksums.txt.pem.dec
+            openssl x509 -in /tmp/checksums.txt.pem.dec -pubkey -noout > /tmp/pinact.pub
+          fi
+          # 2) Prepare signature: decode base64 if needed, else use raw signature
+          if ! base64 -d /tmp/checksums.txt.sig > /tmp/checksums.txt.sig.bin 2>/dev/null; then
+            cp /tmp/checksums.txt.sig /tmp/checksums.txt.sig.bin
+          fi
+          # 3) Verify
           openssl dgst -sha256 -verify /tmp/pinact.pub -signature /tmp/checksums.txt.sig.bin /tmp/checksums.txt
 
           # Determine Linux amd64 tarball name from checksums (support multiple conventions)
