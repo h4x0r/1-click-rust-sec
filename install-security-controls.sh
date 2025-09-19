@@ -2731,18 +2731,18 @@ check_images_in_yaml() {
       }
       if ((in_container || in_services) && l ~ /^image:[[:space:]]*/) {
         img=l; sub(/^image:[[:space:]]*/, "", img)
-        gsub(/^\"|\"$|^\'|\'$/, "", img)
+        gsub(/^\"|\"$/, "", img); gsub(/^\047|\047$/, "", img)
         if (img !~ /@sha256:/) { printf "%s: image not pinned: %s\n", FNAME, img; violations++ }
       }
       if (!in_container && !in_services && l ~ /^image:[[:space:]]*/) {
         img=l; sub(/^image:[[:space:]]*/, "", img)
-        gsub(/^\"|\"$|^\'|\'$/, "", img)
+        gsub(/^\"|\"$/, "", img); gsub(/^\047|\047$/, "", img)
         if (img ~ /[A-Za-z0-9_\-]+\/[A-Za-z0-9_\-]+/ && img !~ /@sha256:/) {
           printf "%s: image not pinned: %s\n", FNAME, img; violations++
         }
       }
       if (l ~ /^uses:[[:space:]]*/) {
-        val=l; sub(/^uses:[[:space:]]*/, "", val); gsub(/^\"|\"$|^\'|\'$/, "", val)
+        val=l; sub(/^uses:[[:space:]]*/, "", val); gsub(/^\"|\"$/, "", val); gsub(/^\047|\047$/, "", val)
         printf "USES %s\n", val > "/dev/stderr"
       }
     }
@@ -2834,12 +2834,12 @@ rewrite_actions_in_file() {
       else
         # owner/repo@ref
         local or="${raw%@*}" ref="${raw##*@}"
-        if [[ -n "$ref" && ! $(is_hex40 "$ref"; echo $?) -eq 0 ]]; then
+        if [[ -n "$ref" ]] && ! is_hex40 "$ref"; then
           local sha
           sha=$(resolve_action_sha "$or" "$ref" || true)
           if [[ -n "$sha" ]]; then
             local newline
-            newline=$(echo "$line" | sed -E "s#uses:[[:space:]]*[\"\']?${or}@[^\"'[:space:]]+#uses: ${or}@${sha}#")
+            newline=$(echo "$line" | sed -E "s#uses:[[:space:]]*[\\\"\\']?${or}@[^^\\\"'[:space:]]+#uses: ${or}@${sha}#")
             if [[ "$newline" != "$line" ]]; then
               line="$newline"; changed=1; say "Pinned action ${or}@${ref} -> ${sha} in ${file}"
             fi
