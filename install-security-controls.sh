@@ -1748,12 +1748,34 @@ jobs:
     steps:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
+    - name: Detect Rust packages
+      id: rust
+      run: |
+        set -euo pipefail
+        if [ -f Cargo.toml ]; then
+          if grep -q '^[[:space:]]*\[package\]' Cargo.toml; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          elif grep -q '^[[:space:]]*\[workspace\]' Cargo.toml && grep -q '^[[:space:]]*members[[:space:]]*=' Cargo.toml; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=false" >> "$GITHUB_OUTPUT"
+          fi
+        else
+          echo "has=false" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Install Rust toolchain
+      if: ${{ steps.rust.outputs.has == 'true' }}
       uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17 # stable
       with:
         toolchain: stable
 
+    - name: Skip Security Audit (no Rust packages)
+      if: ${{ steps.rust.outputs.has != 'true' }}
+      run: echo "No Rust packages detected; skipping Security Audit job steps."
+
     - name: Cache dependencies
+      if: ${{ steps.rust.outputs.has == 'true' }}
       uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
       with:
         path: |
@@ -1767,23 +1789,29 @@ jobs:
           ${{ runner.os }}-cargo-audit-
 
     - name: Install cargo-audit and cargo-auditable
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: |
         cargo install --locked cargo-audit
         cargo install --locked cargo-auditable
 
     - name: Build with auditable metadata
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: cargo auditable build --release
 
     - name: Run cargo audit
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: cargo audit
 
     - name: Run cargo audit for dependencies
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: cargo audit --db advisory-db --json | tee audit-report.json
 
     - name: Run cargo audit on binary
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: cargo audit bin target/release/*
 
     - name: Upload audit report
+      if: ${{ steps.rust.outputs.has == 'true' }}
       uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
       with:
         name: security-audit-report
@@ -1832,21 +1860,41 @@ jobs:
     steps:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
+    - name: Detect Rust packages
+      id: rust
+      run: |
+        set -euo pipefail
+        if [ -f Cargo.toml ]; then
+          if grep -q '^[[:space:]]*\[package\]' Cargo.toml; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          elif grep -q '^[[:space:]]*\[workspace\]' Cargo.toml && grep -q '^[[:space:]]*members[[:space:]]*=' Cargo.toml; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=false" >> "$GITHUB_OUTPUT"
+          fi
+        else
+          echo "has=false" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Initialize CodeQL
+      if: ${{ steps.rust.outputs.has == 'true' }}
       uses: github/codeql-action/init@396bb3e45325a47dd9ef434068033c6d5bb0d11a # v3.26.7
       with:
         languages: rust
         queries: +security-and-quality
 
     - name: Install Rust toolchain
+      if: ${{ steps.rust.outputs.has == 'true' }}
       uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17 # stable
       with:
         toolchain: stable
 
     - name: Build project
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: cargo build --release
 
     - name: Perform CodeQL Analysis
+      if: ${{ steps.rust.outputs.has == 'true' }}
       uses: github/codeql-action/analyze@396bb3e45325a47dd9ef434068033c6d5bb0d11a # v3.26.7
 
   supply-chain:
@@ -1855,19 +1903,42 @@ jobs:
     steps:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
+    - name: Detect Rust packages
+      id: rust
+      run: |
+        set -euo pipefail
+        if [ -f Cargo.toml ]; then
+          if grep -q '^[[:space:]]*\[package\]' Cargo.toml; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          elif grep -q '^[[:space:]]*\[workspace\]' Cargo.toml && grep -q '^[[:space:]]*members[[:space:]]*=' Cargo.toml; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=false" >> "$GITHUB_OUTPUT"
+          fi
+        else
+          echo "has=false" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Install Rust toolchain
+      if: ${{ steps.rust.outputs.has == 'true' }}
       uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17 # stable
       with:
         toolchain: stable
 
     - name: Generate SBOM
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: |
         cargo install --locked cargo-auditable
         cargo auditable build --release
         cargo install --locked cargo-cyclonedx
         cargo cyclonedx --output-format json --output-file sbom.json
 
+    - name: Skip Supply Chain (no Rust packages)
+      if: ${{ steps.rust.outputs.has != 'true' }}
+      run: echo "No Rust packages detected; skipping Supply Chain job steps."
+
     - name: Upload SBOM
+      if: ${{ steps.rust.outputs.has == 'true' }}
       uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
       with:
         name: software-bill-of-materials
@@ -1880,20 +1951,40 @@ jobs:
     steps:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
+    - name: Detect Rust packages
+      id: rust
+      run: |
+        set -euo pipefail
+        if [ -f Cargo.toml ]; then
+          if grep -q '^[[:space:]]*\[package\]' Cargo.toml; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          elif grep -q '^[[:space:]]*\[workspace\]' Cargo.toml && grep -q '^[[:space:]]*members[[:space:]]*=' Cargo.toml; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=false" >> "$GITHUB_OUTPUT"
+          fi
+        else
+          echo "has=false" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Install Rust toolchain
+      if: ${{ steps.rust.outputs.has == 'true' }}
       uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17 # stable
       with:
         toolchain: stable
 
     - name: Install cargo-license
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: cargo install --locked cargo-license
 
     - name: Generate license report
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: |
         cargo license --json > licenses.json
         cargo license --tsv > licenses.tsv
 
     - name: Check for copyleft licenses
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: |
         COPYLEFT=$(cargo license --json | jq -r '.[] | select(.license | test("GPL-2.0|GPL-3.0|AGPL|LGPL"; "i")) | "\(.name): \(.license)"' || true)
         if [ -n "$COPYLEFT" ]; then
@@ -1902,6 +1993,10 @@ jobs:
         else
           echo "No problematic copyleft licenses found"
         fi
+
+    - name: Skip License Compliance (no Rust packages)
+      if: ${{ steps.rust.outputs.has != 'true' }}
+      run: echo "No Rust packages detected; skipping License Compliance job steps."
 
     - name: Upload license report
       uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
@@ -1917,20 +2012,40 @@ jobs:
     steps:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
+    - name: Detect Rust packages
+      id: rust
+      run: |
+        set -euo pipefail
+        if [ -f Cargo.toml ]; then
+          if grep -q '^[[:space:]]*\[package\]' Cargo.toml; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          elif grep -q '^[[:space:]]*\[workspace\]' Cargo.toml && grep -q '^[[:space:]]*members[[:space:]]*=' Cargo.toml; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=false" >> "$GITHUB_OUTPUT"
+          fi
+        else
+          echo "has=false" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Install Rust toolchain
+      if: ${{ steps.rust.outputs.has == 'true' }}
       uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17 # stable
       with:
         toolchain: stable
 
     - name: Build release binary
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: cargo build --release
 
     - name: Install binary analysis tools
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: |
         cargo install --locked cargo-binutils
         rustup component add llvm-tools-preview
 
     - name: Analyze binary for embedded secrets
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: |
         echo "🔍 Scanning binary for embedded secrets..."
         for binary in target/release/*; do
@@ -1947,6 +2062,7 @@ jobs:
         done
 
     - name: Check for debug symbols
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: |
         echo "🔍 Checking for debug symbols..."
         for binary in target/release/*; do
@@ -1960,6 +2076,7 @@ jobs:
         done
 
     - name: Upload binary analysis results
+      if: ${{ steps.rust.outputs.has == 'true' }}
       uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
       with:
         name: binary-analysis-results
@@ -2021,12 +2138,30 @@ jobs:
     steps:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
+    - name: Detect Rust packages
+      id: rust
+      run: |
+        set -euo pipefail
+        if [ -f Cargo.toml ]; then
+          if grep -q '^[[:space:]]*\[package\]' Cargo.toml; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          elif grep -q '^[[:space:]]*\[workspace\]' Cargo.toml && grep -q '^[[:space:]]*members[[:space:]]*=' Cargo.toml; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=false" >> "$GITHUB_OUTPUT"
+          fi
+        else
+          echo "has=false" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Install Rust toolchain
+      if: ${{ steps.rust.outputs.has == 'true' }}
       uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17 # stable
       with:
         toolchain: stable
 
     - name: Validate Cargo.lock
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: |
         echo "🔍 Validating Cargo.lock..."
         if [[ ! -f "Cargo.lock" ]]; then
@@ -2043,6 +2178,7 @@ jobs:
         echo "✅ Cargo.lock is valid and up-to-date"
 
     - name: Check for feature flag security
+      if: ${{ steps.rust.outputs.has == 'true' }}
       run: |
         echo "🔍 Checking feature flag configuration..."
         
@@ -2057,9 +2193,13 @@ jobs:
         if cargo tree --format "{f}" | grep -i debug >/dev/null 2>&1; then
           echo "::notice::Debug-related features detected in dependency tree"
           echo "Review feature flags for production appropriateness"
-        else
-          echo "✅ No obvious debug features in dependency tree"
-        fi
+          else
+            echo "✅ No obvious debug features in dependency tree"
+          fi
+
+    - name: Skip Enhanced Security (no Rust packages)
+      if: ${{ steps.rust.outputs.has != 'true' }}
+      run: echo "No Rust packages detected; skipping Enhanced Security job steps."
 
   gitsign-verification:
     name: Commit Signature Verification
