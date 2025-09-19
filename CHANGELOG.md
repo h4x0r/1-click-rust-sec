@@ -1,3 +1,7 @@
+## v1.5.0 - 2025-09-19
+
+- Bump to v1.5.0
+
 # Changelog
 
 All notable changes to the 1-Click Rust Security Controls will be documented in this file.

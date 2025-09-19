@@ -4,7 +4,7 @@
 # Installs comprehensive security controls for any repository
 # Industry-leading security architecture for Rust projects
 #
-# Version: 1.4.0
+# Version: 1.5.0
 # License: Apache-2.0
 # Repository: https://github.com/4n6h4x0r/1-click-rust-sec
 
@@ -20,7 +20,7 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m' # No Color
 
 # Configuration
-readonly SCRIPT_VERSION="1.4.0"
+readonly SCRIPT_VERSION="1.5.0"
 readonly REQUIRED_TOOLS_FILE="security-tools-requirements.txt"
 readonly PRE_PUSH_HOOK_FILE="security-pre-push-hook"
 readonly CI_WORKFLOW_FILE="security-ci-workflow.yml"
