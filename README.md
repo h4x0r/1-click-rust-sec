@@ -8,6 +8,8 @@ Deploy 23 comprehensive security controls with cryptographic verification and ze
 [![Performance](https://img.shields.io/badge/Pre--Push-~75s-blue.svg)](#performance)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-2021%2B-orange.svg)](https://www.rust-lang.org/)
+[![Security CI](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/security.yml)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://4n6h4x0r.github.io/1-click-rust-sec/)
 
 ## 🎯 Quick Start (Verified Installation)
 
