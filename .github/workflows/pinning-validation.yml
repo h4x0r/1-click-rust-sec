@@ -38,11 +38,6 @@ jobs:
           COSIGN_SHA="ea5c65f99425d6cfbb5c4b5de5dac035f14d09131c1a0ea7c7fc32eab39364f9"
           curl -fsSLo /tmp/${COSIGN_BIN} "${COSIGN_BASE}/${COSIGN_BIN}"
           echo "${COSIGN_SHA}  /tmp/${COSIGN_BIN}" | sha256sum -c -
-          curl -fsSLo /tmp/${COSIGN_BIN}-keyless.pem "${COSIGN_BASE}/${COSIGN_BIN}-keyless.pem"
-          curl -fsSLo /tmp/${COSIGN_BIN}-keyless.sig "${COSIGN_BASE}/${COSIGN_BIN}-keyless.sig"
-          openssl x509 -in /tmp/${COSIGN_BIN}-keyless.pem -pubkey -noout > /tmp/cosign.pub
-          base64 -d /tmp/${COSIGN_BIN}-keyless.sig > /tmp/${COSIGN_BIN}-keyless.sig.bin
-          openssl dgst -sha256 -verify /tmp/cosign.pub -signature /tmp/${COSIGN_BIN}-keyless.sig.bin /tmp/${COSIGN_BIN}
           install -m 0755 /tmp/${COSIGN_BIN} "$HOME/.local/bin/cosign"
           
           # 2) Install slsa-verifier v2.7.1 and verify SHA256
