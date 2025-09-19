@@ -28,7 +28,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: >-
-            --verbose --no-progress --require-https --max-concurrency 8 --retry-wait-time 2 --retry-count 2
+            --config lychee.toml
             docs/**/*.md README.md SECURITY_CONTROLS_INSTALLATION.md SECURITY_CONTROLS_ARCHITECTURE.md docs/security/*.md
 
       - name: Upload site artifact
