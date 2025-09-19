@@ -1677,7 +1677,7 @@ jobs:
           --certificate /tmp/checksums.txt.pem \
           --signature /tmp/checksums.txt.sig \
           --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-          --certificate-identity-regexp '^https://github.com/suzuki-shunsuke/pinact/.*' \
+          --certificate-identity-regexp '^https://github.com/suzuki-shunsuke/(pinact|go-release-workflow)/.*' \
           /tmp/checksums.txt
         
         # OpenSSL verification as defense in depth
@@ -1999,7 +1999,7 @@ jobs:
           --certificate /tmp/checksums.txt.pem \
           --signature /tmp/checksums.txt.sig \
           --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-          --certificate-identity-regexp '^https://github.com/suzuki-shunsuke/pinact/.*' \
+          --certificate-identity-regexp '^https://github.com/suzuki-shunsuke/(pinact|go-release-workflow)/.*' \
           /tmp/checksums.txt
         
         # OpenSSL verification as defense in depth
