@@ -1,0 +1,362 @@
+# CLAUDE.md - Design Principles for 1-Click Rust Security
+
+## 🎯 Project Mission
+
+**1-Click Rust Security** provides cryptographically verified, comprehensive security controls for Rust projects with zero compromise on developer experience. We democratize enterprise-grade security for the entire Rust ecosystem.
+
+---
+
+## 🏗️ Core Design Principles
+
+### 1. **Security Without Compromise**
+> "Security tools must be more secure than the problems they solve"
+
+- **Cryptographic Verification First**: Every installer, update, and component must be cryptographically verified
+- **No Pipe-to-Bash**: Force conscious verification before execution
+- **Supply Chain Paranoia**: Assume all external dependencies are compromised until proven otherwise
+- **Defense in Depth**: Multiple overlapping security controls, not single points of failure
+- **Fail Secure**: When in doubt, block rather than allow
+
+**Implementation Guidelines:**
+- SHA256 checksums for all downloadable components
+- GPG signatures for critical releases
+- Signed commits for all repository changes
+- Reproducible builds with deterministic outputs
+- Audit trails for all security decisions
+
+### 2. **Developer Experience as Security Feature**
+> "Friction is the enemy of security adoption"
+
+- **Sub-80 Second Pre-Push**: Fast feedback prevents security bypass behavior
+- **Clear Fix Instructions**: Every failure provides specific remediation steps
+- **Progressive Enhancement**: Start minimal, add security incrementally
+- **Sensible Defaults**: Secure-by-default configuration requiring no expertise
+- **Emergency Escape Hatches**: `--no-verify` available but discouraged
+
+**Performance Budget:**
+- Pre-push hook: < 60 seconds total
+- Individual checks: < 30 seconds each
+- Tool installation: < 5 minutes
+- First-time setup: < 10 minutes
+
+### 3. **Two-Tier Security Architecture**
+> "Fast blocking for critical issues, comprehensive analysis for everything else"
+
+**Pre-Push Tier (< 60s):**
+- Blocks secrets, vulnerabilities, and critical policy violations
+- Provides immediate feedback to developers
+- Optimized for speed and zero false positives
+- Essential security controls only
+
+**Post-Push Tier (CI Pipeline):**
+- Comprehensive security analysis and reporting
+- SAST, vulnerability scanning, compliance checks
+- Artifact generation (SBOMs, reports, metrics)
+- Human review workflows
+
+### 4. **Cryptographic Trust Model**
+> "Trust but verify, with emphasis on verify"
+
+**Chain of Trust:**
+```
+GPG Root Key → Repository Signing → Release Signing → Component Verification
+```
+
+**Verification Levels:**
+1. **SHA256 Checksums**: Minimum verification (integrity)
+2. **GPG Signatures**: Recommended verification (authenticity + integrity)  
+3. **Repository Clone**: Maximum verification (full transparency)
+
+**Trust Boundaries:**
+- Package managers (cargo, npm, brew) - considered trusted
+- GitHub releases - verify signatures
+- Direct downloads - require checksums
+- User-generated content - never trusted
+
+### 5. **Ecosystem Integration**
+> "Work with the Rust ecosystem, not against it"
+
+- **Cargo-First**: Leverage existing Cargo tooling and conventions
+- **Standard Tool Chain**: Use community-standard security tools
+- **Backward Compatibility**: Don't break existing workflows
+- **Cross-Platform**: Support Linux, macOS, Windows (WSL)
+- **CI/CD Friendly**: Integrate seamlessly with GitHub Actions, GitLab CI, etc.
+
+### 6. **Observable Security**
+> "Security you can't measure is security you don't have"
+
+- **Comprehensive Logging**: All security decisions logged with context
+- **Metrics Collection**: Performance, adoption, effectiveness metrics
+- **Audit Trails**: Complete history of security control evolution
+- **Reporting**: Clear, actionable security reports for all stakeholders
+- **Alerting**: Proactive notification of security issues
+
+---
+
+## 🔧 Implementation Standards
+
+### Code Quality
+- **Rust Best Practices**: Idiomatic Rust code following community standards
+- **Security-First**: All code assumes hostile input and environments
+- **Error Handling**: Comprehensive error handling with user-friendly messages
+- **Testing**: Unit, integration, and security tests for all components
+- **Documentation**: Inline documentation explaining security decisions
+
+### Tool Integration
+- **Tool Selection Criteria**:
+  - Community adoption and maintenance
+  - Performance characteristics
+  - Integration complexity
+  - False positive rates
+  - Security effectiveness
+
+- **Tool Configuration**:
+  - Sensible security-focused defaults
+  - Customizable for different project needs
+  - Performance-optimized settings
+  - Clear documentation of trade-offs
+
+### Performance Requirements
+- **Pre-Push Hook Performance**:
+  - Total time: < 60 seconds
+  - Individual tools: < 30 seconds
+  - Parallel execution where possible
+  - Caching for repeated operations
+
+- **Installation Performance**:
+  - Full setup: < 10 minutes
+  - Tool downloads: Progress indicators
+  - Network resilience: Retry logic
+  - Offline operation: Cached tools when possible
+
+---
+
+## 📋 Security Control Framework
+
+### Control Categories
+
+**Tier 1 - Critical (Pre-Push Blocking)**
+- Secret detection (gitleaks)
+- Known vulnerabilities (cargo-deny)
+- Code quality (cargo clippy)
+- Test failures (cargo test)
+- License violations (cargo-deny)
+- Supply chain attacks (pinact)
+
+**Tier 2 - Important (CI Analysis)**
+- Static analysis (Semgrep, CodeQL)
+- Unsafe code detection (cargo-geiger)
+- SBOM generation (cargo-auditable)
+- Compliance checks (various)
+- Security metrics (OpenSSF Scorecard)
+
+**Tier 3 - Valuable (Optional/Advanced)**
+- Fuzzing (cargo-fuzz)
+- Binary analysis
+- Container scanning
+- Infrastructure analysis
+
+### Control Selection Criteria
+
+**Pre-Push Controls Must:**
+- Execute in < 30 seconds individually
+- Have < 1% false positive rate
+- Block genuine security risks
+- Provide clear remediation guidance
+- Work reliably across platforms
+
+**CI Controls May:**
+- Take longer execution time
+- Generate complex reports
+- Require human review
+- Have higher false positive rates
+- Depend on external services
+
+---
+
+## 🎨 User Experience Principles
+
+### Installation Experience
+- **Verification-First**: Never allow unverified execution
+- **Progressive Disclosure**: Show basic options first, advanced on request
+- **Sensible Defaults**: Work out-of-the-box for 80% of projects
+- **Clear Feedback**: Progress indicators and status messages
+- **Graceful Degradation**: Partial installation better than complete failure
+
+### Developer Workflow
+- **Invisible When Working**: Security runs automatically without intervention
+- **Visible When Broken**: Clear, actionable error messages with fixes
+- **Respectful of Time**: Fast feedback loops, no waiting
+- **Learning Oriented**: Help developers understand security concepts
+- **Emergency Friendly**: Bypass mechanisms for critical fixes
+
+### Error Messages and Guidance
+```bash
+❌ Security vulnerabilities found in dependencies
+   
+   Affected crates:
+   • serde_json 1.0.50 (RUSTSEC-2020-0001: Stack overflow in Value::clone)
+   
+   Fix: cargo update serde_json
+   
+   For emergency bypass: git push --no-verify
+   (Use bypass only for critical hotfixes)
+```
+
+---
+
+## 🚀 Development Workflow
+
+### Adding New Security Controls
+
+**Evaluation Criteria:**
+1. **Security Value**: Does it prevent real attacks?
+2. **Performance Impact**: Fits within tier performance budgets?
+3. **False Positive Rate**: < 1% for pre-push, < 10% for CI?
+4. **Community Adoption**: Widely used and maintained?
+5. **Integration Complexity**: Reasonable implementation effort?
+
+**Implementation Process:**
+1. **Research**: Tool capabilities, community feedback, alternatives
+2. **Prototype**: Minimal implementation and testing
+3. **Performance Test**: Measure impact on different project sizes
+4. **Documentation**: Update architecture and usage documentation
+5. **Rollout**: Gradual deployment with monitoring
+
+### Testing Strategy
+- **Unit Tests**: Individual component functionality
+- **Integration Tests**: End-to-end workflow validation
+- **Performance Tests**: Timing and resource usage
+- **Security Tests**: Verify security controls actually work
+- **User Acceptance Tests**: Real-world usage scenarios
+
+### Release Process
+1. **Version Bumping**: Semantic versioning (security fixes = patch)
+2. **Testing**: Full test suite on multiple platforms
+3. **Documentation**: Update all relevant documentation
+4. **Signing**: GPG sign all release artifacts
+5. **Checksums**: Generate and publish SHA256 hashes
+6. **Announcement**: Security-focused release notes
+
+---
+
+## 📊 Success Metrics
+
+### Security Effectiveness
+- Vulnerabilities blocked (pre-push)
+- Secrets prevented from reaching repositories
+- Compliance violations caught
+- Supply chain attacks prevented
+- Time to security issue resolution
+
+### Developer Experience
+- Pre-push hook performance (< 60s target)
+- Installation success rate (> 95% target)
+- False positive rates (< 1% pre-push, < 10% CI)
+- Developer satisfaction surveys
+- Security tool adoption rates
+
+### Ecosystem Impact
+- Projects using 1-click-rust-sec
+- Security issues prevented ecosystem-wide  
+- Community contributions and feedback
+- Enterprise adoption metrics
+- Integration with other security tools
+
+---
+
+## 🔮 Future Vision
+
+### Short-Term (6 months)
+- Implement Tier 1 additional security controls (cargo-deny, etc.)
+- Platform-specific optimizations
+- Enhanced CI/CD integrations
+- Community feedback integration
+
+### Medium-Term (1 year)
+- Multi-language support (Python, Node.js, Go)
+- Advanced SAST integration
+- Container security controls
+- Enterprise policy management
+
+### Long-Term (2+ years)
+- AI-assisted security analysis
+- Predictive vulnerability detection
+- Automated security remediation
+- Industry standard compliance automation
+
+---
+
+## 🤝 Community Guidelines
+
+### Contribution Principles
+- **Security First**: All contributions must maintain or improve security posture
+- **Performance Conscious**: Consider impact on developer workflow
+- **Backward Compatible**: Don't break existing installations
+- **Well Tested**: Include tests demonstrating security effectiveness
+- **Documented**: Explain security rationale and trade-offs
+
+### Code Review Standards
+- **Security Review**: All changes reviewed for security implications
+- **Performance Review**: Timing impact measured and approved
+- **Usability Review**: Consider developer experience impact
+- **Documentation Review**: Ensure guides remain accurate
+
+### Issue Triage
+- **Security Issues**: Highest priority, private disclosure process
+- **Performance Regressions**: High priority, block releases
+- **Feature Requests**: Evaluated against design principles
+- **Bug Reports**: Prioritized by user impact
+
+---
+
+## 🔒 Security Considerations for Development
+
+### Development Environment Security
+- Use signed commits for all changes
+- Require 2FA for all maintainers
+- Regular security audits of the development process
+- Secure key management for signing operations
+- Principle of least privilege for repository access
+
+### Third-Party Dependencies
+- All dependencies security audited before inclusion
+- Prefer dependencies with active maintenance
+- Pin specific versions with hash verification
+- Regular dependency updates with security review
+- Alternative dependencies evaluated for critical components
+
+### Release Security
+- Reproducible builds with deterministic outputs
+- Multiple independent verification of releases
+- Signed releases with published checksums
+- Security-focused release notes highlighting security changes
+- Post-release monitoring for security issues
+
+---
+
+## 📝 Maintenance Philosophy
+
+### Tool Lifecycle Management
+- **Evaluation**: Continuous assessment of tool effectiveness
+- **Integration**: Thoughtful integration minimizing disruption
+- **Maintenance**: Regular updates and security patches
+- **Deprecation**: Graceful removal when tools become obsolete
+- **Migration**: Smooth transitions between tool versions
+
+### Breaking Changes
+- **Avoid When Possible**: Maintain backward compatibility
+- **Migrate Gradually**: Provide migration paths and tools
+- **Communicate Clearly**: Advanced notice and documentation
+- **Support Legacy**: Maintain security updates for previous versions
+- **Learn from Experience**: Feedback-driven improvement process
+
+---
+
+**This document serves as the foundation for all development decisions in 1-click-rust-sec. When in doubt, refer to these principles to guide technical and product choices.**
+
+---
+
+*Last Updated: January 2025*
+*Version: 1.0.0*
+*Maintainers: @4n6h4x0r and community contributors*

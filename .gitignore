@@ -1,0 +1,7 @@
+// Minimal .gitignore for Rust workspace
+/target/
+**/*.rs.bk
+**/*.swp
+**/*.swo
+.DS_Store
+
