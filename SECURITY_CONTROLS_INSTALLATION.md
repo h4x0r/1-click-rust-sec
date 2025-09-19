@@ -373,7 +373,7 @@ git push --no-verify
 .security-controls/bin/gitleaklite detect --no-banner
 
 # Check specific files
-.security-controls/bin/gitleaks detect --no-banner
+.security-controls/bin/gitleaklite detect --no-banner
 ```
 
 ### SHA Pinning Checker (script-only)
