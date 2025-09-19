@@ -10,6 +10,9 @@ Deploy 23 comprehensive security controls with cryptographic verification and ze
 [![Rust](https://img.shields.io/badge/Rust-2021%2B-orange.svg)](https://www.rust-lang.org/)
 [![Security CI](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/security.yml)
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://4n6h4x0r.github.io/1-click-rust-sec/)
+[![Pinning Validation](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/pinning-validation.yml/badge.svg?branch=main)](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/pinning-validation.yml)
+[![Shell Lint](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/shell-lint.yml/badge.svg?branch=main)](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/shell-lint.yml)
+[![Docs Deploy](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/docs-deploy.yml/badge.svg?branch=main)](https://github.com/4n6h4x0r/1-click-rust-sec/actions/workflows/docs-deploy.yml)
 
 ## 🎯 Quick Start (Verified Installation)
 
