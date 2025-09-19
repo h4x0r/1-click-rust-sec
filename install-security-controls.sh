@@ -529,6 +529,15 @@ check_required_tools() {
 install_security_tools() {
     print_section "Installing Security Tools"
     
+    # Warn if a toolchain override is present and prefer +stable for optional installs
+    local CARGO=(cargo)
+    if [[ -n "${RUSTUP_TOOLCHAIN:-}" ]]; then
+        print_status $YELLOW "⚠️ RUSTUP_TOOLCHAIN is set to '$RUSTUP_TOOLCHAIN' — this overrides the default toolchain."
+        print_status $YELLOW "   Optional cargo installs may fail or use a non-default toolchain. Using 'cargo +stable' for installs."
+        print_status $YELLOW "   To avoid this, unset RUSTUP_TOOLCHAIN before running the installer."
+        CARGO=(cargo +stable)
+    fi
+    
     # Install Rust security tools if Rust project
     if [[ "$RUST_PROJECT" == true ]] && command -v cargo &> /dev/null; then
         # Enhanced security tools with no-brainer additions
@@ -542,7 +551,7 @@ install_security_tools() {
                 if [[ "$DRY_RUN" == true ]]; then
                     print_status $BLUE "   [DRY RUN] Would install $tool"
                 else
-                    if cargo install --locked "$tool" 2>/dev/null; then
+                    if "${CARGO[@]}" install --locked "$tool" 2>/dev/null; then
                         print_status $GREEN "✅ $tool installed"
                     else
                         print_status $YELLOW "⚠️ $tool installation failed, will use fallback if needed"
@@ -561,7 +570,7 @@ install_security_tools() {
                 if [[ "$DRY_RUN" == true ]]; then
                     print_status $BLUE "   [DRY RUN] Would install fallback $tool"
                 else
-                    if cargo install --locked "$tool" 2>/dev/null; then
+                    if "${CARGO[@]}" install --locked "$tool" 2>/dev/null; then
                         print_status $GREEN "✅ Fallback $tool installed"
                     else
                         print_status $RED "❌ Failed to install $tool"
