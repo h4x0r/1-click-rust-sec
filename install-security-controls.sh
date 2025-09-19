@@ -2719,7 +2719,8 @@ resolve_action_sha() {
 check_images_in_yaml() {
   local file="$1"
   local violations=0
-  awk -v FNAME="$file" '
+  rm -f "$file.uses.tmp"
+  awk -v FNAME="$file" -v UFILE="$file.uses.tmp" '
     function ltrim(s) { sub(/^\s+/, "", s); return s }
     function indent(s) { match(s, /^ */); return RLENGTH }
     BEGIN{ in_container=0; cont_indent=0; in_services=0; serv_indent=0 }
@@ -2728,14 +2729,16 @@ check_images_in_yaml() {
       line=$0
       ind=indent(line)
       l=ltrim(line)
-      if (l ~ /^container:/) { in_container=1; cont_indent=ind; next }
-      if (in_container && ind <= cont_indent) { in_container=0 }
+      if (l ~ /^container:/) {
+        if (l ~ /^container:[[:space:]]*[^\{\[]/) {
+          img=l; sub(/^container:[[:space:]]*/, "", img)
+          if (img !~ /@sha256:/) { printf "%s: jobs.container: image not pinned: %s\n", FNAME, img; violations++ }
+        } else {
+          in_container=1; cont_indent=ind
+        }
+      } else if (in_container && ind <= cont_indent) { in_container=0 }
       if (l ~ /^services:/) { in_services=1; serv_indent=ind; next }
       if (in_services && ind <= serv_indent) { in_services=0 }
-      if (in_container && l ~ /^container:[[:space:]]*[^\{\[]/) {
-        img=l; sub(/^container:[[:space:]]*/, "", img)
-        if (img !~ /@sha256:/) { printf "%s: jobs.container: image not pinned: %s\n", FNAME, img; violations++ }
-      }
       if ((in_container || in_services) && l ~ /^image:[[:space:]]*/) {
         img=l; sub(/^image:[[:space:]]*/, "", img)
         gsub(/^\"|\"$/, "", img); gsub(/^\047|\047$/, "", img)
@@ -2750,11 +2753,11 @@ check_images_in_yaml() {
       }
       if (l ~ /^uses:[[:space:]]*/) {
         val=l; sub(/^uses:[[:space:]]*/, "", val); gsub(/^\"|\"$/, "", val); gsub(/^\047|\047$/, "", val)
-        printf "USES %s\n", val > "/dev/stderr"
+        printf "USES %s\n", val >> UFILE
       }
     }
     END{ if (violations>0) exit 2 }
-  ' "$file" 2>"$file.uses.tmp" || return 2
+  ' "$file" || return 2
   local rc=0
   if [[ -s "$file.uses.tmp" ]]; then
     while IFS= read -r line; do
