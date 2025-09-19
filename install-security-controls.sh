@@ -2977,6 +2977,7 @@ main() {
 
 main "$@"
 SCRIPT_EOF
+    chmod +x "$script_path"
 print_status $GREEN "✅ Installed script-only pincheck at $script_path"
 
 }
