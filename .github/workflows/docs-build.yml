@@ -22,96 +22,17 @@ jobs:
           python3 -m pip install mkdocs
           mkdocs build --strict -d site
 
-      - name: Check links (Markdown) with lychee (JSON report)
-        id: lychee
-        continue-on-error: true
+      - name: Check links (Markdown) with lychee
         uses: lycheeverse/lychee-action@2b973e86fc7b1f6b36a93795fe2c9c6ae1118621 # v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: >-
-            --config lychee.toml --format json --output lychee-report.json
+            --config lychee.toml
             docs/**/*.md README.md SECURITY_CONTROLS_INSTALLATION.md SECURITY_CONTROLS_ARCHITECTURE.md docs/security/*.md
-
-      - name: Generate Markdown report from JSON
-        if: always()
-        run: |
-          set -euo pipefail
-          echo "# Lychee Report" > lychee-report.md
-          # Simple summary; if JSON has a different shape, this will still produce a basic report
-          if command -v jq >/dev/null 2>&1; then
-            echo "\n## Summary" >> lychee-report.md
-            jq '. | {summary: .summary, failures: (.failures // [] | length)}' lychee-report.json >> lychee-report.md || true
-          else
-            echo "jq not available" >> lychee-report.md
-          fi
-
-      - name: Upload link-check reports
-        if: always()
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
-        with:
-          name: lychee-report
-          path: |
-            lychee-report.md
-            lychee-report.json
-
-      - name: Reviewdog setup
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: reviewdog/action-setup@02dfd818f293ba633c0e16e20bc63d3b28dbd34d # v1
-
-      - name: Annotate lychee failures with reviewdog
-        if: ${{ github.event_name == 'pull_request' }}
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          # Convert lychee JSON to rdjson diagnostics for reviewdog
-          jq -r '
-            def diag($path; $line; $msg):
-              {"message": $msg, "severity":"ERROR", "location":{"path":$path, "range":{"start":{"line":($line|tonumber)}}}};
-            def from_source($url; $src):
-              (if ($src|test(":\\d+$")) then
-                 {p: ($src|split(":")[0]), l: ($src|split(":")[1])}
-               else
-                 {p:$src, l:"1"} end) as $s
-              | diag($s.p; $s.l; ("Dead link: " + $url));
-            {"tool":{"name":"lychee"}, "diagnostics": (
-              if has("failures") then
-                [ .failures[] as $f |
-                  ($f.url // $f.target // $f.link // "") as $u |
-                  (($f.sources // $f.source // $f.paths // [])[]) | from_source($u; .)
-                ]
-              elif has("fail_map") then
-                [ to_entries[] as $e |
-                  $e.key as $u |
-                  ($e.value[]) | from_source($u; .)
-                ]
-              else [] end)
-            }' lychee-report.json > rdjson.json || echo '{"tool":{"name":"lychee"},"diagnostics":[]}' > rdjson.json
-
-          cat rdjson.json | reviewdog -f=rdjson -name="lychee" -reporter=github-pr-review -filter-mode=diff_context -fail-on-error=false -level=warning
-
-      - name: Comment on PR with lychee failures
-        if: ${{ github.event_name == 'pull_request' && steps.lychee.outcome == 'failure' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          set -euo pipefail
-          SNIP=$(head -n 200 lychee-report.md | sed 's/`/\`/g')
-          BODY=$(jq -n --arg snip "$SNIP" '{body: ("Docs link check failed. First lines of report:\n\n" + $snip) }')
-          curl -fsSL -X POST \
-            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
-            -d "${BODY}"
 
       - name: Upload site artifact
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           name: mkdocs-site
           path: site/
-
-      - name: Fail if lychee failed
-        if: ${{ steps.lychee.outcome == 'failure' }}
-        run: exit 1
