@@ -612,7 +612,7 @@ DRY_RUN=false
                 shift
                 ;;
             --dry-run)
-                DRY_RUN=true
+                DRY_RUN=true # shellcheck disable=SC2034
                 shift
                 ;;
             -h|--help)
