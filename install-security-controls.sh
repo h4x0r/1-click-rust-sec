@@ -1654,7 +1654,8 @@ jobs:
         curl -fsSLo /tmp/${COSIGN_BIN}-keyless.pem "${COSIGN_BASE}/${COSIGN_BIN}-keyless.pem"
         curl -fsSLo /tmp/${COSIGN_BIN}-keyless.sig "${COSIGN_BASE}/${COSIGN_BIN}-keyless.sig"
         openssl x509 -in /tmp/${COSIGN_BIN}-keyless.pem -pubkey -noout > /tmp/cosign.pub
-        openssl dgst -sha256 -verify /tmp/cosign.pub -signature /tmp/${COSIGN_BIN}-keyless.sig /tmp/${COSIGN_BIN}
+        base64 -d /tmp/${COSIGN_BIN}-keyless.sig > /tmp/${COSIGN_BIN}-keyless.sig.bin
+        openssl dgst -sha256 -verify /tmp/cosign.pub -signature /tmp/${COSIGN_BIN}-keyless.sig.bin /tmp/${COSIGN_BIN}
         install -m 0755 /tmp/${COSIGN_BIN} "$HOME/.local/bin/cosign"
         
         # 2) Install slsa-verifier v2.7.1 and verify SHA256
@@ -1686,7 +1687,8 @@ jobs:
         
         # OpenSSL verification as defense in depth
         openssl x509 -in /tmp/checksums.txt.pem -pubkey -noout > /tmp/pinact.pub
-        openssl dgst -sha256 -verify /tmp/pinact.pub -signature /tmp/checksums.txt.sig /tmp/checksums.txt
+        base64 -d /tmp/checksums.txt.sig > /tmp/checksums.txt.sig.bin
+        openssl dgst -sha256 -verify /tmp/pinact.pub -signature /tmp/checksums.txt.sig.bin /tmp/checksums.txt
         
         # Checksum verification of the tarball
         grep " ${TAR}$" /tmp/checksums.txt | sha256sum -c -
@@ -1979,7 +1981,8 @@ jobs:
         curl -fsSLo /tmp/${COSIGN_BIN}-keyless.pem "${COSIGN_BASE}/${COSIGN_BIN}-keyless.pem"
         curl -fsSLo /tmp/${COSIGN_BIN}-keyless.sig "${COSIGN_BASE}/${COSIGN_BIN}-keyless.sig"
         openssl x509 -in /tmp/${COSIGN_BIN}-keyless.pem -pubkey -noout > /tmp/cosign.pub
-        openssl dgst -sha256 -verify /tmp/cosign.pub -signature /tmp/${COSIGN_BIN}-keyless.sig /tmp/${COSIGN_BIN}
+        base64 -d /tmp/${COSIGN_BIN}-keyless.sig > /tmp/${COSIGN_BIN}-keyless.sig.bin
+        openssl dgst -sha256 -verify /tmp/cosign.pub -signature /tmp/${COSIGN_BIN}-keyless.sig.bin /tmp/${COSIGN_BIN}
         install -m 0755 /tmp/${COSIGN_BIN} "$HOME/.local/bin/cosign"
         
         # 2) Install slsa-verifier v2.7.1 and verify SHA256
@@ -2011,7 +2014,8 @@ jobs:
         
         # OpenSSL verification as defense in depth
         openssl x509 -in /tmp/checksums.txt.pem -pubkey -noout > /tmp/pinact.pub
-        openssl dgst -sha256 -verify /tmp/pinact.pub -signature /tmp/checksums.txt.sig /tmp/checksums.txt
+        base64 -d /tmp/checksums.txt.sig > /tmp/checksums.txt.sig.bin
+        openssl dgst -sha256 -verify /tmp/pinact.pub -signature /tmp/checksums.txt.sig.bin /tmp/checksums.txt
         
         # Checksum verification of the tarball
         grep " ${TAR}$" /tmp/checksums.txt | sha256sum -c -

@@ -164,6 +164,13 @@ git log --show-signature -5
 - **Deterministic builds** - reproducible installation results
 - **Complete audit trail** - every change logged and tracked
 
+### CI Supply-chain Verification
+- Pinning validation uses official pinact v3.4.2 (downloaded from GitHub Releases)
+- Sigstore (cosign v2.6.0) verifies the signed checksums file from the pinact release
+- OpenSSL re-verifies the same signature (defense in depth)
+- SHA256 verifies the downloaded tarball against the signed checksums
+- SLSA provenance is validated with slsa-verifier v2.7.1 using multiple.intoto.jsonl
+
 ---
 
 ## 📊 Performance & Impact {#performance}
