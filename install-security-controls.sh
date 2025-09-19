@@ -898,7 +898,26 @@ FAILED=0
 
 print_status $BLUE "📋 Pre-push validation started"
 
+# Detect if there are Rust packages; skip Rust-specific checks if workspace has no members
+SKIP_RUST=0
+if command -v cargo >/dev/null 2>&1; then
+    if cargo metadata --no-deps --format-version 1 >/dev/null 2>&1; then
+        PKG_COUNT=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages | length' 2>/dev/null || echo 0)
+    else
+        PKG_COUNT=0
+    fi
+else
+    PKG_COUNT=0
+fi
+if [[ "${PKG_COUNT:-0}" -eq 0 ]]; then
+    print_status $BLUE "ℹ️ No Rust packages detected (workspace has no members) — skipping Rust-specific checks"
+    SKIP_RUST=1
+fi
+
 # 1. Cargo Format Check
+if [[ "${SKIP_RUST:-0}" -eq 1 ]]; then
+    print_status $BLUE "ℹ️ Skipping cargo fmt (no Rust packages)"
+else
 print_status $YELLOW "🎨 Checking code formatting (cargo fmt)..."
 if cargo fmt --all -- --check; then
     print_status $GREEN "✅ Code formatting is correct"
@@ -907,10 +926,14 @@ else
     echo "   Run: cargo fmt --all"
     FAILED=1
 fi
+fi
 
 echo
 # 2. Cargo Clippy Check
 if [[ "${ENABLE_LINT}" == "true" ]]; then
+if [[ "${SKIP_RUST:-0}" -eq 1 ]]; then
+    print_status $BLUE "ℹ️ Skipping clippy (no Rust packages)"
+else
 print_status $YELLOW "🔧 Running linting checks (cargo clippy)..."
 if cargo clippy --all-targets --all-features -- -D warnings; then
     print_status $GREEN "✅ No clippy warnings found"
@@ -919,12 +942,16 @@ else
     echo "   Fix warnings before pushing"
     FAILED=1
 fi
+fi
 else
 print_status $BLUE "ℹ️ Linting disabled via config (ENABLE_LINT=false)"
 fi
 
 echo
 # 3. Security Audit (cargo-deny preferred)
+if [[ "${SKIP_RUST:-0}" -eq 1 ]]; then
+    print_status $BLUE "ℹ️ Skipping cargo-deny/audit (no Rust packages)"
+else
 if command -v cargo-deny &> /dev/null; then
     print_status $YELLOW "🛡️ Running comprehensive security audit (cargo deny)..."
     if cargo deny check; then
@@ -949,9 +976,13 @@ else
         echo "   Install cargo-deny: cargo install cargo-deny (recommended)"
     fi
 fi
+fi
 
 echo
 # 4. Unsafe Code Detection (cargo-geiger) [warn]
+if [[ "${SKIP_RUST:-0}" -eq 1 ]]; then
+    print_status $BLUE "ℹ️ Skipping cargo-geiger (no Rust packages)"
+else
 if command -v cargo-geiger &> /dev/null; then
     print_status $YELLOW "🔬 Checking unsafe code usage (cargo geiger)..."
     if cargo geiger --format compact --quiet 2>/dev/null | grep -q "unsafe"; then
@@ -963,9 +994,13 @@ if command -v cargo-geiger &> /dev/null; then
 else
     print_status $BLUE "ℹ️ cargo-geiger not found - skipping unsafe code check"
 fi
+fi
 
 echo
 # 5. Unused Dependencies Check (cargo-machete) [warn]
+if [[ "${SKIP_RUST:-0}" -eq 1 ]]; then
+    print_status $BLUE "ℹ️ Skipping cargo-machete (no Rust packages)"
+else
 if command -v cargo-machete &> /dev/null; then
     print_status $YELLOW "🧹 Checking for unused dependencies (cargo machete)..."
     if cargo machete --with-metadata 2>/dev/null | grep -q "unused"; then
@@ -977,10 +1012,14 @@ if command -v cargo-machete &> /dev/null; then
 else
     print_status $BLUE "ℹ️ cargo-machete not found - skipping unused dependency check"
 fi
+fi
 
 echo
 # 6. Test Suite
 if [[ "${ENABLE_TESTS}" == "true" ]]; then
+if [[ "${SKIP_RUST:-0}" -eq 1 ]]; then
+    print_status $BLUE "ℹ️ Skipping tests (no Rust packages)"
+else
 print_status $YELLOW "🧪 Running test suite..."
 if [[ "${TEST_SCOPE}" == "unit" ]]; then
     TEST_CMD=(cargo test --lib)
@@ -993,6 +1032,7 @@ else
     print_status $RED "❌ Tests failed (${TEST_SCOPE})"
     echo "   Fix failing tests before pushing"
     FAILED=1
+fi
 fi
 else
 print_status $BLUE "ℹ️ Tests disabled via config (ENABLE_TESTS=false)"
@@ -1020,6 +1060,9 @@ fi
 
 echo
 # 8. License Compliance Check [warn]
+if [[ "${SKIP_RUST:-0}" -eq 1 ]]; then
+    print_status $BLUE "ℹ️ Skipping license compliance (no Rust packages)"
+else
 print_status $YELLOW "⚖️ Checking license compliance..."
 if command -v cargo-license &> /dev/null; then
     COPYLEFT=$(cargo license --json 2>/dev/null | jq -r '.[] | select(.license | test("GPL-2.0|GPL-3.0|AGPL|LGPL"; "i")) | .name' 2>/dev/null || echo "")
@@ -1033,6 +1076,7 @@ if command -v cargo-license &> /dev/null; then
     fi
 else
     print_status $YELLOW "⚠️ cargo-license not found - skipping license check"
+fi
 fi
 
 echo
@@ -3094,14 +3138,13 @@ cmd_protect() {
   fi
   local dir_filter='^(target/|node_modules/|dist/|build/|vendor/|coverage/|\\.git/|\\.github/workflows/)'
   local hit=0
-  mapfile -t files < <(git diff --cached --name-only --diff-filter=ACM | grep -v -E "$dir_filter" || true)
-  for f in "${files[@]}"; do
+while IFS= read -r f; do
     [[ -z "$f" || ! -f "$f" ]] && continue
     if ! git diff --cached -U0 -- "$f" | sed -n 's/^+//p' | scan_lines "$f" "$redact"; then
       hit=1
       echo "[$f]" >&2
     fi
-  done
+  done < <(git diff --cached --name-only --diff-filter=ACM | grep -v -E "$dir_filter" || true)
   if [[ $hit -eq 1 ]]; then
     exit 1
   fi
