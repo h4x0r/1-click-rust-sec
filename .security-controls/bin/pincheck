@@ -100,6 +100,8 @@ check_images_in_yaml() {
       # Track YAML block scalars (e.g., "run: |" or "run: >").
       # When inside a block scalar, ignore its content lines for checks.
       if (in_block) {
+        # Stay inside block across blank lines
+        if (l ~ /^$/) { next }
         if (ind <= block_indent) { in_block=0 } else { next }
       }
       if (l ~ /:[[:space:]]*[|>][+-]?([[:space:]]*#.*)?$/) {
