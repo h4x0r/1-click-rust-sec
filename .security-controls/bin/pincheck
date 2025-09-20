@@ -90,12 +90,22 @@ check_images_in_yaml() {
   awk -v FNAME="$file" -v UFILE="$file.uses.tmp" '
     function ltrim(s) { sub(/^[ \t]+/, "", s); return s }
     function indent(s) { match(s, /^ */); return RLENGTH }
-    BEGIN{ in_container=0; cont_indent=0; in_services=0; serv_indent=0 }
+    BEGIN{ in_container=0; cont_indent=0; in_services=0; serv_indent=0; in_block=0; block_indent=0 }
     /^[[:space:]]*#/ { next }
     {
       line=$0
       ind=indent(line)
       l=ltrim(line)
+
+      # Track YAML block scalars (e.g., "run: |" or "run: >").
+      # When inside a block scalar, ignore its content lines for checks.
+      if (in_block) {
+        if (ind <= block_indent) { in_block=0 } else { next }
+      }
+      if (l ~ /:[[:space:]]*[|>][+-]?([[:space:]]*#.*)?$/) {
+        in_block=1; block_indent=ind; next
+      }
+
       if (l ~ /^container:/) {
         if (l ~ /^container:[[:space:]]*[^\{\[]/) {
           img=l; sub(/^container:[[:space:]]*/, "", img)
@@ -118,7 +128,7 @@ check_images_in_yaml() {
           printf "%s: image not pinned: %s\n", FNAME, img; violations++
         }
       }
-      # Fix: Use working ltrim and match "- uses:" pattern
+      # Collect "- uses:" only when not inside block scalars
       if (l ~ /^- uses: */) {
         val=l; sub(/^- uses: */, "", val); gsub(/^"|"$/, "", val); gsub(/^\047|\047$/, "", val)
         printf "USES %s\n", val >> UFILE
