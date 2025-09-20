@@ -323,14 +323,14 @@ cmd_autopin() {
   local changed_any=0
   if [[ -d "$dir" ]]; then
     while IFS= read -r -d '' f; do
-      local changed=0
+      local changed=0 rc=0
       if [[ $do_actions -eq 1 ]]; then
-        rewrite_actions_in_file "$f" && changed=$?
-        [[ $changed -gt 0 ]] && changed_any=1
+        rewrite_actions_in_file "$f"; rc=$?
+        if [[ $rc -gt 0 ]]; then changed=1; changed_any=1; fi
       fi
       if [[ $do_images -eq 1 ]]; then
-        rewrite_images_in_file "$f" && changed=$?
-        [[ $changed -gt 0 ]] && changed_any=1
+        rewrite_images_in_file "$f"; rc=$?
+        if [[ $rc -gt 0 ]]; then changed=1; changed_any=1; fi
       fi
     done < <(find "$dir" -type f \( -name "*.yml" -o -name "*.yaml" \) -print0)
   fi
