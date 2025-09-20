@@ -805,19 +805,18 @@ run_secret_scan() {
     local dir_filter='^(target/|node_modules/|dist/|build/|vendor/|coverage/|\\.git/|\\.github/workflows/)'
     local allowlist_file=".security-controls/secret-allowlist.txt"
     local hits=0
-    mapfile -t files < <(git diff --cached --name-only --diff-filter=ACM | grep -v -E "$dir_filter" || true)
-    for f in "${files[@]}"; do
+    while IFS= read -r f; do
         [[ -z "$f" || ! -f "$f" ]] && continue
         while IFS= read -r line; do
             [[ "$f" =~ \\.lock$ ]] && continue
             if [[ -f "$allowlist_file" ]] && grep -E -q -f "$allowlist_file" <<<"$line"; then continue; fi
             if grep -E -q 'AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|AIza[0-9A-Za-z_-]{35}|xox[baprs]-[A-Za-z0-9-]{10,48}|-----BEGIN [A-Z ,]*PRIVATE KEY-----|[A-Za-z0-9+/=]{40,}' <<<"$line" \
                || grep -E -qi '(secret|password|api[_-]?key|token)[^\n]{0,20}[:=][[:space:]]*[^[:space:]]{8,}' <<<"$line"; then
-                echo "   $f: $(sed -E 's/([:=])[[:space:]]*"?[^"[:space:]]{4,}/\1 ***REDACTED***/g' <<<"$line")"
+                echo "   $f: $(sed -E 's/([:=])[[:space:]]*\"?[^\"[:space:]]{4,}/\\1 ***REDACTED***/g' <<<"$line")"
                 hits=$((hits+1))
             fi
         done < <(git diff --cached -U0 -- "$f" | sed -n 's/^+//p')
-    done
+    done < <(git diff --cached --name-only --diff-filter=ACM | grep -v -E "$dir_filter" || true)
     [[ $hits -eq 0 ]]
 }
 
