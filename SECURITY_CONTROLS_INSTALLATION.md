@@ -108,6 +108,12 @@ chmod +x install-security-controls.sh
 - ✅ **Windows WSL2** (Ubuntu/Debian)
 - ❌ Windows native (not supported)
 
+### Shell compatibility
+- Hooks and local helpers run with /bin/bash via shebangs and are compatible with Bash 3.2+ (the default on macOS).
+- zsh users are fully supported because the scripts explicitly invoke bash.
+- The scripts avoid Bash 4+ only features (e.g., declare -A, mapfile/readarray, nameref) to maximize portability.
+- If your system lacks /bin/bash, install bash or adjust the shebangs to a valid bash path.
+
 ---
 
 ## 🔧 Detailed Installation Process
