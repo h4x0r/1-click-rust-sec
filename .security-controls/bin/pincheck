@@ -88,7 +88,7 @@ check_images_in_yaml() {
   local violations=0
   rm -f "$file.uses.tmp"
   awk -v FNAME="$file" -v UFILE="$file.uses.tmp" '
-    function ltrim(s) { sub(/^\s+/, "", s); return s }
+    function ltrim(s) { sub(/^[ \t]+/, "", s); return s }
     function indent(s) { match(s, /^ */); return RLENGTH }
     BEGIN{ in_container=0; cont_indent=0; in_services=0; serv_indent=0 }
     /^[[:space:]]*#/ { next }
@@ -118,8 +118,9 @@ check_images_in_yaml() {
           printf "%s: image not pinned: %s\n", FNAME, img; violations++
         }
       }
-      if (l ~ /^uses:[[:space:]]*/) {
-        val=l; sub(/^uses:[[:space:]]*/, "", val); gsub(/^"|"$/, "", val); gsub(/^\047|\047$/, "", val)
+      # Fix: Use working ltrim and match "- uses:" pattern
+      if (l ~ /^- uses: */) {
+        val=l; sub(/^- uses: */, "", val); gsub(/^"|"$/, "", val); gsub(/^\047|\047$/, "", val)
         printf "USES %s\n", val >> UFILE
       }
     }
