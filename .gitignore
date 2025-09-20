@@ -5,3 +5,6 @@
 **/*.swo
 .DS_Store
 
+
+# Ignore autopin backup files
+*.bak.pin
