@@ -1,0 +1,36 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+        name: shellcheck (bash/sh dash)
+        types: [shell]
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.7.0-1
+    hooks:
+      - id: shfmt
+        args: ["-i", "2", "-ci", "-s"]
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.39.0
+    hooks:
+      - id: markdownlint
+        files: \.(md|markdown)$
+
+  - repo: local
+    hooks:
+      - id: pinactlite-sync
+        name: Verify pinactlite versions are in sync
+        entry: scripts/sync-pinactlite.sh --check
+        language: script
+        files: '^(\.security-controls/bin/pinactlite|install-security-controls\.sh)$'
+        pass_filenames: false

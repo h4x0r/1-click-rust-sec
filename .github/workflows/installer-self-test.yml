@@ -1,0 +1,35 @@
+name: Installer Self-Test
+
+on:
+  pull_request:
+  push:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+jobs:
+  self-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Run installer in sandbox (generic mode)
+        run: |
+          set -euo pipefail
+          mkdir -p sandbox
+          cp install-security-controls.sh sandbox/
+          cd sandbox
+          git init -q
+          git config user.email sandbox@example.com
+          git config user.name Sandbox
+          # Use generic mode to avoid requiring Rust toolchain
+          bash ./install-security-controls.sh --non-rust --no-ci --no-docs --force
+          # Verify outputs
+          test -x .git/hooks/pre-push || (echo "missing pre-push" && exit 1)
+          test -x .security-controls/bin/gitleakslite || (echo "missing gitleakslite" && exit 1)
+          test -x .security-controls/bin/pinactlite || (echo "missing pinactlite" && exit 1)
+          test -f .security-controls/config.env || (echo "missing config.env" && exit 1)
+          # Run pre-push hook directly (should succeed with no staged changes)
+          .git/hooks/pre-push

@@ -1,0 +1,114 @@
+name: Sync Pinactlite Script
+
+on:
+  push:
+    paths:
+      - '.security-controls/bin/pinactlite'
+      - 'install-security-controls.sh'
+  pull_request:
+    paths:
+      - '.security-controls/bin/pinactlite'
+      - 'install-security-controls.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Test installer creates working pinactlite
+        run: |
+          set -euo pipefail
+
+          # Create test environment
+          mkdir -p test-sync
+          cd test-sync
+          git init -q
+          git config user.email test@example.com
+          git config user.name Test
+
+          # Run installer (should install pinactlite)
+          bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force
+
+          # Test that pinactlite was installed and works
+          if [[ ! -x ".security-controls/bin/pinactlite" ]]; then
+            echo "❌ pinactlite not installed by installer"
+            exit 1
+          fi
+
+          # Create test workflow with unpinned action (in test location to avoid pinact detection)
+          mkdir -p test-workflows
+          UNPINNED_ACTION="actions/checkout@v4"
+          cat > test-workflows/test.yml <<EOF
+          name: test
+          on: push
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: ${UNPINNED_ACTION}
+          EOF
+
+          # Test pincheck detection
+          if ./.security-controls/bin/pinactlite pincheck --dir test-workflows; then
+            echo "❌ pinactlite should have detected unpinned action"
+            exit 1
+          fi
+
+          # Test autopin functionality (expect exit code 2 when changes are made)
+          if ./.security-controls/bin/pinactlite autopin --dir test-workflows --actions; then
+            echo "ℹ️ No changes needed (exit code 0)"
+          elif [[ $? -eq 2 ]]; then
+            echo "✅ Changes made by autopin (exit code 2 as expected)"
+          else
+            echo "❌ Unexpected exit code from autopin: $?"
+            exit 1
+          fi
+
+          # Verify action was pinned
+          if ! ./.security-controls/bin/pinactlite pincheck --dir test-workflows; then
+            echo "❌ pinactlite autopin failed to fix workflow"
+            exit 1
+          fi
+
+          echo "✅ Installer pinactlite sync validation passed"
+
+      - name: Verify no embedded pincheck references
+        run: |
+          # Ensure installer doesn't contain old embedded pincheck script
+          if grep -q "script-only pincheck helper" install-security-controls.sh; then
+            echo "❌ Found old embedded pincheck reference in installer"
+            exit 1
+          fi
+
+          if grep -q "install_pincheck_script" install-security-controls.sh; then
+            echo "❌ Found old install_pincheck_script function call"
+            exit 1
+          fi
+
+          echo "✅ No old pincheck references found"
+
+      - name: Test E2E workflow compatibility
+        run: |
+          # Simulate the E2E test environment
+          mkdir -p e2e-test
+          cd e2e-test
+          git init -q
+          git config user.email e2e@example.com
+          git config user.name E2E
+
+          # Copy installer and run it (same as E2E test)
+          cp ../install-security-controls.sh .
+          bash ./install-security-controls.sh --non-rust --no-ci --no-docs --force
+
+          # Verify the tool that E2E expects exists and works
+          if [[ ! -x ".security-controls/bin/pinactlite" ]]; then
+            echo "❌ E2E test expects pinactlite but installer didn't create it"
+            exit 1
+          fi
+
+          echo "✅ E2E workflow compatibility verified"
