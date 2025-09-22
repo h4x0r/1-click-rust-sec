@@ -53,42 +53,42 @@ This repository implements a **"dogfooding plus"** approach:
 
 ### Table 2: Additional Controls ONLY in This Repository
 
-| Control Type | Category | Description | Why Not in Installer |
-|-------------|----------|-------------|----------------------|
+| Control Type | Category | Description | Installer Has | This Repo Has | Why Not in Installer |
+|-------------|----------|-------------|:-------------:|:-------------:|----------------------|
 | **PRE-COMMIT HOOKS** |
-| Trailing Whitespace | Formatting | Removes trailing spaces | Too opinionated for general use |
-| End-of-File Fixer | Formatting | Ensures newline at EOF | Minor formatting preference |
-| YAML Check | Validation | Validates YAML syntax | Not all projects use YAML |
-| Large File Check | Validation | Pre-commit large file check | Redundant with pre-push |
-| ShellCheck | Linting | Shell script validation | Development-specific |
-| shfmt | Formatting | Shell script formatting | Development-specific |
-| Markdown Lint | Linting | Markdown validation | Documentation-heavy repo |
-| pinactlite Sync | Validation | Tool version sync | Installer development only |
+| Trailing Whitespace | Formatting | Removes trailing spaces | ❌ | ✅ | Too opinionated for general use |
+| End-of-File Fixer | Formatting | Ensures newline at EOF | ❌ | ✅ | Minor formatting preference |
+| YAML Check | Validation | Validates YAML syntax | ❌ | ✅ | Not all projects use YAML |
+| Large File Check | Validation | Pre-commit large file check | ❌ | ✅ | Redundant with pre-push |
+| ShellCheck | Linting | Shell script validation | ❌ | ✅ | Development-specific |
+| shfmt | Formatting | Shell script formatting | ❌ | ✅ | Development-specific |
+| Markdown Lint | Linting | Markdown validation | ❌ | ✅ | Documentation-heavy repo |
+| pinactlite Sync | Validation | Tool version sync | ❌ | ✅ | Installer development only |
 | **CI/CD WORKFLOWS (SPECIALIZED)** |
-| Pinning Validation | Security | Validates SHA pinning with pinact v3.4.2 | Development validation |
-| Shell Lint | Quality | shellcheck + shfmt CI | Script-heavy development |
-| Docs Build | Documentation | MkDocs site generation | Documentation repo |
-| Docs Deploy | Documentation | GitHub Pages deployment | Documentation hosting |
-| Helpers E2E | Testing | End-to-end tool testing | Tool development testing |
-| Installer Self-Test | Testing | Installation validation | Installer development |
-| Sync Validation | Testing | Tool consistency check | Development validation |
+| Pinning Validation | Security | Validates SHA pinning with pinact v3.4.2 | ❌ | ✅ | Development validation |
+| Shell Lint | Quality | shellcheck + shfmt CI | ❌ | ✅ | Script-heavy development |
+| Docs Build | Documentation | MkDocs site generation | ❌ | ✅ | Documentation repo |
+| Docs Deploy | Documentation | GitHub Pages deployment | ❌ | ✅ | Documentation hosting |
+| Helpers E2E | Testing | End-to-end tool testing | ❌ | ✅ | Tool development testing |
+| Installer Self-Test | Testing | Installation validation | ❌ | ✅ | Installer development |
+| Sync Validation | Testing | Tool consistency check | ❌ | ✅ | Development validation |
 | **DEVELOPMENT TOOLS** |
-| Pre-commit Framework | Tool | Pre-commit hook manager | Additional complexity |
-| MkDocs | Tool | Documentation generator | Not needed by users |
-| EditorConfig | Config | IDE consistency | Development preference |
+| Pre-commit Framework | Tool | Pre-commit hook manager | ❌ | ✅ | Additional complexity |
+| MkDocs | Tool | Documentation generator | ❌ | ✅ | Not needed by users |
+| EditorConfig | Config | IDE consistency | ❌ | ✅ | Development preference |
 | **DEPENDENCY MANAGEMENT** |
-| Dependabot | Automation | Automated updates | CI/CD dependency |
-| Renovate Bot | Automation | Alternative updater | CI/CD dependency |
+| Dependabot | Automation | Automated updates | ❌ | ✅ | CI/CD dependency |
+| Renovate Bot | Automation | Alternative updater | ❌ | ✅ | CI/CD dependency |
 | **PROJECT FILES** |
-| .editorconfig | Config | Editor configuration | IDE-specific |
-| mkdocs.yml | Config | Documentation config | Docs-specific |
-| renovate.json | Config | Renovate bot config | Bot-specific |
-| scripts/*.sh | Scripts | Development scripts | Maintenance scripts |
+| .editorconfig | Config | Editor configuration | ❌ | ✅ | IDE-specific |
+| mkdocs.yml | Config | Documentation config | ❌ | ✅ | Docs-specific |
+| renovate.json | Config | Renovate bot config | ❌ | ✅ | Bot-specific |
+| scripts/*.sh | Scripts | Development scripts | ❌ | ✅ | Maintenance scripts |
 | **GITHUB FEATURES** |
-| Branch Protection | Security | PR requirements | Repo setting, not file |
-| Secret Scanning | Security | GitHub secret scan | GitHub feature |
-| Code Scanning | Security | Security alerts | GitHub feature |
-| Security Advisories | Security | Vulnerability reporting | GitHub feature |
+| Branch Protection | Security | PR requirements | ❌ | ✅ | Repo setting, not file |
+| Secret Scanning | Security | GitHub secret scan | ❌ | ✅ | GitHub feature |
+| Code Scanning | Security | Security alerts | ❌ | ✅ | GitHub feature |
+| Security Advisories | Security | Vulnerability reporting | ❌ | ✅ | GitHub feature |
 
 ## 📈 Summary Statistics
 
