@@ -76,16 +76,9 @@ This repository implements a **"dogfooding plus"** approach:
 | **DEVELOPMENT TOOLS** |
 | Pre-commit Framework | Tool | Pre-commit hook manager | ❌ | ✅ | Additional complexity |
 | MkDocs | Tool | Documentation generator | ❌ | ✅ | Not needed by users |
-| EditorConfig | Config | IDE consistency | ❌ | ✅ | Development preference |
 | **DEPENDENCY MANAGEMENT** |
-| Renovate Bot | Automation | Alternative updater | ❌ | ✅ | CI/CD dependency |
-| **PROJECT FILES** |
-| .editorconfig | Config | Editor configuration | ❌ | ✅ | IDE-specific |
-| mkdocs.yml | Config | Documentation config | ❌ | ✅ | Docs-specific |
-| renovate.json | Config | Renovate bot config | ❌ | ✅ | Bot-specific |
-| scripts/*.sh | Scripts | Development scripts | ❌ | ✅ | Maintenance scripts |
 | **MANUAL GITHUB FEATURES** |
-| Security Advisories | Security | Private vulnerability reporting | ❌ | 🔄 | Requires manual web setup |
+| Security Advisories | Security | Private vulnerability reporting | ❌ | ❌ | Requires manual web setup |
 | Advanced Security | Security | Enterprise code scanning | ❌ | ❌ | GitHub Enterprise only |
 
 ## 📈 Summary Statistics
@@ -96,9 +89,9 @@ This repository implements a **"dogfooding plus"** approach:
 | **Pre-commit Checks** | 0 | 8 |
 | **CI/CD Workflows** | 1-2 (optional), +1 with --github-security | 8 |
 | **Helper Tools** | 2 | 2 + scripts |
-| **Configuration Files** | 5 | 15+ |
+| **Configuration Files** | 5 | 7 |
 | **GitHub Security Features** | 6 with --github-security | 6 |
-| **Total Security Controls** | ~35 with --github-security | ~50 |
+| **Total Security Controls** | ~35 with --github-security | ~40 |
 
 ## 🎯 Why the Difference?
 
@@ -205,6 +198,13 @@ Eight specialized workflows for continuous validation:
 - **Purpose**: Ensures tool version consistency
 - **Checks**: Script synchronization between installer and repo
 
+#### 8. `gitleaks-validation.yml`
+- **Purpose**: Validates gitleakslite behavior matches official gitleaks
+- **Tools**: Official gitleaks v8.28.0 with cryptographic verification
+- **Testing**: Tests on both files with secrets and clean repositories
+- **Validation**: Compares exit codes to ensure behavioral consistency
+- **Note**: Demonstrates challenge of realistic test secrets vs. GitHub secret scanning
+
 ### Layer 4: Repository Configuration
 
 #### Secret Detection (Two-Layer Defense)
@@ -221,7 +221,7 @@ Eight specialized workflows for continuous validation:
 - Code scanning: ✅ CodeQL workflow added
 
 #### GitHub Features (Require Manual Web Interface)
-- Security advisories: 🔄 Needs manual enable
+- Security advisories: ❌ Not enabled (requires manual web setup)
 - Advanced security: ❌ Not available (public repo)
 
 #### Dependency Management
