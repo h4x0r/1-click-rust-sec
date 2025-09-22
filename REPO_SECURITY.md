@@ -95,10 +95,10 @@ This repository implements a **"dogfooding plus"** approach:
 |--------|-------------------|---------------------|
 | **Pre-push Checks** | 25+ | 25+ |
 | **Pre-commit Checks** | 0 | 8 |
-| **CI/CD Workflows** | 1-2 (optional) | 7 |
+| **CI/CD Workflows** | 1-2 (optional) | 8 |
 | **Helper Tools** | 2 | 2 + scripts |
 | **Configuration Files** | 5 | 15+ |
-| **Total Security Controls** | ~30 | ~45 |
+| **Total Security Controls** | ~30 | ~50 |
 
 ## 🎯 Why the Difference?
 
@@ -161,7 +161,7 @@ repos:
 
 ### Layer 3: CI/CD Workflows (GitHub Actions)
 
-Seven specialized workflows for continuous validation:
+Eight specialized workflows for continuous validation:
 
 #### 1. `pinning-validation.yml`
 - **Purpose**: Ensures all GitHub Actions use SHA pins
@@ -182,17 +182,22 @@ Seven specialized workflows for continuous validation:
 - **Tools**: MkDocs with Material theme
 - **Output**: GitHub Pages site
 
-#### 4. `helpers-e2e.yml`
+#### 4. `codeql.yml`
+- **Purpose**: Code scanning for security vulnerabilities
+- **Tools**: GitHub CodeQL (JavaScript/TypeScript analysis)
+- **Schedule**: Weekly scans + PR analysis
+
+#### 5. `helpers-e2e.yml`
 - **Purpose**: End-to-end testing of helper tools
 - **Tests**: pinactlite and gitleakslite functionality
 - **Coverage**: Detection, auto-fixing, edge cases
 
-#### 5. `installer-self-test.yml`
+#### 6. `installer-self-test.yml`
 - **Purpose**: Validates installer integrity
 - **Tests**: Installation scenarios, flag combinations
 - **Environments**: Multiple OS versions
 
-#### 6. `sync-pinactlite.yml`
+#### 7. `sync-pinactlite.yml`
 - **Purpose**: Ensures tool version consistency
 - **Checks**: Script synchronization between installer and repo
 
@@ -203,15 +208,15 @@ Seven specialized workflows for continuous validation:
 - **GitHub Secret Scanning**: ✅ Server-side detection and partner notification
 - **GitHub Push Protection**: ✅ Additional blocking at GitHub level
 
-#### GitHub Security Features (Actually Enabled)
+#### GitHub Security Features (Enabled)
+- Branch protection: ✅ Enabled (PR reviews required, status checks, admin enforcement)
 - Issues tracking: ✅ Enabled
 - Dependabot config: ✅ Present (GitHub Actions + Cargo)
+- Code scanning: ✅ CodeQL workflow added
 
-#### GitHub Features (Not Currently Enabled)
-- Branch protection: ❌ Not configured
-- Dependabot security updates: ❌ Disabled (requires manual enable)
-- Code scanning alerts: ❌ Not enabled
-- Security advisories: ❌ Not enabled
+#### GitHub Features (Require Manual Web Interface)
+- Dependabot security updates: 🔄 Config ready (needs web enable)
+- Security advisories: 🔄 Needs manual enable
 - Advanced security: ❌ Not available (public repo)
 
 #### Dependency Management
