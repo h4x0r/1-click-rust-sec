@@ -3172,7 +3172,7 @@ install_github_security() {
   # 3. Enable Branch Protection (if this is the main branch)
   local current_branch
   current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-  if [[ "$current_branch" == "main" ]] || [[ "$current_branch" == "master" ]]; then
+  if [[ $current_branch == "main" ]] || [[ $current_branch == "master" ]]; then
     print_status $BLUE "🛡️  Enabling branch protection for $current_branch..."
     configure_branch_protection "$repo_name" "$current_branch"
   else
@@ -3204,7 +3204,8 @@ configure_branch_protection() {
   local branch_name=$2
 
   local protection_config
-  protection_config=$(cat <<EOF
+  protection_config=$(
+    cat <<EOF
 {
   "required_status_checks": {
     "strict": true,
@@ -3223,9 +3224,9 @@ configure_branch_protection() {
   "allow_deletions": false
 }
 EOF
-)
+  )
 
-  if gh api "repos/$repo_name/branches/$branch_name/protection" -X PUT --input - <<< "$protection_config" >/dev/null 2>&1; then
+  if gh api "repos/$repo_name/branches/$branch_name/protection" -X PUT --input - <<<"$protection_config" >/dev/null 2>&1; then
     print_status $GREEN "   ✅ Branch protection enabled for $branch_name"
     print_status $BLUE "      • Requires PR reviews (1 approver)"
     print_status $BLUE "      • Requires status checks to pass"
