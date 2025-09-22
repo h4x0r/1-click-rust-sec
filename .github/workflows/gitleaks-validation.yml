@@ -66,6 +66,8 @@ jobs:
           mkdir -p /tmp/secret-test
           cd /tmp/secret-test
           git init
+          git config user.name "Gitleaks Test"
+          git config user.email "test@example.com"
 
           # Create test files with known secrets
           cat > test-secrets.txt << 'EOF'
@@ -142,6 +144,8 @@ jobs:
           mkdir -p /tmp/clean-test
           cd /tmp/clean-test
           git init
+          git config user.name "Gitleaks Test"
+          git config user.email "test@example.com"
 
           echo "# Clean file with no secrets" > README.md
           git add README.md
