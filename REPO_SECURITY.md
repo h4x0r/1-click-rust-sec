@@ -46,6 +46,7 @@ This repository implements a **"dogfooding plus"** approach:
 | gitleakslite | Tool | Secret scanner | ✅ | ✅ |
 | **CI/CD WORKFLOWS** |
 | Basic Security | CI | Optional workflows | ✅ (optional) | ✅ |
+| CodeQL Scanning | CI | Security code analysis | ✅ (with --github-security) | ✅ |
 | **CONFIGURATION** |
 | .security-controls/ | Config | Security configs | ✅ | ✅ |
 | deny.toml | Config | Cargo deny config | ✅ | ✅ |
@@ -77,17 +78,15 @@ This repository implements a **"dogfooding plus"** approach:
 | MkDocs | Tool | Documentation generator | ❌ | ✅ | Not needed by users |
 | EditorConfig | Config | IDE consistency | ❌ | ✅ | Development preference |
 | **DEPENDENCY MANAGEMENT** |
-| Dependabot | Automation | Automated updates | ❌ | ✅ | CI/CD dependency |
 | Renovate Bot | Automation | Alternative updater | ❌ | ✅ | CI/CD dependency |
 | **PROJECT FILES** |
 | .editorconfig | Config | Editor configuration | ❌ | ✅ | IDE-specific |
 | mkdocs.yml | Config | Documentation config | ❌ | ✅ | Docs-specific |
 | renovate.json | Config | Renovate bot config | ❌ | ✅ | Bot-specific |
 | scripts/*.sh | Scripts | Development scripts | ❌ | ✅ | Maintenance scripts |
-| **GITHUB FEATURES** |
-| GitHub Secret Scanning | Security | Server-side secret detection | ❌ | ✅ | GitHub feature (enabled) |
-| GitHub Push Protection | Security | Server-side push blocking | ❌ | ✅ | GitHub feature (enabled) |
-| **NOTE**: Installer provides gitleakslite (local secret detection) which works with both repos | | | | |
+| **MANUAL GITHUB FEATURES** |
+| Security Advisories | Security | Private vulnerability reporting | ❌ | 🔄 | Requires manual web setup |
+| Advanced Security | Security | Enterprise code scanning | ❌ | ❌ | GitHub Enterprise only |
 
 ## 📈 Summary Statistics
 
@@ -95,10 +94,11 @@ This repository implements a **"dogfooding plus"** approach:
 |--------|-------------------|---------------------|
 | **Pre-push Checks** | 25+ | 25+ |
 | **Pre-commit Checks** | 0 | 8 |
-| **CI/CD Workflows** | 1-2 (optional) | 8 |
+| **CI/CD Workflows** | 1-2 (optional), +1 with --github-security | 8 |
 | **Helper Tools** | 2 | 2 + scripts |
 | **Configuration Files** | 5 | 15+ |
-| **Total Security Controls** | ~30 | ~50 |
+| **GitHub Security Features** | 6 with --github-security | 6 |
+| **Total Security Controls** | ~35 with --github-security | ~50 |
 
 ## 🎯 Why the Difference?
 
@@ -110,13 +110,17 @@ The additional controls in this repository serve specific purposes:
 4. **Tool Synchronization**: Keep helper tools in sync
 5. **Enhanced CI/CD**: Validate everything works end-to-end
 
-Most projects don't need these development-specific controls, which is why the installer focuses on universal security controls that benefit all Rust projects.
+Most projects don't need these development-specific controls, which is why the installer focuses on universal security controls that benefit all projects.
+
+**NEW**: The installer now provides comprehensive GitHub security features with `--github-security`, bringing user repositories much closer to this repository's security level!
 
 ## 🛡️ Security Layers
 
 ### Layer 1: Pre-Push Controls (Local)
 
 Same 25+ controls that users get, running via `.git/hooks/pre-push`:
+
+**Enhanced with --github-security**: Users can now also get GitHub repository security features automatically configured.
 
 **Blocking Controls:**
 - Secret detection (gitleakslite)

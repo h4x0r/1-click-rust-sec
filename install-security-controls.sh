@@ -2571,6 +2571,35 @@ See docs/security/YUBIKEY_SIGSTORE_GUIDE.md for a hardware-backed, keyless commi
 - **Security Coverage**: 14+ comprehensive controls
 - **Developer Impact**: 10x faster issue resolution vs CI failures
 
+## 🔐 GitHub Security Features (Optional)
+
+With the `--github-security` option, the installer also configures:
+
+### ✅ **Automatically Configured**
+- **Dependabot Vulnerability Alerts** - Automated dependency scanning
+- **Dependabot Security Fixes** - Automated security update PRs
+- **Branch Protection Rules** - Requires PR reviews and status checks
+- **CodeQL Security Scanning** - Automated code analysis workflow
+- **Secret Scanning** - Server-side secret detection (auto-enabled)
+- **Secret Push Protection** - Blocks secrets at GitHub level
+
+### 📋 **Manual Setup Required**
+- **Security Advisories** - Private vulnerability reporting (web interface)
+- **Advanced Security** - GitHub Enterprise only (not available for public repos)
+
+### 🛠️ **Requirements**
+- GitHub CLI (`gh`) installed and authenticated
+- Repository admin permissions for branch protection
+- GitHub repository (not local-only)
+
+### 💡 **Usage**
+```bash
+# Enable all GitHub security features
+./install-security-controls.sh --github-security
+```
+
+If requirements aren't met, detailed manual setup instructions are provided.
+
 ## 📈 Compliance
 
 - ✅ NIST SSDF aligned

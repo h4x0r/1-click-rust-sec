@@ -7,6 +7,7 @@ This installer adds security controls to **YOUR** Rust project. It provides:
 - **2 helper tools** (pinactlite, gitleakslite)
 - **Optional CI workflows** (can be skipped with --no-ci)
 - **Configuration files** for security tools
+- **🆕 GitHub security features** (with --github-security option)
 
 **Note**: This repository itself has additional development-specific controls. See [REPO_SECURITY.md](REPO_SECURITY.md) for details about this repo's enhanced security.
 
@@ -27,6 +28,9 @@ sha256sum -c install-security-controls.sh.sha256
 # Run installer
 chmod +x install-security-controls.sh
 ./install-security-controls.sh
+
+# Optional: Enable GitHub security features
+./install-security-controls.sh --github-security
 ```
 
 ---
@@ -117,6 +121,30 @@ Basic GitHub Actions workflows for continuous security validation.
 
 Security guides and architecture documentation.
 
+### 6. 🔐 GitHub Security Features (--github-security)
+
+**NEW**: Comprehensive GitHub repository security configuration:
+
+#### ✅ **Automatically Configured**
+- **Dependabot Vulnerability Alerts** - Automated dependency scanning
+- **Dependabot Automated Security Fixes** - Automated security update PRs
+- **Branch Protection Rules** - Requires PR reviews and status checks
+- **CodeQL Security Scanning** - Adds `.github/workflows/codeql.yml`
+- **Secret Scanning** - Server-side secret detection (auto-enabled for public repos)
+- **Secret Push Protection** - Blocks secret pushes at GitHub level
+
+#### 📋 **Manual Setup Required**
+- **Security Advisories** - Private vulnerability reporting (requires repository admin web access)
+- **Advanced Security** - ❌ GitHub Enterprise only (not available for public repositories)
+
+#### 🛠️ **Requirements**
+- GitHub CLI (`gh`) installed and authenticated
+- Repository admin permissions for branch protection
+- GitHub repository (not local-only)
+
+#### 💡 **Smart Fallbacks**
+If requirements aren't met, the installer provides detailed manual setup instructions.
+
 ---
 
 ## 📦 Installation Options
@@ -132,6 +160,12 @@ Full installation with all Rust-specific checks.
 ./install-security-controls.sh --non-rust
 ```
 Universal checks only (secrets, pinning, licenses).
+
+### With GitHub Security Features
+```bash
+./install-security-controls.sh --github-security
+```
+Full installation + 6 GitHub repository security features.
 
 ### Minimal (Hooks Only)
 ```bash
