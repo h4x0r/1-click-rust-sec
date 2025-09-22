@@ -1,19 +1,36 @@
 # 1-Click Rust Security 🛡️
 
-**Enterprise-grade security controls for Rust projects - installed in seconds, protecting in minutes**
+**Enterprise-grade security controls installer for Rust projects**
 
-Deploy 25+ comprehensive security controls with cryptographic verification and zero configuration. Built for developers who take security seriously.
+Deploy comprehensive security controls to any Rust project with a single command. This repository serves two purposes:
 
-[![Security](https://img.shields.io/badge/Security-25%2B%20Controls-green.svg)](https://github.com/h4x0r/1-click-rust-sec)
-[![Performance](https://img.shields.io/badge/Pre--Push-~60s-blue.svg)](#performance)
+1. **Security Installer** - Provides an installer that adds 25+ security controls to YOUR projects
+2. **Reference Implementation** - Demonstrates security best practices with its own enhanced controls
+
+[![Security](https://img.shields.io/badge/Installer%20Provides-25%2B%20Controls-green.svg)](https://github.com/h4x0r/1-click-rust-sec)
+[![This Repo](https://img.shields.io/badge/This%20Repo%20Has-35%2B%20Controls-blue.svg)](#this-repos-security)
+[![Performance](https://img.shields.io/badge/Pre--Push-~60s-orange.svg)](#performance)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.1.0-orange.svg)](https://github.com/h4x0r/1-click-rust-sec/releases)
-[![Pinning Validation](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/pinning-validation.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/pinning-validation.yml)
-[![Shell Lint](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/shell-lint.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/shell-lint.yml)
+[![Version](https://img.shields.io/badge/Version-v0.1.0-purple.svg)](https://github.com/h4x0r/1-click-rust-sec/releases)
 
-## 🚀 Quick Start (30 Seconds)
+## 📌 Important Distinction
 
-**⚠️ Always verify security tools before installation!**
+| Aspect | What the Installer Gives You | What This Repository Has |
+|--------|------------------------------|--------------------------|
+| **Purpose** | Adds security to YOUR project | Protects THIS installer project |
+| **Pre-push Controls** | 25+ security checks | 25+ security checks |
+| **CI/CD Workflows** | Optional (--no-ci to skip) | 7 specialized workflows |
+| **Pre-commit Hooks** | Not included | Full pre-commit suite |
+| **Documentation** | Basic security guides | Complete documentation site |
+| **Helper Tools** | pinactlite, gitleakslite | Same + additional scripts |
+
+**TL;DR**: This repository "eats its own dog food" - it uses an enhanced version of what it installs for others.
+
+---
+
+## 🚀 Quick Start (For YOUR Project)
+
+Install security controls in your Rust project in 30 seconds:
 
 ```bash
 # Download and verify installer
@@ -23,106 +40,124 @@ curl -O https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/install-se
 # Verify checksum (REQUIRED for security)
 sha256sum -c install-security-controls.sh.sha256
 
-# Install
+# Install in YOUR project
 chmod +x install-security-controls.sh
 ./install-security-controls.sh
 ```
 
-That's it! Your repository now has enterprise-grade security controls.
+## 🎯 What YOUR Project Gets
 
-## 🎯 What You Get
+### Core Security Controls (Pre-Push Hook)
 
-### Immediate Protection (Pre-Push Hook)
+The installer adds these 25+ checks that run automatically before each `git push`:
 
-Every `git push` automatically runs 25 security checks in ~60 seconds:
+#### 🔴 **Critical (Blocking)**
+1. **Secret Detection** - Blocks AWS keys, GitHub tokens, API keys, private keys
+2. **Vulnerability Scanning** - Blocks known CVEs via cargo-deny
+3. **Test Suite** - Ensures tests pass before push
+4. **Format Enforcement** - Maintains consistent code style
+5. **Linting** - Catches bugs via clippy
+6. **Large Files** - Prevents accidental binary/secret uploads
 
-**🔴 Critical Controls (Blocking)**
-- **Secret Detection** - Prevents credentials, tokens, and keys from entering git history
-- **Security Vulnerabilities** - Blocks known CVEs via cargo-deny
-- **GitHub Actions Pinning** - Ensures all actions use immutable SHA references
-- **Large File Detection** - Prevents accidental secrets in binary files
-- **Test Suite Validation** - Ensures tests pass before code ships
-- **Format Enforcement** - Maintains consistent code style
+#### 🟡 **Important (Warning)**
+7. GitHub Actions SHA pinning verification
+8. Commit signature verification
+9. License compliance checking
+10. Dependency version pinning
+11. Unsafe code monitoring (cargo-geiger)
+12. Unused dependencies (cargo-machete)
+13. Build script security
+14. Documentation secret scanning
+15. Environment variable hardcoding
+16. Rust edition specification
+17. Import security validation
+18. File permission auditing
+19. Dependency count monitoring
+20. Network address validation
+21. Commit message security
+22. Technical debt tracking
+23. Empty file detection
+24. Cargo.lock validation
+25. Plus additional context-aware checks
 
-**🟡 Important Controls (Warning)**
-- Unsafe code monitoring with cargo-geiger
-- License compliance validation
-- Commit signature verification (Sigstore/GPG)
-- Dependency version pinning checks
-- Build script security analysis
-- Documentation secret scanning
-- Environment variable hardcoding detection
-- Technical debt tracking
-- File permission auditing
-- Network address validation
+### Helper Tools
 
-### Lightweight Helper Tools
+Two lightweight bash scripts for security operations:
 
-The installer includes two efficient helper scripts:
+- **pinactlite** - GitHub Actions SHA pinning verification and auto-fixing
+- **gitleakslite** - Fast secret detection with configurable patterns
 
-**pinactlite** - GitHub Actions SHA pinning verification
-- Validates all workflow files use SHA-pinned actions
-- Provides automatic pinning with `autopin` command
-- Zero dependencies, pure bash implementation
+### Optional Components
 
-**gitleakslite** - Secret detection
-- Scans for AWS keys, GitHub tokens, API keys, private keys
-- Configurable allow-listing for false positives
-- Integrated with pre-commit and pre-push workflows
+- **CI/CD Workflows** - GitHub Actions security workflows (use `--no-ci` to skip)
+- **Documentation** - Security guides and architecture docs (use `--no-docs` to skip)
+- **Configuration Files** - deny.toml, .cargo/config.toml security settings
 
-## 🏗️ Architecture
+---
 
-### Two-Tier Security Model
+## 🏰 This Repository's Security {#this-repos-security}
 
-```
-Developer Workstation                    CI/CD Pipeline
-┌─────────────────────┐                 ┌──────────────────────┐
-│   Pre-Push Hook     │                 │   GitHub Actions     │
-│   (~60 seconds)     │      Push       │   (Comprehensive)    │
-├─────────────────────┤      ──────>    ├──────────────────────┤
-│ • Secret Detection  │                 │ • Pinning Validation │
-│ • Vulnerability Scan│                 │ • Shell Linting      │
-│ • Test Validation   │                 │ • Documentation Build│
-│ • Format Check      │                 │ • E2E Testing        │
-│ • License Compliance│                 │ • Installer Tests    │
-│ • SHA Pinning       │                 │ • Helper Validation  │
-│ • + 19 more checks  │                 │                      │
-└─────────────────────┘                 └──────────────────────┘
-    Block Bad Code                          Deep Analysis
-```
+This repository practices what it preaches with ENHANCED security:
 
-### Why This Architecture?
+### Additional CI/CD Workflows
+1. **Pinning Validation** - Ensures all actions use SHA pins
+2. **Shell Linting** - shellcheck + shfmt validation
+3. **Documentation Building** - MkDocs site generation
+4. **E2E Testing** - Full installation testing
+5. **Helper Sync Validation** - Ensures tool consistency
+6. **Installer Self-Test** - Validates installer integrity
+7. **Documentation Deployment** - GitHub Pages automation
 
-**Fast Feedback** - Issues caught in 60 seconds, not after 10-minute CI runs
-**Developer-Friendly** - Warnings don't block urgent fixes
-**Security-First** - Critical issues always blocked
-**Comprehensive** - 25+ checks cover all major attack vectors
+### Additional Pre-Commit Hooks
+- Trailing whitespace removal
+- End-of-file fixing
+- YAML validation
+- Large file checking
+- Markdown linting
+- Shell script formatting
+- pinactlite sync verification
+
+### Additional Tools
+- Full pre-commit framework integration
+- MkDocs documentation site
+- Automated dependency updates (Dependabot)
+- Renovate bot configuration
+- EditorConfig for IDE consistency
+
+---
 
 ## 📦 Installation Options
 
-### Standard Installation (Recommended)
+### For Rust Projects (Default)
 ```bash
 ./install-security-controls.sh
 ```
-Installs all security controls for Rust projects.
+Installs all security controls optimized for Rust/Cargo projects.
 
-### Non-Rust Projects
+### For Non-Rust Projects
 ```bash
 ./install-security-controls.sh --non-rust
 ```
 Installs universal security controls (secrets, pinning, licenses).
 
-### Custom Installation
+### Minimal Installation (Just Hooks)
+```bash
+./install-security-controls.sh --no-ci --no-docs
+```
+Installs only the pre-push hook, no workflows or documentation.
+
+### See All Options
 ```bash
 ./install-security-controls.sh --help
 ```
-See all installation options including CI-only, documentation, and force modes.
+
+---
 
 ## 🔧 Configuration
 
-### Pre-Push Hook Configuration
+### Customize Security Controls
 
-Edit `.security-controls/config.env` to customize:
+Edit `.security-controls/config.env` after installation:
 
 ```bash
 # Skip specific checks (use with caution)
@@ -130,125 +165,130 @@ SKIP_FORMAT_CHECK=false
 SKIP_SECURITY_AUDIT=false
 SKIP_SECRET_SCAN=false  # NEVER set to true in production
 
-# Tool behavior
+# Tool preferences
 CARGO_AUDIT_TOOL="cargo-deny"  # or "cargo-audit"
 MAX_FILE_SIZE_MB=10
 ```
 
-### Secret Detection Allow-listing
+### Secret Detection Tuning
 
-For false positives, add patterns to `.security-controls/secret-allowlist.txt`:
+Add false positive patterns to `.security-controls/secret-allowlist.txt`:
 ```
-# Example entries (one per line)
+# One pattern per line
 example-api-key-in-docs
 test-token-[0-9]+
 ```
 
-### Helper Tools Usage
+---
 
-```bash
-# Check GitHub Actions pinning
-.security-controls/bin/pinactlite pincheck --dir .github/workflows
+## 📊 Performance {#performance}
 
-# Auto-pin unpinned actions
-.security-controls/bin/pinactlite autopin --dir .github/workflows --actions
-
-# Scan for secrets
-.security-controls/bin/gitleakslite detect --no-banner
-
-# Check staged changes for secrets
-.security-controls/bin/gitleakslite protect --staged --no-banner
-```
-
-## 🛡️ Security Features
-
-### Cryptographic Verification
-- SHA256 checksums for installer verification
-- Signed commits with Sigstore/GPG
-- Pinned dependencies with lock files
-- Immutable GitHub Actions references
-
-### Supply Chain Protection
-- All GitHub Actions SHA-pinned to specific commits
-- Dependency vulnerability scanning with cargo-deny
-- License compliance validation
-- SBOM generation support (when tools available)
-
-### Secret Prevention
-- Pre-push secret scanning (blocks push)
-- Pre-commit secret detection (optional)
-- Historical git content scanning
-- Documentation secret detection
-
-## 📊 Performance
-
-### Typical Timings (Pre-Push)
+### Pre-Push Hook Timing
 - Format check: ~2s
 - Clippy linting: ~15s
 - Security audit: ~5s
-- Test suite: ~20s (varies by project)
+- Test suite: ~20s (varies)
 - Secret scan: ~2s
-- Other checks: ~15s combined
+- Other checks: ~15s
 - **Total: ~60 seconds**
 
 ### Optimization Tips
+- Keep test suites focused
+- Use `cargo build --release` before push to warm caches
 - Use `--no-verify` only for emergency hotfixes
-- Run `cargo build --release` before push to warm caches
-- Keep test suites fast and focused
-- Use parallel test execution
-
-## 📚 Documentation
-
-| Document | Description |
-|----------|-------------|
-| [Installation Guide](SECURITY_CONTROLS_INSTALLATION.md) | Detailed setup instructions |
-| [Architecture](SECURITY_CONTROLS_ARCHITECTURE.md) | Technical deep-dive |
-| [Contributing](CONTRIBUTING.md) | How to contribute |
-| [Changelog](CHANGELOG.md) | Version history |
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-Key areas for contribution:
-- Additional security checks
-- Performance optimizations
-- Tool integrations
-- Documentation improvements
-- Multi-language support
-
-## 📄 License
-
-Apache 2.0 - See [LICENSE](LICENSE) for details.
-
-## 🙏 Acknowledgments
-
-This project leverages excellent open-source security tools:
-- [cargo-deny](https://github.com/EmbarkStudios/cargo-deny) - Dependency checking
-- [cargo-audit](https://github.com/RustSec/rustsec) - Vulnerability database
-- [gitleaks](https://github.com/gitleaks/gitleaks) - Secret detection inspiration
-- [pinact](https://github.com/suzuki-shunsuke/pinact) - Action pinning inspiration
-
-## 🚨 Security Policy
-
-Found a security issue? Please email security@[domain] or open a GitHub Security Advisory.
-
-## 🎯 Roadmap
-
-### v0.2.0 (Planned)
-- [ ] SAST integration (Semgrep/CodeQL)
-- [ ] Container scanning support
-- [ ] SBOM generation
-- [ ] Multi-language support (Python, Go, Node.js)
-
-### v0.3.0 (Future)
-- [ ] Cloud security posture management
-- [ ] Compliance reporting (SOC2, ISO27001)
-- [ ] IDE integrations
-- [ ] Security metrics dashboard
 
 ---
 
-**🛡️ Secure your Rust projects with confidence - Install in seconds, protect forever**
+## 🛡️ Security Architecture
 
-*Questions? Issues? → [GitHub Issues](https://github.com/h4x0r/1-click-rust-sec/issues)*
+### Two-Tier Model
+
+```
+┌─────────────────────┐         ┌──────────────────────┐
+│ Developer Machine   │  Push   │ CI/CD (Optional)     │
+│ ┌─────────────────┐ │ ──────> │ ┌──────────────────┐ │
+│ │ Pre-Push Hook   │ │         │ │ Deep Analysis    │ │
+│ │ 25+ Checks      │ │         │ │ SAST/DAST       │ │
+│ │ ~60 seconds     │ │         │ │ Supply Chain    │ │
+│ └─────────────────┘ │         │ │ Compliance      │ │
+└─────────────────────┘         │ └──────────────────┘ │
+  Fast Local Blocking           └──────────────────────┘
+                                  Comprehensive Analysis
+```
+
+### Cryptographic Verification
+- SHA256 checksums for installer
+- Signed commits support
+- SHA-pinned GitHub Actions
+- Dependency lock files
+
+---
+
+## 📚 Documentation
+
+| Document | Description | Audience |
+|----------|-------------|----------|
+| [README.md](README.md) | This file - overview and quick start | Everyone |
+| [INSTALLATION.md](SECURITY_CONTROLS_INSTALLATION.md) | Detailed installation guide | Users installing controls |
+| [ARCHITECTURE.md](SECURITY_CONTROLS_ARCHITECTURE.md) | Technical deep-dive | Security engineers |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines | Contributors |
+| [REPO_SECURITY.md](REPO_SECURITY.md) | This repo's security setup | Maintainers |
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+Key areas:
+- New security checks
+- Performance optimizations
+- Multi-language support
+- Tool integrations
+
+---
+
+## 🚨 Security
+
+Found a security issue? Please:
+1. **DO NOT** open a public issue
+2. Email security@[domain] or
+3. Use GitHub Security Advisories
+
+---
+
+## 📄 License
+
+Apache 2.0 - See [LICENSE](LICENSE)
+
+---
+
+## 🙏 Acknowledgments
+
+Built on excellent open-source tools:
+- [cargo-deny](https://github.com/EmbarkStudios/cargo-deny)
+- [cargo-audit](https://github.com/RustSec/rustsec)
+- [gitleaks](https://github.com/gitleaks/gitleaks) (inspiration)
+- [pinact](https://github.com/suzuki-shunsuke/pinact) (inspiration)
+
+---
+
+## ❓ FAQ
+
+**Q: Why does this repo have more security than what it installs?**
+A: This repository is the development environment for the installer. It needs additional workflows for testing, documentation, and validation that end users don't need.
+
+**Q: Can I get ALL the security this repo has?**
+A: Yes! Clone this repo and copy the additional workflows and pre-commit config. But most projects don't need all of these.
+
+**Q: What's the minimum I should install?**
+A: Just run the basic installer - it provides comprehensive security appropriate for most projects.
+
+**Q: How do I know the installer is safe?**
+A: Always verify the SHA256 checksum. The installer is also open source for full transparency.
+
+---
+
+**🛡️ Secure your Rust projects with confidence**
+
+*Install in seconds, protect forever*
