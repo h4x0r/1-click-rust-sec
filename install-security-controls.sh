@@ -324,8 +324,8 @@ USAGE:
     $0 [OPTIONS]
 
 DESCRIPTION:
-    Installs military-grade security controls with industry-leading architecture.
-    Provides two-tier security: fast pre-push validation (20+ checks) + comprehensive CI analysis.
+    Installs enterprise-grade security controls for Rust projects.
+    Provides two-tier security: fast pre-push validation (25+ checks) + comprehensive CI analysis.
 
 OPTIONS:
     -h, --help              Show this help message
