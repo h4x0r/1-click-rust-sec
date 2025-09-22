@@ -25,12 +25,12 @@ curl -O https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/install-se
 # VERIFY CHECKSUM (Critical!)
 sha256sum -c install-security-controls.sh.sha256
 
-# Run installer
+# Run installer (includes GitHub security by default)
 chmod +x install-security-controls.sh
 ./install-security-controls.sh
 
-# Optional: Enable GitHub security features
-./install-security-controls.sh --github-security
+# Optional: Skip GitHub security features
+./install-security-controls.sh --no-github-security
 ```
 
 ---
@@ -121,9 +121,9 @@ Basic GitHub Actions workflows for continuous security validation.
 
 Security guides and architecture documentation.
 
-### 6. 🔐 GitHub Security Features (--github-security)
+### 6. 🔐 GitHub Security Features (enabled by default)
 
-**NEW**: Comprehensive GitHub repository security configuration:
+Comprehensive GitHub repository security configuration (use `--no-github-security` to skip):
 
 #### ✅ **Automatically Configured**
 - **Dependabot Vulnerability Alerts** - Automated dependency scanning
@@ -159,17 +159,17 @@ Full installation with all Rust-specific checks.
 ```bash
 ./install-security-controls.sh --non-rust
 ```
-Universal checks only (secrets, pinning, licenses).
+Universal checks + GitHub security features.
 
-### With GitHub Security Features
+### Without GitHub Security Features
 ```bash
-./install-security-controls.sh --github-security
+./install-security-controls.sh --no-github-security
 ```
-Full installation + 6 GitHub repository security features.
+Local security only (skips GitHub repository configuration).
 
 ### Minimal (Hooks Only)
 ```bash
-./install-security-controls.sh --no-ci --no-docs
+./install-security-controls.sh --no-ci --no-docs --no-github-security
 ```
 Just the pre-push hook, no extras.
 

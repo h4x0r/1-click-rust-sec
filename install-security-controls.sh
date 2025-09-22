@@ -57,7 +57,7 @@ INSTALL_HOOKS=true
 INSTALL_CI=true
 INSTALL_DOCS=true
 USE_HOOKS_PATH=false
-INSTALL_GITHUB_SECURITY=false
+INSTALL_GITHUB_SECURITY=true
 
 # Upgrade functionality flags
 # shellcheck disable=SC2034 # Reserved flag
@@ -326,7 +326,7 @@ USAGE:
 
 DESCRIPTION:
     Installs enterprise-grade security controls for Rust projects.
-    Provides two-tier security: fast pre-push validation (25+ checks) + comprehensive CI analysis.
+    Provides comprehensive security: local validation (25+ checks) + CI analysis + GitHub security features.
 
 OPTIONS:
     -h, --help              Show this help message
@@ -339,7 +339,7 @@ OPTIONS:
     --no-docs               Skip documentation installation
     --non-rust              Configure for non-Rust project
     --hooks-path            Install hooks using git core.hooksPath (\".githooks\") and chain safely
-    --github-security       Enable GitHub repository security features (requires gh CLI)
+    --no-github-security    Skip GitHub repository security features (enabled by default)
 
 UPGRADE COMMANDS:
     --version               Show version and check for updates
@@ -348,7 +348,7 @@ UPGRADE COMMANDS:
     --backup                Create backup of current installation
     --changelog             Show changelog and release notes
 EXAMPLES:
-    # Full installation (recommended)
+    # Full installation with all security features (recommended)
     $0
 
     # Preview changes without installing
@@ -357,17 +357,17 @@ EXAMPLES:
     # Force reinstall over existing setup
     $0 --force
 
-    # Install only hooks (no CI or docs)
-    $0 --no-ci --no-docs
+    # Install only hooks (skip CI, docs, and GitHub security)
+    $0 --no-ci --no-docs --no-github-security
 
-    # Configure for non-Rust project
+    # Configure for non-Rust project (still includes GitHub security)
     $0 --non-rust
+
+    # Skip GitHub security features (local security only)
+    $0 --no-github-security
 
     # Use hooksPath chaining instead of replacing .git/hooks/pre-push
     $0 --hooks-path
-
-    # Enable GitHub security features (branch protection, Dependabot, etc.)
-    $0 --github-security
 
     # Check version and updates
     $0 --version
@@ -413,7 +413,7 @@ SECURITY CONTROLS INSTALLED:
     🔍 Integration testing
     🔍 Compliance reporting
 
-    GitHub Security Features (--github-security):
+    GitHub Security Features (enabled by default):
     🔐 Dependabot vulnerability alerts
     🔐 Dependabot automated security fixes
     🔐 CodeQL security scanning workflow
@@ -3372,8 +3372,8 @@ parse_arguments() {
         USE_HOOKS_PATH=true
         shift
         ;;
-      --github-security)
-        INSTALL_GITHUB_SECURITY=true
+      --no-github-security)
+        INSTALL_GITHUB_SECURITY=false
         shift
         ;;
       --check-update)
