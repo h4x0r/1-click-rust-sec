@@ -46,6 +46,7 @@ This repository implements a **"dogfooding plus"** approach:
 | gitleakslite | Tool | Secret scanner | ✅ | ✅ |
 | **CI/CD WORKFLOWS** |
 | Basic Security | CI | Optional workflows | ✅ (optional) | ✅ |
+| CodeQL Scanning | CI | Security code analysis | ✅ (with --github-security) | ✅ |
 | **CONFIGURATION** |
 | .security-controls/ | Config | Security configs | ✅ | ✅ |
 | deny.toml | Config | Cargo deny config | ✅ | ✅ |
@@ -75,20 +76,10 @@ This repository implements a **"dogfooding plus"** approach:
 | **DEVELOPMENT TOOLS** |
 | Pre-commit Framework | Tool | Pre-commit hook manager | ❌ | ✅ | Additional complexity |
 | MkDocs | Tool | Documentation generator | ❌ | ✅ | Not needed by users |
-| EditorConfig | Config | IDE consistency | ❌ | ✅ | Development preference |
 | **DEPENDENCY MANAGEMENT** |
-| Dependabot | Automation | Automated updates | ❌ | ✅ | CI/CD dependency |
-| Renovate Bot | Automation | Alternative updater | ❌ | ✅ | CI/CD dependency |
-| **PROJECT FILES** |
-| .editorconfig | Config | Editor configuration | ❌ | ✅ | IDE-specific |
-| mkdocs.yml | Config | Documentation config | ❌ | ✅ | Docs-specific |
-| renovate.json | Config | Renovate bot config | ❌ | ✅ | Bot-specific |
-| scripts/*.sh | Scripts | Development scripts | ❌ | ✅ | Maintenance scripts |
-| **GITHUB FEATURES** |
-| Branch Protection | Security | PR requirements | ❌ | ✅ | Repo setting, not file |
-| Secret Scanning | Security | GitHub secret scan | ❌ | ✅ | GitHub feature |
-| Code Scanning | Security | Security alerts | ❌ | ✅ | GitHub feature |
-| Security Advisories | Security | Vulnerability reporting | ❌ | ✅ | GitHub feature |
+| **MANUAL GITHUB FEATURES** |
+| Security Advisories | Security | Private vulnerability reporting | ❌ | ❌ | Requires manual web setup |
+| Advanced Security | Security | Enterprise code scanning | ❌ | ❌ | GitHub Enterprise only |
 
 ## 📈 Summary Statistics
 
@@ -96,10 +87,11 @@ This repository implements a **"dogfooding plus"** approach:
 |--------|-------------------|---------------------|
 | **Pre-push Checks** | 25+ | 25+ |
 | **Pre-commit Checks** | 0 | 8 |
-| **CI/CD Workflows** | 1-2 (optional) | 7 |
+| **CI/CD Workflows** | 1-2 (optional), +1 with --github-security | 8 |
 | **Helper Tools** | 2 | 2 + scripts |
-| **Configuration Files** | 5 | 15+ |
-| **Total Security Controls** | ~30 | ~50 |
+| **Configuration Files** | 5 | 7 |
+| **GitHub Security Features** | 6 with --github-security | 6 |
+| **Total Security Controls** | ~35 with --github-security | ~40 |
 
 ## 🎯 Why the Difference?
 
@@ -111,13 +103,17 @@ The additional controls in this repository serve specific purposes:
 4. **Tool Synchronization**: Keep helper tools in sync
 5. **Enhanced CI/CD**: Validate everything works end-to-end
 
-Most projects don't need these development-specific controls, which is why the installer focuses on universal security controls that benefit all Rust projects.
+Most projects don't need these development-specific controls, which is why the installer focuses on universal security controls that benefit all projects.
+
+**NEW**: The installer now provides comprehensive GitHub security features with `--github-security`, bringing user repositories much closer to this repository's security level!
 
 ## 🛡️ Security Layers
 
 ### Layer 1: Pre-Push Controls (Local)
 
 Same 25+ controls that users get, running via `.git/hooks/pre-push`:
+
+**Enhanced with --github-security**: Users can now also get GitHub repository security features automatically configured.
 
 **Blocking Controls:**
 - Secret detection (gitleakslite)
@@ -162,7 +158,7 @@ repos:
 
 ### Layer 3: CI/CD Workflows (GitHub Actions)
 
-Seven specialized workflows for continuous validation:
+Eight specialized workflows for continuous validation:
 
 #### 1. `pinning-validation.yml`
 - **Purpose**: Ensures all GitHub Actions use SHA pins
@@ -183,39 +179,57 @@ Seven specialized workflows for continuous validation:
 - **Tools**: MkDocs with Material theme
 - **Output**: GitHub Pages site
 
-#### 4. `helpers-e2e.yml`
+#### 4. `codeql.yml`
+- **Purpose**: Code scanning for security vulnerabilities
+- **Tools**: GitHub CodeQL (JavaScript/TypeScript analysis)
+- **Schedule**: Weekly scans + PR analysis
+
+#### 5. `helpers-e2e.yml`
 - **Purpose**: End-to-end testing of helper tools
 - **Tests**: pinactlite and gitleakslite functionality
 - **Coverage**: Detection, auto-fixing, edge cases
 
-#### 5. `installer-self-test.yml`
+#### 6. `installer-self-test.yml`
 - **Purpose**: Validates installer integrity
 - **Tests**: Installation scenarios, flag combinations
 - **Environments**: Multiple OS versions
 
-#### 6. `sync-pinactlite.yml`
+#### 7. `sync-pinactlite.yml`
 - **Purpose**: Ensures tool version consistency
 - **Checks**: Script synchronization between installer and repo
 
+#### 8. `gitleaks-validation.yml`
+- **Purpose**: Validates gitleakslite behavior matches official gitleaks
+- **Tools**: Official gitleaks v8.28.0 with cryptographic verification
+- **Testing**: Tests on both files with secrets and clean repositories
+- **Validation**: Compares exit codes to ensure behavioral consistency
+- **Note**: Demonstrates challenge of realistic test secrets vs. GitHub secret scanning
+
 ### Layer 4: Repository Configuration
 
-#### Branch Protection
-- Require PR reviews
-- Require status checks to pass
-- Require branches to be up to date
-- Include administrators in restrictions
+#### Secret Detection (Two-Layer Defense)
+- **gitleakslite** (local): ✅ Pre-push hook blocks secrets before they leave your machine
+- **GitHub Secret Scanning**: ✅ Server-side detection and partner notification
+- **GitHub Push Protection**: ✅ Additional blocking at GitHub level
 
-#### Security Features
-- Dependabot security updates
-- Secret scanning enabled
-- Code scanning alerts
-- Security advisories enabled
+#### GitHub Security Features (Enabled)
+- Branch protection: ✅ Enabled (PR reviews required, status checks, admin enforcement)
+- Issues tracking: ✅ Enabled
+- Dependabot vulnerability alerts: ✅ Enabled via API
+- Dependabot automated security fixes: ✅ Enabled via API
+- Dependabot config: ✅ Present (GitHub Actions + Cargo)
+- Code scanning: ✅ CodeQL workflow added
+
+#### GitHub Features (Require Manual Web Interface)
+- Security advisories: ❌ Not enabled (requires manual web setup)
+- Advanced security: ❌ Not available (public repo)
 
 #### Dependency Management
-- `.github/dependabot.yml` - Automated updates
+- `.github/dependabot.yml` - Config for GitHub Actions + Cargo updates
 - `renovate.json` - Additional dependency management
 - `deny.toml` - Cargo dependency policies
-- Lock files for reproducible builds
+- `Cargo.lock` - Lock files for reproducible builds
+- **Workflow**: Dependabot updates → pinactlite auto-pins → Secure updates
 
 ## 📊 Metrics & Monitoring
 
@@ -232,10 +246,11 @@ All workflows display real-time status in README:
 - CI workflows: < 5 minutes each
 
 ### Security Metrics
-- 100% GitHub Actions pinned
-- 0 known vulnerabilities
-- 100% secret detection coverage
-- SLSA Level 2 compliance
+- 100% GitHub Actions pinned ✅
+- 0 known vulnerabilities ✅
+- Secret detection coverage ✅ (GitHub + gitleakslite)
+- Push protection enabled ✅
+- SLSA Level 2 compliance 🔄 (in progress)
 
 ## 🔧 Maintenance Workflows
 

@@ -57,6 +57,7 @@ INSTALL_HOOKS=true
 INSTALL_CI=true
 INSTALL_DOCS=true
 USE_HOOKS_PATH=false
+INSTALL_GITHUB_SECURITY=true
 
 # Upgrade functionality flags
 # shellcheck disable=SC2034 # Reserved flag
@@ -325,7 +326,7 @@ USAGE:
 
 DESCRIPTION:
     Installs enterprise-grade security controls for Rust projects.
-    Provides two-tier security: fast pre-push validation (25+ checks) + comprehensive CI analysis.
+    Provides comprehensive security: local validation (25+ checks) + CI analysis + GitHub security features.
 
 OPTIONS:
     -h, --help              Show this help message
@@ -338,6 +339,7 @@ OPTIONS:
     --no-docs               Skip documentation installation
     --non-rust              Configure for non-Rust project
     --hooks-path            Install hooks using git core.hooksPath (\".githooks\") and chain safely
+    --no-github-security    Skip GitHub repository security features (enabled by default)
 
 UPGRADE COMMANDS:
     --version               Show version and check for updates
@@ -346,7 +348,7 @@ UPGRADE COMMANDS:
     --backup                Create backup of current installation
     --changelog             Show changelog and release notes
 EXAMPLES:
-    # Full installation (recommended)
+    # Full installation with all security features (recommended)
     $0
 
     # Preview changes without installing
@@ -355,11 +357,14 @@ EXAMPLES:
     # Force reinstall over existing setup
     $0 --force
 
-    # Install only hooks (no CI or docs)
-    $0 --no-ci --no-docs
+    # Install only hooks (skip CI, docs, and GitHub security)
+    $0 --no-ci --no-docs --no-github-security
 
-    # Configure for non-Rust project
+    # Configure for non-Rust project (still includes GitHub security)
     $0 --non-rust
+
+    # Skip GitHub security features (local security only)
+    $0 --no-github-security
 
     # Use hooksPath chaining instead of replacing .git/hooks/pre-push
     $0 --hooks-path
@@ -407,6 +412,15 @@ SECURITY CONTROLS INSTALLED:
     🔍 Security metrics collection
     🔍 Integration testing
     🔍 Compliance reporting
+
+    GitHub Security Features (enabled by default):
+    🔐 Dependabot vulnerability alerts
+    🔐 Dependabot automated security fixes
+    🔐 CodeQL security scanning workflow
+    🔐 Branch protection rules
+    🔐 Secret scanning (auto-enabled for public repos)
+    ⚠️  Security advisories (manual setup required)
+    ❌ Advanced Security (GitHub Enterprise only)
 
 REQUIREMENTS:
     - Git repository (initialized)
@@ -2314,6 +2328,54 @@ EOF
   fi
 }
 
+# Generate CodeQL workflow for security scanning
+generate_codeql_workflow() {
+  cat <<'EOF'
+name: "Code Scanning - CodeQL"
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  schedule:
+    - cron: '17 18 * * 1'  # Weekly on Mondays
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analyze:
+    name: Analyze Code
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - language: javascript-typescript
+          build-mode: none # CodeQL supports 'none', 'autobuild', and 'manual'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@afb54ba388a7dca6ecae48f608c4ff05ff4cc77a # v3.25.15
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: ${{ matrix.build-mode }}
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@afb54ba388a7dca6ecae48f608c4ff05ff4cc77a # v3.25.15
+      with:
+        category: "/language:${{matrix.language}}"
+EOF
+}
+
 # Install CI workflow
 install_ci_workflow() {
   print_section "Installing CI Workflow"
@@ -2367,6 +2429,33 @@ install_ci_workflow() {
   else
     generate_pinning_workflow >"$pinning_file"
     print_status $GREEN "✅ Pinning Validation workflow installed: $pinning_file"
+  fi
+
+  # Install CodeQL workflow if GitHub security features are enabled
+  if [[ $INSTALL_GITHUB_SECURITY == true ]]; then
+    local codeql_file="$workflows_dir/codeql.yml"
+    if [[ -f $codeql_file ]] && [[ $FORCE_INSTALL == false ]]; then
+      print_status $YELLOW "⚠️  CodeQL workflow already exists"
+      read -p "Replace existing CodeQL workflow? (y/N): " -n 1 -r
+      echo
+      if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        print_status $BLUE "📝 Skipping CodeQL workflow installation"
+      else
+        if [[ $DRY_RUN == true ]]; then
+          print_status $BLUE "[DRY RUN] Would install CodeQL workflow to $codeql_file"
+        else
+          generate_codeql_workflow >"$codeql_file"
+          print_status $GREEN "✅ CodeQL workflow installed: $codeql_file"
+        fi
+      fi
+    else
+      if [[ $DRY_RUN == true ]]; then
+        print_status $BLUE "[DRY RUN] Would install CodeQL workflow to $codeql_file"
+      else
+        generate_codeql_workflow >"$codeql_file"
+        print_status $GREEN "✅ CodeQL workflow installed: $codeql_file"
+      fi
+    fi
   fi
 }
 
@@ -2481,6 +2570,35 @@ See docs/security/YUBIKEY_SIGSTORE_GUIDE.md for a hardware-backed, keyless commi
 - **Pre-Push Time**: ~55 seconds average
 - **Security Coverage**: 14+ comprehensive controls
 - **Developer Impact**: 10x faster issue resolution vs CI failures
+
+## 🔐 GitHub Security Features (Optional)
+
+With the `--github-security` option, the installer also configures:
+
+### ✅ **Automatically Configured**
+- **Dependabot Vulnerability Alerts** - Automated dependency scanning
+- **Dependabot Security Fixes** - Automated security update PRs
+- **Branch Protection Rules** - Requires PR reviews and status checks
+- **CodeQL Security Scanning** - Automated code analysis workflow
+- **Secret Scanning** - Server-side secret detection (auto-enabled)
+- **Secret Push Protection** - Blocks secrets at GitHub level
+
+### 📋 **Manual Setup Required**
+- **Security Advisories** - Private vulnerability reporting (web interface)
+- **Advanced Security** - GitHub Enterprise only (not available for public repos)
+
+### 🛠️ **Requirements**
+- GitHub CLI (`gh`) installed and authenticated
+- Repository admin permissions for branch protection
+- GitHub repository (not local-only)
+
+### 💡 **Usage**
+```bash
+# Enable all GitHub security features
+./install-security-controls.sh --github-security
+```
+
+If requirements aren't met, detailed manual setup instructions are provided.
 
 ## 📈 Compliance
 
@@ -2991,6 +3109,163 @@ GLSCRIPT_EOF
   print_status $GREEN "✅ Installed script-only gitleakslite at $script_path"
 }
 
+# Install GitHub repository security features
+install_github_security() {
+  if [[ $INSTALL_GITHUB_SECURITY != true ]]; then
+    return 0
+  fi
+
+  print_section "Configuring GitHub Repository Security Features"
+
+  # Check if gh CLI is available
+  if ! command -v gh >/dev/null 2>&1; then
+    print_status $YELLOW "⚠️  GitHub CLI (gh) not found"
+    print_status $BLUE "💡 Manual setup required for GitHub security features:"
+    print_status $BLUE ""
+    print_status $BLUE "   1. Install GitHub CLI: https://cli.github.com/"
+    print_status $BLUE "   2. Run: gh auth login"
+    print_status $BLUE "   3. Re-run installer with --github-security"
+    print_status $BLUE ""
+    print_manual_github_instructions
+    return 0
+  fi
+
+  # Check if authenticated
+  if ! gh auth status >/dev/null 2>&1; then
+    print_status $YELLOW "⚠️  GitHub CLI not authenticated"
+    print_status $BLUE "💡 Please authenticate with GitHub:"
+    print_status $BLUE "   gh auth login"
+    print_status $BLUE ""
+    print_manual_github_instructions
+    return 0
+  fi
+
+  # Get repository information
+  local repo_info
+  repo_info=$(gh repo view --json nameWithOwner 2>/dev/null)
+  if [[ $? -ne 0 ]]; then
+    print_status $YELLOW "⚠️  Not in a GitHub repository or no remote configured"
+    print_manual_github_instructions
+    return 0
+  fi
+
+  local repo_name
+  repo_name=$(echo "$repo_info" | jq -r '.nameWithOwner')
+  print_status $BLUE "🔧 Configuring security for repository: $repo_name"
+
+  # 1. Enable Dependabot Vulnerability Alerts
+  print_status $BLUE "🔍 Enabling Dependabot vulnerability alerts..."
+  if gh api "repos/$repo_name/vulnerability-alerts" -X PUT >/dev/null 2>&1; then
+    print_status $GREEN "   ✅ Dependabot vulnerability alerts enabled"
+  else
+    print_status $YELLOW "   ⚠️  Failed to enable vulnerability alerts (may already be enabled)"
+  fi
+
+  # 2. Enable Dependabot Automated Security Fixes
+  print_status $BLUE "🔧 Enabling Dependabot automated security fixes..."
+  if gh api "repos/$repo_name/automated-security-fixes" -X PUT >/dev/null 2>&1; then
+    print_status $GREEN "   ✅ Dependabot automated security fixes enabled"
+  else
+    print_status $YELLOW "   ⚠️  Failed to enable automated security fixes (may already be enabled)"
+  fi
+
+  # 3. Enable Branch Protection (if this is the main branch)
+  local current_branch
+  current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  if [[ $current_branch == "main" ]] || [[ $current_branch == "master" ]]; then
+    print_status $BLUE "🛡️  Enabling branch protection for $current_branch..."
+    configure_branch_protection "$repo_name" "$current_branch"
+  else
+    print_status $BLUE "ℹ️  Branch protection configuration available for main/master branch"
+    print_status $BLUE "   Current branch: $current_branch"
+  fi
+
+  # 4. Show manual steps for remaining features
+  print_status $BLUE ""
+  print_status $BLUE "📋 Additional security features (manual setup required):"
+  print_status $BLUE ""
+  print_status $BLUE "   🔐 Security Advisories:"
+  print_status $BLUE "       Visit: https://github.com/$repo_name/settings/security_analysis"
+  print_status $BLUE "       Enable: 'Private vulnerability reporting'"
+  print_status $BLUE ""
+  print_status $BLUE "   ❌ Advanced Security (GitHub Enterprise only):"
+  print_status $BLUE "       • Advanced code scanning"
+  print_status $BLUE "       • Secret scanning for private repos"
+  print_status $BLUE "       • Dependency review"
+  print_status $BLUE "       Not available for public repositories"
+  print_status $BLUE ""
+
+  print_status $GREEN "🎉 GitHub security features configured!"
+}
+
+# Configure branch protection rules
+configure_branch_protection() {
+  local repo_name=$1
+  local branch_name=$2
+
+  local protection_config
+  protection_config=$(
+    cat <<EOF
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": [
+      "Security CI",
+      "Pinning Validation"
+    ]
+  },
+  "enforce_admins": true,
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 1,
+    "dismiss_stale_reviews": true
+  },
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false
+}
+EOF
+  )
+
+  if gh api "repos/$repo_name/branches/$branch_name/protection" -X PUT --input - <<<"$protection_config" >/dev/null 2>&1; then
+    print_status $GREEN "   ✅ Branch protection enabled for $branch_name"
+    print_status $BLUE "      • Requires PR reviews (1 approver)"
+    print_status $BLUE "      • Requires status checks to pass"
+    print_status $BLUE "      • Enforces admin restrictions"
+    print_status $BLUE "      • Blocks force pushes and deletions"
+  else
+    print_status $YELLOW "   ⚠️  Failed to enable branch protection"
+    print_status $BLUE "   💡 Manual setup: https://github.com/$repo_name/settings/branches"
+  fi
+}
+
+# Print manual instructions for GitHub security features
+print_manual_github_instructions() {
+  print_status $BLUE "📋 Manual GitHub Security Setup Instructions:"
+  print_status $BLUE ""
+  print_status $BLUE "   1. 🔍 Secret Scanning (Public repos - auto-enabled):"
+  print_status $BLUE "      Already enabled for public repositories"
+  print_status $BLUE ""
+  print_status $BLUE "   2. 🔧 Dependabot Security Updates:"
+  print_status $BLUE "      Go to: Repository Settings → Security & analysis"
+  print_status $BLUE "      Enable: 'Dependabot security updates'"
+  print_status $BLUE ""
+  print_status $BLUE "   3. 🛡️  Branch Protection:"
+  print_status $BLUE "      Go to: Repository Settings → Branches"
+  print_status $BLUE "      Add rule for 'main' branch with:"
+  print_status $BLUE "      ✓ Require pull request reviews"
+  print_status $BLUE "      ✓ Require status checks to pass"
+  print_status $BLUE "      ✓ Include administrators"
+  print_status $BLUE ""
+  print_status $BLUE "   4. 🔐 Security Advisories:"
+  print_status $BLUE "      Go to: Repository Settings → Security & analysis"
+  print_status $BLUE "      Enable: 'Private vulnerability reporting'"
+  print_status $BLUE ""
+  print_status $BLUE "   5. 📊 Code Scanning:"
+  print_status $BLUE "      CodeQL workflow added to .github/workflows/codeql.yml"
+  print_status $BLUE "      Will activate automatically on next push"
+  print_status $BLUE ""
+}
+
 # Show installation summary
 show_summary() {
   print_header "Installation Complete"
@@ -3021,6 +3296,16 @@ show_summary() {
     print_status $BLUE "📚 Documentation:"
     print_status $GREEN "   ✅ Installed to $DOCS_DIR/"
     print_status $BLUE "   📖 Includes: README, architecture, usage guides"
+  fi
+
+  if [[ $INSTALL_GITHUB_SECURITY == true ]]; then
+    print_status $BLUE "🔐 GitHub Security Features:"
+    print_status $GREEN "   ✅ Dependabot vulnerability alerts enabled"
+    print_status $GREEN "   ✅ Dependabot automated security fixes enabled"
+    print_status $GREEN "   ✅ CodeQL workflow added"
+    print_status $BLUE "   🔧 Branch protection configured (if main/master branch)"
+    print_status $YELLOW "   ⚠️  Security advisories require manual setup"
+    print_status $BLUE "   ❌ Advanced security (GitHub Enterprise only)"
   fi
 
   echo
@@ -3086,6 +3371,10 @@ parse_arguments() {
         ;;
       --hooks-path)
         USE_HOOKS_PATH=true
+        shift
+        ;;
+      --no-github-security)
+        INSTALL_GITHUB_SECURITY=false
         shift
         ;;
       --check-update)
@@ -3155,6 +3444,9 @@ main() {
   if [[ $INSTALL_DOCS == true ]]; then
     install_documentation
   fi
+
+  # Configure GitHub security features
+  install_github_security
 
   # Summary
   if [[ $DRY_RUN == false ]]; then

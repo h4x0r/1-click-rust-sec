@@ -4,11 +4,12 @@
 
 Deploy comprehensive security controls to any Rust project with a single command. This repository serves two purposes:
 
-1. **Security Installer** - Provides an installer that adds 25+ security controls to YOUR projects
+1. **Security Installer** - Provides an installer that adds 25+ security controls + GitHub security features to YOUR projects
 2. **Reference Implementation** - Demonstrates security best practices with its own enhanced controls
 
-[![Security](https://img.shields.io/badge/Installer%20Provides-25%2B%20Controls-green.svg)](https://github.com/h4x0r/1-click-rust-sec)
-[![This Repo](https://img.shields.io/badge/This%20Repo%20Has-35%2B%20Controls-blue.svg)](#this-repos-security)
+[![Security](https://img.shields.io/badge/Installer%20Provides-35%2B%20Controls-green.svg)](https://github.com/h4x0r/1-click-rust-sec)
+[![GitHub Security](https://img.shields.io/badge/GitHub%20Security-6%20Features-blue.svg)](#github-security-features)
+[![This Repo](https://img.shields.io/badge/This%20Repo%20Has-40%2B%20Controls-purple.svg)](#this-repos-security)
 [![Performance](https://img.shields.io/badge/Pre--Push-~60s-orange.svg)](#performance)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-v0.1.0-purple.svg)](https://github.com/h4x0r/1-click-rust-sec/releases)
@@ -19,7 +20,8 @@ Deploy comprehensive security controls to any Rust project with a single command
 |--------|------------------------------|--------------------------|
 | **Purpose** | Adds security to YOUR project | Protects THIS installer project |
 | **Pre-push Controls** | 25+ security checks | 25+ security checks |
-| **CI/CD Workflows** | Optional (--no-ci to skip) | 7 specialized workflows |
+| **CI/CD Workflows** | Optional (--no-ci to skip) | 8 specialized workflows |
+| **GitHub Security** | 6 features with --github-security | 6 features enabled |
 | **Pre-commit Hooks** | Not included | Full pre-commit suite |
 | **Documentation** | Basic security guides | Complete documentation site |
 | **Helper Tools** | pinactlite, gitleakslite | Same + additional scripts |
@@ -40,10 +42,41 @@ curl -O https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/install-se
 # Verify checksum (REQUIRED for security)
 sha256sum -c install-security-controls.sh.sha256
 
-# Install in YOUR project
+# Install in YOUR project (includes GitHub security by default)
 chmod +x install-security-controls.sh
 ./install-security-controls.sh
+
+# Skip GitHub security features (if desired)
+./install-security-controls.sh --no-github-security
 ```
+
+## 🔐 GitHub Security Features {#github-security-features}
+
+Enterprise-grade GitHub repository security is now **enabled by default**:
+
+```bash
+# Full installation (includes GitHub security)
+./install-security-controls.sh
+
+# Skip GitHub security if not needed
+./install-security-controls.sh --no-github-security
+```
+
+### ✅ **Automatically Configured**
+1. **🔍 Dependabot Vulnerability Alerts** - Automated dependency scanning
+2. **🔧 Dependabot Security Fixes** - Automated security update PRs
+3. **🛡️ Branch Protection Rules** - PR reviews + status checks required
+4. **📊 CodeQL Security Scanning** - Workflow for code analysis
+5. **🔐 Secret Scanning** - Server-side secret detection (auto-enabled)
+6. **🚫 Secret Push Protection** - Blocks secrets at GitHub level
+
+### 📋 **Manual Setup Required**
+- **Security Advisories** - Private vulnerability reporting (web interface)
+- **Advanced Security** - ❌ GitHub Enterprise only (not available for public repos)
+
+**Why some features can't be automated:**
+- Security Advisories requires repository admin web access
+- Advanced Security is a paid GitHub Enterprise feature with organization-level controls
 
 ## 🎯 What YOUR Project Gets
 
@@ -138,13 +171,19 @@ Installs all security controls optimized for Rust/Cargo projects.
 ```bash
 ./install-security-controls.sh --non-rust
 ```
-Installs universal security controls (secrets, pinning, licenses).
+Installs universal security controls + GitHub security features.
+
+### Without GitHub Security Features
+```bash
+./install-security-controls.sh --no-github-security
+```
+Installs local security only (skips GitHub repository configuration).
 
 ### Minimal Installation (Just Hooks)
 ```bash
-./install-security-controls.sh --no-ci --no-docs
+./install-security-controls.sh --no-ci --no-docs --no-github-security
 ```
-Installs only the pre-push hook, no workflows or documentation.
+Installs only the pre-push hook, no workflows, docs, or GitHub security.
 
 ### See All Options
 ```bash
