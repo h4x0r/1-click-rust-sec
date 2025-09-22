@@ -85,8 +85,9 @@ This repository implements a **"dogfooding plus"** approach:
 | renovate.json | Config | Renovate bot config | ❌ | ✅ | Bot-specific |
 | scripts/*.sh | Scripts | Development scripts | ❌ | ✅ | Maintenance scripts |
 | **GITHUB FEATURES** |
-| Secret Scanning | Security | GitHub secret scan | ❌ | ✅ | GitHub feature (enabled) |
-| Secret Push Protection | Security | Prevents secret pushes | ❌ | ✅ | GitHub feature (enabled) |
+| GitHub Secret Scanning | Security | Server-side secret detection | ❌ | ✅ | GitHub feature (enabled) |
+| GitHub Push Protection | Security | Server-side push blocking | ❌ | ✅ | GitHub feature (enabled) |
+| **NOTE**: Installer provides gitleakslite (local secret detection) which works with both repos | | | | |
 
 ## 📈 Summary Statistics
 
@@ -197,23 +198,28 @@ Seven specialized workflows for continuous validation:
 
 ### Layer 4: Repository Configuration
 
+#### Secret Detection (Two-Layer Defense)
+- **gitleakslite** (local): ✅ Pre-push hook blocks secrets before they leave your machine
+- **GitHub Secret Scanning**: ✅ Server-side detection and partner notification
+- **GitHub Push Protection**: ✅ Additional blocking at GitHub level
+
 #### GitHub Security Features (Actually Enabled)
-- Secret scanning: ✅ Enabled
-- Secret scanning push protection: ✅ Enabled
 - Issues tracking: ✅ Enabled
+- Dependabot config: ✅ Present (GitHub Actions + Cargo)
 
 #### GitHub Features (Not Currently Enabled)
 - Branch protection: ❌ Not configured
-- Dependabot security updates: ❌ Disabled
+- Dependabot security updates: ❌ Disabled (requires manual enable)
 - Code scanning alerts: ❌ Not enabled
 - Security advisories: ❌ Not enabled
 - Advanced security: ❌ Not available (public repo)
 
 #### Dependency Management
-- `.github/dependabot.yml` - Automated updates
+- `.github/dependabot.yml` - Config for GitHub Actions + Cargo updates
 - `renovate.json` - Additional dependency management
 - `deny.toml` - Cargo dependency policies
-- Lock files for reproducible builds
+- `Cargo.lock` - Lock files for reproducible builds
+- **Workflow**: Dependabot updates → pinactlite auto-pins → Secure updates
 
 ## 📊 Metrics & Monitoring
 
