@@ -211,11 +211,12 @@ Eight specialized workflows for continuous validation:
 #### GitHub Security Features (Enabled)
 - Branch protection: ✅ Enabled (PR reviews required, status checks, admin enforcement)
 - Issues tracking: ✅ Enabled
+- Dependabot vulnerability alerts: ✅ Enabled via API
+- Dependabot automated security fixes: ✅ Enabled via API
 - Dependabot config: ✅ Present (GitHub Actions + Cargo)
 - Code scanning: ✅ CodeQL workflow added
 
 #### GitHub Features (Require Manual Web Interface)
-- Dependabot security updates: 🔄 Config ready (needs web enable)
 - Security advisories: 🔄 Needs manual enable
 - Advanced security: ❌ Not available (public repo)
 
