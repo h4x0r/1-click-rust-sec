@@ -10,6 +10,109 @@ This repository implements a **"dogfooding plus"** approach:
 - Implements testing and validation workflows
 - Maintains documentation and distribution security
 
+## 📊 Security Controls Comparison Tables
+
+### Table 1: Controls Available in Both Installer and This Repo
+
+| Control Type | Category | Description | Installer Provides | This Repo Has |
+|-------------|----------|-------------|:-----------------:|:-------------:|
+| **PRE-PUSH HOOK CONTROLS** |
+| Secret Detection | Critical | Blocks AWS keys, GitHub tokens, API keys | ✅ | ✅ |
+| Vulnerability Scan | Critical | Blocks known CVEs (cargo-deny) | ✅ | ✅ |
+| Test Validation | Critical | Ensures tests pass | ✅ | ✅ |
+| Format Check | Critical | Enforces code style (cargo fmt) | ✅ | ✅ |
+| Linting | Critical | Catches bugs (clippy) | ✅ | ✅ |
+| Large Files | Critical | Blocks files >10MB | ✅ | ✅ |
+| SHA Pinning Check | Warning | Verifies GitHub Actions pins | ✅ | ✅ |
+| Commit Signing | Warning | Verifies signatures | ✅ | ✅ |
+| License Check | Warning | License compliance | ✅ | ✅ |
+| Dependency Pinning | Warning | Ensures deps are pinned | ✅ | ✅ |
+| Unsafe Code | Warning | Monitors unsafe blocks | ✅ | ✅ |
+| Unused Dependencies | Warning | Detects unused deps | ✅ | ✅ |
+| Build Scripts | Warning | Security analysis | ✅ | ✅ |
+| Doc Secrets | Warning | Scans documentation | ✅ | ✅ |
+| Env Variables | Warning | Hardcoding detection | ✅ | ✅ |
+| Rust Edition | Warning | Edition specification | ✅ | ✅ |
+| Import Security | Warning | Validates imports | ✅ | ✅ |
+| File Permissions | Warning | Permission audit | ✅ | ✅ |
+| Dependency Count | Warning | Monitors dep count | ✅ | ✅ |
+| Network Addresses | Warning | IP/URL validation | ✅ | ✅ |
+| Commit Messages | Warning | Message security | ✅ | ✅ |
+| Tech Debt | Warning | TODO/FIXME tracking | ✅ | ✅ |
+| Empty Files | Warning | Incomplete detection | ✅ | ✅ |
+| Cargo.lock | Warning | Lock file validation | ✅ | ✅ |
+| **HELPER TOOLS** |
+| pinactlite | Tool | SHA pinning verifier | ✅ | ✅ |
+| gitleakslite | Tool | Secret scanner | ✅ | ✅ |
+| **CI/CD WORKFLOWS** |
+| Basic Security | CI | Optional workflows | ✅ (optional) | ✅ |
+| **CONFIGURATION** |
+| .security-controls/ | Config | Security configs | ✅ | ✅ |
+| deny.toml | Config | Cargo deny config | ✅ | ✅ |
+| .cargo/config.toml | Config | Cargo security | ✅ | ✅ |
+
+### Table 2: Additional Controls ONLY in This Repository
+
+| Control Type | Category | Description | Why Not in Installer |
+|-------------|----------|-------------|----------------------|
+| **PRE-COMMIT HOOKS** |
+| Trailing Whitespace | Formatting | Removes trailing spaces | Too opinionated for general use |
+| End-of-File Fixer | Formatting | Ensures newline at EOF | Minor formatting preference |
+| YAML Check | Validation | Validates YAML syntax | Not all projects use YAML |
+| Large File Check | Validation | Pre-commit large file check | Redundant with pre-push |
+| ShellCheck | Linting | Shell script validation | Development-specific |
+| shfmt | Formatting | Shell script formatting | Development-specific |
+| Markdown Lint | Linting | Markdown validation | Documentation-heavy repo |
+| pinactlite Sync | Validation | Tool version sync | Installer development only |
+| **CI/CD WORKFLOWS (SPECIALIZED)** |
+| Pinning Validation | Security | Validates SHA pinning with pinact v3.4.2 | Development validation |
+| Shell Lint | Quality | shellcheck + shfmt CI | Script-heavy development |
+| Docs Build | Documentation | MkDocs site generation | Documentation repo |
+| Docs Deploy | Documentation | GitHub Pages deployment | Documentation hosting |
+| Helpers E2E | Testing | End-to-end tool testing | Tool development testing |
+| Installer Self-Test | Testing | Installation validation | Installer development |
+| Sync Validation | Testing | Tool consistency check | Development validation |
+| **DEVELOPMENT TOOLS** |
+| Pre-commit Framework | Tool | Pre-commit hook manager | Additional complexity |
+| MkDocs | Tool | Documentation generator | Not needed by users |
+| EditorConfig | Config | IDE consistency | Development preference |
+| **DEPENDENCY MANAGEMENT** |
+| Dependabot | Automation | Automated updates | CI/CD dependency |
+| Renovate Bot | Automation | Alternative updater | CI/CD dependency |
+| **PROJECT FILES** |
+| .editorconfig | Config | Editor configuration | IDE-specific |
+| mkdocs.yml | Config | Documentation config | Docs-specific |
+| renovate.json | Config | Renovate bot config | Bot-specific |
+| scripts/*.sh | Scripts | Development scripts | Maintenance scripts |
+| **GITHUB FEATURES** |
+| Branch Protection | Security | PR requirements | Repo setting, not file |
+| Secret Scanning | Security | GitHub secret scan | GitHub feature |
+| Code Scanning | Security | Security alerts | GitHub feature |
+| Security Advisories | Security | Vulnerability reporting | GitHub feature |
+
+## 📈 Summary Statistics
+
+| Metric | Installer Provides | This Repository Has |
+|--------|-------------------|---------------------|
+| **Pre-push Checks** | 25+ | 25+ |
+| **Pre-commit Checks** | 0 | 8 |
+| **CI/CD Workflows** | 1-2 (optional) | 7 |
+| **Helper Tools** | 2 | 2 + scripts |
+| **Configuration Files** | 5 | 15+ |
+| **Total Security Controls** | ~30 | ~50 |
+
+## 🎯 Why the Difference?
+
+The additional controls in this repository serve specific purposes:
+
+1. **Development Validation**: Test the installer itself works correctly
+2. **Documentation**: Build and deploy comprehensive docs
+3. **Quality Assurance**: Ensure shell scripts are properly formatted
+4. **Tool Synchronization**: Keep helper tools in sync
+5. **Enhanced CI/CD**: Validate everything works end-to-end
+
+Most projects don't need these development-specific controls, which is why the installer focuses on universal security controls that benefit all Rust projects.
+
 ## 🛡️ Security Layers
 
 ### Layer 1: Pre-Push Controls (Local)
