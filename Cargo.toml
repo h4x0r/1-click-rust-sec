@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+members = [
+]
+
+
+# Security enhancements
+[profile.release]
+# Enable integer overflow checks in release builds for security
+overflow-checks = true

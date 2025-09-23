@@ -1,0 +1,9 @@
+// Minimal .gitignore for Rust workspace
+/target/
+**/*.rs.bk
+**/*.swp
+**/*.swo
+.DS_Store
+
+# Ignore autopin backup files (from pinactlite)
+*.bak.pin

@@ -1,0 +1,22 @@
+# Lychee link checker configuration
+# Docs: https://github.com/lycheeverse/lychee#configuration
+
+# Output / behavior
+verbose = "info"
+no_progress = true
+require_https = true
+max_concurrency = 8
+retry_wait_time = 2
+retry_count = 2
+# Treat common rate-limited responses as acceptable to reduce flakiness
+accept = [200, 206, 403, 429]
+
+# Ignore link fragments (local anchors)
+exclude_fragments = true
+
+# Exclusions / allowlists
+exclude = [
+  "mailto:*",
+  "tel:*",
+  "ftp:*"
+]
