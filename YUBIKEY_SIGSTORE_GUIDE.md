@@ -418,7 +418,7 @@ git config --global gitsign.rekor-url "https://rekor.your-company.com"
 ### **Community**
 - [Sigstore Slack](https://sigstore.slack.com/) - Community support
 - [OpenSSF](https://openssf.org/) - Open source security foundation
-- [YubiKey Community](https://community.yubico.com/) - Hardware support
+- [YubiKey Support](https://developers.yubico.com/) - Hardware support and documentation
 
 ---
 
