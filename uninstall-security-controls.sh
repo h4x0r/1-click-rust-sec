@@ -69,7 +69,7 @@ log_message() {
 
   # Ensure log directory exists
   mkdir -p "$(dirname "$LOG_FILE")"
-  echo "$log_line" >> "$LOG_FILE"
+  echo "$log_line" >>"$LOG_FILE"
 
   # Also output to terminal if verbose or error/warn
   if [[ $VERBOSE == true ]] || [[ $level == "ERROR" ]] || [[ $level == "WARN" ]]; then
@@ -104,7 +104,7 @@ rollback_transaction() {
   log_warn "Rolling back ${#ROLLBACK_ACTIONS[@]} operations..."
 
   # Execute rollback actions in reverse order
-  for ((i=${#ROLLBACK_ACTIONS[@]}-1; i>=0; i--)); do
+  for ((i = ${#ROLLBACK_ACTIONS[@]} - 1; i >= 0; i--)); do
     local action="${ROLLBACK_ACTIONS[i]}"
     log_debug "Executing rollback: $action"
     if ! eval "$action" 2>/dev/null; then
@@ -499,6 +499,6 @@ main() {
 }
 
 # Initialize and run main function
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+if [[ ${BASH_SOURCE[0]} == "${0}" ]]; then
   main "$@"
 fi

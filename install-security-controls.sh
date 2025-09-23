@@ -52,14 +52,14 @@ readonly PRE_PUSH_D_DIR="$HOOKS_PATH_DIR/pre-push.d"
 # STANDARDIZED ERROR CODES AND HANDLING FRAMEWORK
 # =============================================================================
 # readonly EXIT_SUCCESS=0               # Unused but kept for consistency
-readonly EXIT_GENERAL_ERROR=1          # Generic failure
+readonly EXIT_GENERAL_ERROR=1 # Generic failure
 # readonly EXIT_USAGE_ERROR=2           # Unused but kept for consistency
-readonly EXIT_PERMISSION_ERROR=3       # Permission denied
-readonly EXIT_NETWORK_ERROR=4          # Download/network issues
-readonly EXIT_TOOL_MISSING=6           # Required tool not found
-readonly EXIT_VALIDATION_ERROR=7       # Input validation failed
-readonly EXIT_CONFIG_ERROR=9           # Configuration error
-readonly EXIT_SECURITY_ERROR=10        # Security check failed
+readonly EXIT_PERMISSION_ERROR=3 # Permission denied
+readonly EXIT_NETWORK_ERROR=4    # Download/network issues
+readonly EXIT_TOOL_MISSING=6     # Required tool not found
+readonly EXIT_VALIDATION_ERROR=7 # Input validation failed
+readonly EXIT_CONFIG_ERROR=9     # Configuration error
+readonly EXIT_SECURITY_ERROR=10  # Security check failed
 
 # =============================================================================
 # ENHANCED LOGGING SYSTEM WITH TIMESTAMPS
@@ -91,7 +91,7 @@ setup_logging() {
     echo "PWD: $(pwd)"
     echo "User: $(whoami)"
     echo "========================================"
-  } >> "$LOG_FILE"
+  } >>"$LOG_FILE"
 }
 
 # Enhanced logging functions
@@ -106,7 +106,7 @@ log_entry() {
   local log_line="[$timestamp] [$level] [$caller] $message"
   [[ -n $context ]] && log_line="$log_line | Context: $context"
 
-  echo "$log_line" >> "$LOG_FILE"
+  echo "$log_line" >>"$LOG_FILE"
 
   # Also output to terminal if verbose or error/warn
   if [[ $VERBOSE == true ]] || [[ $level == "ERROR" ]] || [[ $level == "WARN" ]]; then
@@ -115,8 +115,8 @@ log_entry() {
 }
 
 log_debug() { [[ $VERBOSE == true ]] && log_entry "DEBUG" "$1" "${2:-}"; }
-log_info()  { log_entry "INFO" "$1" "${2:-}"; }
-log_warn()  { log_entry "WARN" "$1" "${2:-}"; }
+log_info() { log_entry "INFO" "$1" "${2:-}"; }
+log_warn() { log_entry "WARN" "$1" "${2:-}"; }
 log_error() { log_entry "ERROR" "$1" "${2:-}"; }
 
 # Standardized error handler
@@ -218,7 +218,7 @@ rollback_on_error() {
     log_warn "Automatic rollback triggered"
 
     # Execute rollback actions in reverse order
-    for ((i=${#ROLLBACK_ACTIONS[@]}-1; i>=0; i--)); do
+    for ((i = ${#ROLLBACK_ACTIONS[@]} - 1; i >= 0; i--)); do
       local action="${ROLLBACK_ACTIONS[i]}"
       log_info "Rolling back: $action"
 
@@ -258,7 +258,7 @@ atomic_write() {
   fi
 
   # Write new content
-  echo "$content" > "$file"
+  echo "$content" >"$file"
   log_debug "Atomic write completed: $file"
 }
 
@@ -3380,7 +3380,7 @@ install_gitleakslite_script() {
     else
       print_status $YELLOW "⚠️ Cannot find local gitleakslite and curl not available, generating basic fallback"
       # Fallback: generate basic version if source not available
-    cat >"$script_path" <<'GLSCRIPT_EOF'
+      cat >"$script_path" <<'GLSCRIPT_EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 usage() {
