@@ -9,7 +9,7 @@ This installer adds security controls to **YOUR** Rust project. It provides:
 - **Configuration files** for security tools
 - **🆕 GitHub security features** (with --github-security option)
 
-**Note**: This repository itself has additional development-specific controls. See [REPO_SECURITY.md](../REPO_SECURITY.md) for details about this repo's enhanced security.
+**Note**: This repository itself has additional development-specific controls. See [REPO_SECURITY.md](https://github.com/h4x0r/1-click-rust-sec/blob/main/REPO_SECURITY.md) for details about this repo's enhanced security.
 
 ---
 
@@ -354,7 +354,7 @@ rm -rf docs/security/  # If docs were installed
 ### Resources
 - [Project Overview](https://github.com/h4x0r/1-click-rust-sec) - GitHub repository
 - [Issues](https://github.com/h4x0r/1-click-rust-sec/issues) - Report problems
-- [Security Architecture](../REPO_SECURITY.md) - This repository's enhanced security
+- [Security Architecture](https://github.com/h4x0r/1-click-rust-sec/blob/main/REPO_SECURITY.md) - This repository's enhanced security
 
 ### Common Issues
 - **"Command not found"**: Install missing tools per instructions
