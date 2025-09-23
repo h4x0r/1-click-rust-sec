@@ -65,7 +65,6 @@ readonly EXIT_SECURITY_ERROR=10        # Security check failed
 # ENHANCED LOGGING SYSTEM WITH TIMESTAMPS
 # =============================================================================
 readonly LOG_DIR="$CONTROL_STATE_DIR/logs"
-readonly LOG_FILE
 LOG_FILE="$LOG_DIR/install-$(date +%Y%m%d_%H%M%S).log"
 readonly LOG_FILE
 VERBOSE=${VERBOSE:-false}

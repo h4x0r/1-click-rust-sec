@@ -16,7 +16,6 @@ VERBOSE=false
 
 # Logging configuration
 readonly LOG_DIR="$HOME/.security-controls-uninstaller/logs"
-readonly LOG_FILE
 LOG_FILE="$LOG_DIR/uninstaller-$(date '+%Y%m%d_%H%M%S').log"
 readonly LOG_FILE
 
