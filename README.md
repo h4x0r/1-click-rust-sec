@@ -14,6 +14,11 @@ Deploy comprehensive security controls to any Rust project with a single command
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-v0.1.0-purple.svg)](https://github.com/h4x0r/1-click-rust-sec/releases)
 
+## 📖 [Complete Documentation →](https://h4x0r.github.io/1-click-rust-sec/)
+
+**For full installation guides, architecture details, and advanced configuration, visit our documentation site:**
+**[https://h4x0r.github.io/1-click-rust-sec/](https://h4x0r.github.io/1-click-rust-sec/)**
+
 ## 📌 Important Distinction
 
 | Aspect | What the Installer Gives You | What This Repository Has |
