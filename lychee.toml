@@ -2,7 +2,7 @@
 # Docs: https://github.com/lycheeverse/lychee#configuration
 
 # Output / behavior
-verbose = true
+verbose = "info"
 no_progress = true
 require_https = true
 max_concurrency = 8
