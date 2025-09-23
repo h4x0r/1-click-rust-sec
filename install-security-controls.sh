@@ -77,6 +77,7 @@ TRANSACTION_ACTIVE=false
 declare -a ROLLBACK_ACTIONS
 
 # Initialize logging system
+# shellcheck disable=SC2120  # Function accesses global script arguments
 setup_logging() {
   # Function to initialize logging
   mkdir -p "$LOG_DIR"
