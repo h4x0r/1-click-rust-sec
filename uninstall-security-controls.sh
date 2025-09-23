@@ -16,7 +16,9 @@ VERBOSE=false
 
 # Logging configuration
 readonly LOG_DIR="$HOME/.security-controls-uninstaller/logs"
-readonly LOG_FILE="$LOG_DIR/uninstaller-$(date '+%Y%m%d_%H%M%S').log"
+readonly LOG_FILE
+LOG_FILE="$LOG_DIR/uninstaller-$(date '+%Y%m%d_%H%M%S').log"
+readonly LOG_FILE
 
 # Colors for output
 readonly RED='\033[0;31m'
@@ -42,13 +44,13 @@ readonly NC='\033[0m' # No Color
 
 # Standardized error codes
 readonly EXIT_SUCCESS=0
-readonly EXIT_GENERAL_ERROR=1
+# readonly EXIT_GENERAL_ERROR=1  # Unused but kept for consistency
 readonly EXIT_PERMISSION_ERROR=3
-readonly EXIT_NETWORK_ERROR=4
-readonly EXIT_TOOL_MISSING=6
+# readonly EXIT_NETWORK_ERROR=4  # Unused but kept for consistency
+# readonly EXIT_TOOL_MISSING=6   # Unused but kept for consistency
 readonly EXIT_VALIDATION_ERROR=7
 readonly EXIT_CONFIG_ERROR=9
-readonly EXIT_SECURITY_ERROR=10
+# readonly EXIT_SECURITY_ERROR=10 # Unused but kept for consistency
 
 # Transaction state for rollback capability
 declare -a ROLLBACK_ACTIONS=()
@@ -186,7 +188,8 @@ atomic_remove() {
   fi
 
   # Create backup before removal
-  local backup_path="/tmp/security-controls-backup-$(date +%s)-$(basename "$path")"
+  local backup_path
+  backup_path="/tmp/security-controls-backup-$(date +%s)-$(basename "$path")"
   if cp -r "$path" "$backup_path" 2>/dev/null; then
     add_rollback "mv '$backup_path' '$path'"
     REMOVED_FILES+=("$path")

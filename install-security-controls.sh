@@ -51,9 +51,9 @@ readonly PRE_PUSH_D_DIR="$HOOKS_PATH_DIR/pre-push.d"
 # =============================================================================
 # STANDARDIZED ERROR CODES AND HANDLING FRAMEWORK
 # =============================================================================
-readonly EXIT_SUCCESS=0
+# readonly EXIT_SUCCESS=0               # Unused but kept for consistency
 readonly EXIT_GENERAL_ERROR=1          # Generic failure
-readonly EXIT_USAGE_ERROR=2            # Invalid arguments/usage
+# readonly EXIT_USAGE_ERROR=2           # Unused but kept for consistency
 readonly EXIT_PERMISSION_ERROR=3       # Permission denied
 readonly EXIT_NETWORK_ERROR=4          # Download/network issues
 readonly EXIT_TOOL_MISSING=6           # Required tool not found
@@ -65,7 +65,9 @@ readonly EXIT_SECURITY_ERROR=10        # Security check failed
 # ENHANCED LOGGING SYSTEM WITH TIMESTAMPS
 # =============================================================================
 readonly LOG_DIR="$CONTROL_STATE_DIR/logs"
-readonly LOG_FILE="$LOG_DIR/install-$(date +%Y%m%d_%H%M%S).log"
+readonly LOG_FILE
+LOG_FILE="$LOG_DIR/install-$(date +%Y%m%d_%H%M%S).log"
+readonly LOG_FILE
 VERBOSE=${VERBOSE:-false}
 
 # =============================================================================
@@ -77,6 +79,7 @@ declare -a ROLLBACK_ACTIONS
 
 # Initialize logging system
 setup_logging() {
+  # Function to initialize logging (no arguments needed)
   mkdir -p "$LOG_DIR"
   touch "$LOG_FILE"
 
@@ -96,7 +99,8 @@ log_entry() {
   local level=$1
   local message=$2
   local context=${3:-""}
-  local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  local timestamp
+  timestamp=$(date '+%Y-%m-%d %H:%M:%S')
   local caller="${FUNCNAME[2]:-main}"
 
   local log_line="[$timestamp] [$level] [$caller] $message"
@@ -122,27 +126,27 @@ handle_error() {
   local context=${3:-""}
 
   case $exit_code in
-    $EXIT_PERMISSION_ERROR)
+    "$EXIT_PERMISSION_ERROR")
       print_status $RED "❌ Permission Error: $error_msg"
       echo "💡 Try: sudo $0 $* or check file permissions"
       ;;
-    $EXIT_NETWORK_ERROR)
+    "$EXIT_NETWORK_ERROR")
       print_status $RED "❌ Network Error: $error_msg"
       echo "💡 Check internet connection and retry"
       ;;
-    $EXIT_TOOL_MISSING)
+    "$EXIT_TOOL_MISSING")
       print_status $RED "❌ Missing Tool: $error_msg"
       echo "💡 Install required dependencies: $context"
       ;;
-    $EXIT_VALIDATION_ERROR)
+    "$EXIT_VALIDATION_ERROR")
       print_status $RED "❌ Validation Error: $error_msg"
       echo "💡 Check input: $context"
       ;;
-    $EXIT_CONFIG_ERROR)
+    "$EXIT_CONFIG_ERROR")
       print_status $RED "❌ Configuration Error: $error_msg"
       echo "💡 Check configuration files and permissions"
       ;;
-    $EXIT_SECURITY_ERROR)
+    "$EXIT_SECURITY_ERROR")
       print_status $RED "❌ Security Error: $error_msg"
       echo "💡 Review security requirements: $context"
       ;;
@@ -244,7 +248,8 @@ atomic_write() {
 
   # Backup original if exists
   if [[ -f $file ]]; then
-    local backup="$file.backup.$(date +%s)"
+    local backup
+    backup="$file.backup.$(date +%s)"
     cp "$file" "$backup"
     add_rollback "mv '$backup' '$file'"
     log_debug "Created backup: $backup"
@@ -262,7 +267,8 @@ atomic_move() {
   local dest=$2
 
   if [[ -f $dest ]]; then
-    local backup="$dest.backup.$(date +%s)"
+    local backup
+    backup="$dest.backup.$(date +%s)"
     mv "$dest" "$backup"
     add_rollback "mv '$backup' '$dest'"
   else
