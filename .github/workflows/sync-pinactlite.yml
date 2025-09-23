@@ -66,16 +66,25 @@ jobs:
           git config user.email test@example.com
           git config user.name Test
 
-          # Run installer to see which method it uses
+          # Run installer and capture output
           echo "📊 Testing installer methodology..."
 
-          if bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force 2>&1 | grep -q "Copied pinactlite from canonical source"; then
+          # Capture full installer output
+          INSTALLER_OUTPUT=$(bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force 2>&1)
+
+          # Check which method was used
+          if echo "$INSTALLER_OUTPUT" | grep -q "Copied pinactlite from canonical source"; then
             echo "✅ Installer correctly copies from canonical source"
-          elif bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force 2>&1 | grep -q "Downloaded pinactlite from repository"; then
+          elif echo "$INSTALLER_OUTPUT" | grep -q "Downloaded pinactlite from repository"; then
             echo "✅ Installer correctly downloads from repository"
           else
             echo "❌ Installer used unexpected method"
-            echo "This may indicate configuration issues"
+            echo "Expected output containing either:"
+            echo "  - 'Copied pinactlite from canonical source'"
+            echo "  - 'Downloaded pinactlite from repository'"
+            echo ""
+            echo "Actual installer output:"
+            echo "$INSTALLER_OUTPUT"
             exit 1
           fi
 
