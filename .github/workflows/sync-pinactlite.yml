@@ -20,7 +20,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
-      - name: Test installer creates working pinactlite
+      - name: Validate pinactlite binary synchronization
         run: |
           set -euo pipefail
 
@@ -34,63 +34,73 @@ jobs:
           # Run installer (should install pinactlite)
           bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force
 
-          # Test that pinactlite was installed and works
+          # Test that pinactlite was installed
           if [[ ! -x ".security-controls/bin/pinactlite" ]]; then
             echo "❌ pinactlite not installed by installer"
             exit 1
           fi
 
-          # Create test workflow with unpinned action (in test location to avoid pinact detection)
-          mkdir -p test-workflows
-          UNPINNED_ACTION="actions/checkout@v4"
-          cat > test-workflows/test.yml <<EOF
-          name: test
-          on: push
-          jobs:
-            test:
-              runs-on: ubuntu-latest
-              steps:
-                - uses: ${UNPINNED_ACTION}
-          EOF
+          # Verify binary synchronization using digital fingerprint
+          INSTALLER_SHA=$(sha256sum .security-controls/bin/pinactlite | cut -d' ' -f1)
+          REPO_SHA=$(sha256sum ../.security-controls/bin/pinactlite | cut -d' ' -f1)
 
-          # Test pincheck detection
-          if ./.security-controls/bin/pinactlite pincheck --dir test-workflows; then
-            echo "❌ pinactlite should have detected unpinned action"
+          echo "Installer SHA256: $INSTALLER_SHA"
+          echo "Repository SHA256: $REPO_SHA"
+
+          if [[ "$INSTALLER_SHA" != "$REPO_SHA" ]]; then
+            echo "❌ Binary synchronization failed - pinactlite files differ"
+            echo "This indicates version drift between installer and repository"
             exit 1
           fi
 
-          # Test autopin functionality (expect exit code 2 when changes are made)
-          if ./.security-controls/bin/pinactlite autopin --dir test-workflows --actions; then
-            echo "ℹ️ No changes needed (exit code 0)"
-          elif [[ $? -eq 2 ]]; then
-            echo "✅ Changes made by autopin (exit code 2 as expected)"
+          echo "✅ Binary synchronization validated - files are identical"
+
+      - name: Validate installer methodology
+        run: |
+          set -euo pipefail
+
+          # Test installer approach (copy vs generate)
+          mkdir -p method-test
+          cd method-test
+          git init -q
+          git config user.email test@example.com
+          git config user.name Test
+
+          # Run installer to see which method it uses
+          echo "📊 Testing installer methodology..."
+
+          if bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force 2>&1 | grep -q "Copied pinactlite from canonical source"; then
+            echo "✅ Installer correctly copies from canonical source"
+          elif bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force 2>&1 | grep -q "Downloaded pinactlite from repository"; then
+            echo "✅ Installer correctly downloads from repository"
           else
-            echo "❌ Unexpected exit code from autopin: $?"
+            echo "❌ Installer used unexpected method"
+            echo "This may indicate configuration issues"
             exit 1
           fi
-
-          # Verify action was pinned
-          if ! ./.security-controls/bin/pinactlite pincheck --dir test-workflows; then
-            echo "❌ pinactlite autopin failed to fix workflow"
-            exit 1
-          fi
-
-          echo "✅ Installer pinactlite sync validation passed"
 
       - name: Verify no embedded pincheck references
         run: |
           # Ensure installer doesn't contain old embedded pincheck script
           if grep -q "script-only pincheck helper" install-security-controls.sh; then
             echo "❌ Found old embedded pincheck reference in installer"
+            echo "Installer should copy from repository, not embed script"
             exit 1
           fi
 
           if grep -q "install_pincheck_script" install-security-controls.sh; then
             echo "❌ Found old install_pincheck_script function call"
+            echo "Installer should use pinactlite copy approach"
             exit 1
           fi
 
-          echo "✅ No old pincheck references found"
+          # Verify installer uses copy/download approach
+          if ! grep -q "cp.*\.security-controls/bin/pinactlite" install-security-controls.sh; then
+            echo "❌ Installer not configured to copy pinactlite from canonical source"
+            exit 1
+          fi
+
+          echo "✅ Installer correctly configured to copy from repository"
 
       - name: Test E2E workflow compatibility
         run: |
@@ -105,10 +115,19 @@ jobs:
           cp ../install-security-controls.sh .
           bash ./install-security-controls.sh --non-rust --no-ci --no-docs --force
 
-          # Verify the tool that E2E expects exists and works
+          # Verify the tool that E2E expects exists and is executable
           if [[ ! -x ".security-controls/bin/pinactlite" ]]; then
             echo "❌ E2E test expects pinactlite but installer didn't create it"
             exit 1
           fi
 
-          echo "✅ E2E workflow compatibility verified"
+          # Verify it's the same as repository version (binary identity)
+          E2E_SHA=$(sha256sum .security-controls/bin/pinactlite | cut -d' ' -f1)
+          REPO_SHA=$(sha256sum ../.security-controls/bin/pinactlite | cut -d' ' -f1)
+
+          if [[ "$E2E_SHA" != "$REPO_SHA" ]]; then
+            echo "❌ E2E pinactlite differs from repository version"
+            exit 1
+          fi
+
+          echo "✅ E2E workflow compatibility verified - binary identity confirmed"

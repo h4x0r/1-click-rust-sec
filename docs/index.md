@@ -1,11 +1,9 @@
 # 1-Click Rust Security Controls
 
-[![Helpers E2E](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/helpers-e2e.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/helpers-e2e.yml)
 [![Documentation](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/docs.yml)
-[![Shell Lint](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/shell-lint.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/shell-lint.yml)
-[![Pinning Validation](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/pinning-validation.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/pinning-validation.yml)
-[![Installer Self-Test](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/installer-self-test.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/installer-self-test.yml)
+[![Quality Assurance](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/quality-assurance.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/quality-assurance.yml)
 [![CodeQL](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/codeql.yml)
+[![Pinactlite Sync](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/sync-pinactlite.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/sync-pinactlite.yml)
 
 Welcome. This site provides a minimal navigation for key docs. (Updated: Sept 23, 2025)
 

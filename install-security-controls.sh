@@ -861,6 +861,21 @@ install_gitsign() {
   configure_gitsign_manual_auth
 }
 
+# Non-fatal execution for optional configurations
+try_execute() {
+  local operation=$1
+  local success_msg=${2:-""}
+  local failure_msg=${3:-"⚠️ Operation failed"}
+
+  if eval "$operation" 2>/dev/null; then
+    [[ -n $success_msg ]] && print_status $GREEN "$success_msg"
+    return 0
+  else
+    print_status $YELLOW "$failure_msg"
+    return 1
+  fi
+}
+
 # Configure gitsign for manual authentication with URL/code fallback
 configure_gitsign_manual_auth() {
   print_status $YELLOW "🔧 Configuring gitsign for manual authentication..."
@@ -871,21 +886,21 @@ configure_gitsign_manual_auth() {
   fi
 
   # Enable commit and tag signing
-  safe_execute "git config --global commit.gpgsign true" || print_status $YELLOW "⚠️ Failed to enable commit signing"
-  safe_execute "git config --global tag.gpgsign true" || print_status $YELLOW "⚠️ Failed to enable tag signing"
-  safe_execute "git config --global gpg.format x509" || print_status $YELLOW "⚠️ Failed to set GPG format"
-  safe_execute "git config --global gpg.x509.program gitsign" || print_status $YELLOW "⚠️ Failed to set gitsign as x509 program"
+  try_execute "git config --global commit.gpgsign true" "" "⚠️ Failed to enable commit signing"
+  try_execute "git config --global tag.gpgsign true" "" "⚠️ Failed to enable tag signing"
+  try_execute "git config --global gpg.format x509" "" "⚠️ Failed to set GPG format"
+  try_execute "git config --global gpg.x509.program gitsign" "" "⚠️ Failed to set gitsign as x509 program"
 
   # Configure Sigstore endpoints
-  safe_execute "git config --global gitsign.fulcio-url 'https://fulcio.sigstore.dev'" || print_status $YELLOW "⚠️ Failed to set Fulcio URL"
-  safe_execute "git config --global gitsign.rekor-url 'https://rekor.sigstore.dev'" || print_status $YELLOW "⚠️ Failed to set Rekor URL"
-  safe_execute "git config --global gitsign.oidc-issuer 'https://oauth2.sigstore.dev/auth'" || print_status $YELLOW "⚠️ Failed to set OIDC issuer"
-  safe_execute "git config --global gitsign.oidc-client-id 'sigstore'" || print_status $YELLOW "⚠️ Failed to set OIDC client ID"
+  try_execute "git config --global gitsign.fulcio-url 'https://fulcio.sigstore.dev'" "" "⚠️ Failed to set Fulcio URL"
+  try_execute "git config --global gitsign.rekor-url 'https://rekor.sigstore.dev'" "" "⚠️ Failed to set Rekor URL"
+  try_execute "git config --global gitsign.oidc-issuer 'https://oauth2.sigstore.dev/auth'" "" "⚠️ Failed to set OIDC issuer"
+  try_execute "git config --global gitsign.oidc-client-id 'sigstore'" "" "⚠️ Failed to set OIDC client ID"
 
   # Configure balanced authentication behavior (security + usability)
-  safe_execute "git config --global gitsign.autoclose true" || print_status $YELLOW "⚠️ Failed to enable autoclose"
-  safe_execute "git config --global gitsign.autocloseTimeout 20" || print_status $YELLOW "⚠️ Failed to set timeout"
-  safe_execute "git config --global gitsign.connectorID 'https://github.com/login/oauth'" || print_status $YELLOW "⚠️ Failed to set connector ID"
+  try_execute "git config --global gitsign.autoclose true" "" "⚠️ Failed to enable autoclose"
+  try_execute "git config --global gitsign.autocloseTimeout 20" "" "⚠️ Failed to set timeout"
+  try_execute "git config --global gitsign.connectorID 'https://github.com/login/oauth'" "" "⚠️ Failed to set connector ID"
 
   print_status $GREEN "✅ Gitsign configured with balanced security and usability"
   print_status $BLUE "   • Browser auto-closes after 20 seconds (enough time for auth)"
@@ -3340,128 +3355,90 @@ install_gitleakslite_script() {
   local script_path="$bin_dir/gitleakslite"
 
   if [[ $DRY_RUN == true ]]; then
-    print_status $BLUE "[DRY RUN] Would write $script_path"
+    print_status $BLUE "[DRY RUN] Would copy gitleakslite to $script_path"
     return 0
   fi
 
   mkdir -p "$bin_dir"
-  cat >"$script_path" <<'GLSCRIPT_EOF'
+
+  # Copy from the canonical source instead of embedding
+  if [[ -f ".security-controls/bin/gitleakslite" ]]; then
+    cp ".security-controls/bin/gitleakslite" "$script_path"
+    print_status $GREEN "✅ Copied gitleakslite from canonical source"
+  else
+    # Fallback: download from repository if not available locally
+    local gitleakslite_url="https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/.security-controls/bin/gitleakslite"
+    if command -v curl >/dev/null 2>&1; then
+      curl -sSL "$gitleakslite_url" >"$script_path"
+      print_status $GREEN "✅ Downloaded gitleakslite from repository"
+    else
+      print_status $YELLOW "⚠️ Cannot find local gitleakslite and curl not available, generating basic fallback"
+      # Fallback: generate basic version if source not available
+    cat >"$script_path" <<'GLSCRIPT_EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-
 usage() {
   cat <<USG
-gitleakslite (script) - minimal secret scanner
+gitleakslite (script) - basic secret scanner (fallback version)
 
 Usage:
   gitleakslite protect --staged [--redact] [--no-banner] [--config PATH]
   gitleakslite detect [--redact] [--no-banner] [--config PATH]
 
+Note: This is a fallback version. For comprehensive patterns, run from repository.
 USG
 }
-
-# Read allowlist patterns (simple EREs)
 read_allowlist() {
   local file=".security-controls/secret-allowlist.txt"
-  if [[ -f "$file" ]]; then
-    cat "$file"
-  fi
+  [[ -f $file ]] && cat "$file"
 }
-
-sanitize() {
-  sed -E 's/([:=])[[:space:]]*"?[^"[:space:]]{4,}/\1 ***REDACTED***/g'
-}
-
 scan_lines() {
-  local file="$1"
-  local redact="$2"
-  local allowlist
+  local file="$1" redact="$2" allowlist hit=0
   allowlist=$(read_allowlist || true)
-  local patterns='AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|AIza[0-9A-Za-z_-]{35}|xox[baprs]-[A-Za-z0-9-]{10,48}|-----BEGIN [A-Z ,]*PRIVATE KEY-----|[A-Za-z0-9+/=]{40,}'
-  local kw='(secret|password|api[_-]?key|token)'
-  local hit=0
+  local patterns='(A3T[A-Z0-9]|AKIA|ASIA|ABIA|ACCA)[A-Z0-9]{16}|(ghp|gho|ghu|ghr|ghs)_[0-9a-zA-Z]{36}|AIza[0-9A-Za-z_-]{35}|xox[bpsoarunv]-[0-9]{8,13}-[0-9a-zA-Z]{8,64}|-----BEGIN[ A-Z0-9_-]{0,100}PRIVATE KEY'
   while IFS= read -r line; do
-    # skip allowlisted lines
-    if [[ -n "$allowlist" ]] && grep -E -q "$allowlist" <<<"$line"; then continue; fi
-    if grep -E -q "$patterns" <<<"$line" || grep -E -qi "$kw[^\n]{0,20}[:=][[:space:]]*[^[:space:]]{8,}" <<<"$line"; then
-      if [[ "$redact" == "1" ]]; then
-        echo "$line" | sanitize
-      else
-        echo "$line"
-      fi
-      hit=1
+    [[ -n $allowlist ]] && grep -E -q "$allowlist" <<<"$line" && continue
+    if grep -E -q "$patterns" <<<"$line"; then
+      [[ $redact == "1" ]] && line=$(echo "$line" | sed -E 's/([:=])[[:space:]]*"?[^"[:space:]]{4,}/\1 ***REDACTED***/g')
+      echo "$line"; hit=1
     fi
   done
   return $hit
 }
-
 cmd_protect() {
   local staged=0 redact=0
   while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --staged) staged=1; shift ;;
-      --redact) redact=1; shift ;;
-      --no-banner) shift ;;
-      --config) shift 2 ;; # ignore
-      -h|--help) usage; exit 0 ;;
-      *) echo "Unknown option: $1" >&2; usage; exit 2 ;;
-    esac
+    case "$1" in --staged) staged=1; shift ;; --redact) redact=1; shift ;; --no-banner|--config) shift ;; *) shift ;; esac
   done
-  if [[ $staged -ne 1 ]]; then
-    echo "protect: --staged required" >&2
-    exit 2
-  fi
-  local dir_filter='^(target/|node_modules/|dist/|build/|vendor/|coverage/|\\.git/|\\.github/workflows/)'
+  [[ $staged -ne 1 ]] && { echo "protect: --staged required" >&2; exit 2; }
   local hit=0
-while IFS= read -r f; do
-    [[ -z "$f" || ! -f "$f" ]] && continue
-    if ! git diff --cached -U0 -- "$f" | sed -n 's/^+//p' | scan_lines "$f" "$redact"; then
-      hit=1
-      echo "[$f]" >&2
-    fi
-  done < <(git diff --cached --name-only --diff-filter=ACM | grep -v -E "$dir_filter" || true)
-  if [[ $hit -eq 1 ]]; then
-    exit 1
-  fi
+  while IFS= read -r f; do
+    [[ -z $f || ! -f $f ]] && continue
+    git diff --cached -U0 -- "$f" | sed -n 's/^+//p' | scan_lines "$f" "$redact" || { hit=1; echo "[$f]" >&2; }
+  done < <(git diff --cached --name-only --diff-filter=ACM | grep -v -E '^(target/|node_modules/)' || true)
+  [[ $hit -eq 1 ]] && exit 1
 }
-
 cmd_detect() {
   local redact=0
   while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --redact) redact=1; shift ;;
-      --no-banner) shift ;;
-      --config) shift 2 ;; # ignore
-      -h|--help) usage; exit 0 ;;
-      *) echo "Unknown option: $1" >&2; usage; exit 2 ;;
-    esac
+    case "$1" in --redact) redact=1; shift ;; *) shift ;; esac
   done
-  local dir_filter='^(target/|node_modules/|dist/|build/|vendor/|coverage/|\\.git/|\\.github/workflows/)'
   local hit=0
   while IFS= read -r f; do
-    [[ -z "$f" || ! -f "$f" ]] && continue
-    if ! cat "$f" | scan_lines "$f" "$redact"; then
-      hit=1
-      echo "[$f]" >&2
-    fi
-  done < <(git ls-files | grep -v -E "$dir_filter" || true)
-  if [[ $hit -eq 1 ]]; then
-    exit 1
-  fi
+    [[ -z $f || ! -f $f ]] && continue
+    cat "$f" | scan_lines "$f" "$redact" || { hit=1; echo "[$f]" >&2; }
+  done < <(git ls-files | grep -v -E '^(target/|node_modules/)' || true)
+  [[ $hit -eq 1 ]] && exit 1
 }
-
-main() {
-  local cmd="${1:-}"; shift || true
-  case "$cmd" in
-    protect) cmd_protect "$@" ;;
-    detect) cmd_detect "$@" ;;
-    ""|-h|--help) usage ;;
-    *) echo "Unknown command: $cmd" >&2; usage; exit 2 ;;
-  esac
-}
-
-main "$@"
+case "${1:-}" in
+  protect) shift; cmd_protect "$@" ;;
+  detect) shift; cmd_detect "$@" ;;
+  *) usage ;;
+esac
 GLSCRIPT_EOF
+    fi
+  fi
+
   chmod +x "$script_path"
   print_status $GREEN "✅ Installed script-only gitleakslite at $script_path"
 }

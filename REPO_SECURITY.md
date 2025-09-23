@@ -87,7 +87,7 @@ This repository implements a **"dogfooding plus"** approach:
 |--------|-------------------|---------------------|
 | **Pre-push Checks** | 25+ | 25+ |
 | **Pre-commit Checks** | 0 | 8 |
-| **CI/CD Workflows** | 1-2 (optional), +1 with --github-security | 8 |
+| **CI/CD Workflows** | 1-2 (optional), +1 with --github-security | 4 |
 | **Helper Tools** | 2 | 2 + scripts |
 | **Configuration Files** | 5 | 7 |
 | **GitHub Security Features** | 6 with --github-security | 6 |
@@ -158,52 +158,30 @@ repos:
 
 ### Layer 3: CI/CD Workflows (GitHub Actions)
 
-Eight specialized workflows for continuous validation:
+Four specialized workflows for continuous validation:
 
-#### 1. `pinning-validation.yml`
-- **Purpose**: Ensures all GitHub Actions use SHA pins
-- **Tools**: Official pinact v3.4.2 with cryptographic verification
-- **Verification**:
-  - Cosign signature verification
-  - OpenSSL signature verification (defense in depth)
-  - SHA256 checksum verification
-  - SLSA provenance validation
+#### 1. `quality-assurance.yml`
+- **Purpose**: Comprehensive quality and security validation
+- **Tools**: Multiple security and quality tools
+- **Checks**: Format, linting, tests, security scans, dependency analysis
+- **Features**: Combined workflow for efficient CI pipeline
 
-#### 2. `shell-lint.yml`
-- **Purpose**: Validates all shell scripts
-- **Tools**: shellcheck + shfmt
-- **Checks**: Syntax, style, security patterns
-
-#### 3. `docs-build.yml` & `docs-deploy.yml`
+#### 2. `docs.yml`
 - **Purpose**: Documentation site generation and deployment
 - **Tools**: MkDocs with Material theme
-- **Output**: GitHub Pages site
+- **Output**: GitHub Pages site deployment
+- **Triggers**: Push to main, PR validation
 
-#### 4. `codeql.yml`
+#### 3. `codeql.yml`
 - **Purpose**: Code scanning for security vulnerabilities
-- **Tools**: GitHub CodeQL (JavaScript/TypeScript analysis)
+- **Tools**: GitHub CodeQL analysis
 - **Schedule**: Weekly scans + PR analysis
+- **Languages**: Shell scripts and documentation
 
-#### 5. `helpers-e2e.yml`
-- **Purpose**: End-to-end testing of helper tools
-- **Tests**: pinactlite and gitleakslite functionality
-- **Coverage**: Detection, auto-fixing, edge cases
-
-#### 6. `installer-self-test.yml`
-- **Purpose**: Validates installer integrity
-- **Tests**: Installation scenarios, flag combinations
-- **Environments**: Multiple OS versions
-
-#### 7. `sync-pinactlite.yml`
+#### 4. `sync-pinactlite.yml`
 - **Purpose**: Ensures tool version consistency
 - **Checks**: Script synchronization between installer and repo
-
-#### 8. `gitleaks-validation.yml`
-- **Purpose**: Validates gitleakslite behavior matches official gitleaks
-- **Tools**: Official gitleaks v8.28.0 with cryptographic verification
-- **Testing**: Tests on both files with secrets and clean repositories
-- **Validation**: Compares exit codes to ensure behavioral consistency
-- **Note**: Demonstrates challenge of realistic test secrets vs. GitHub secret scanning
+- **Tools**: pinactlite tool maintenance and updates
 
 ### Layer 4: Repository Configuration
 
@@ -235,10 +213,10 @@ Eight specialized workflows for continuous validation:
 
 ### Workflow Status Badges
 All workflows display real-time status in README:
-- Pinning Validation
-- Shell Lint
-- Docs Deploy
-- Helpers E2E
+- Quality Assurance
+- Documentation
+- CodeQL Security Scanning
+- Pinactlite Sync
 
 ### Performance Tracking
 - Pre-push: ~60 seconds target
@@ -404,9 +382,10 @@ Repository Security Chain:
 ## 📚 Additional Resources
 
 ### Internal Documentation
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Development guidelines
-- [ARCHITECTURE.md](SECURITY_CONTROLS_ARCHITECTURE.md) - Technical design
-- [.github/workflows/](.github/workflows/) - Workflow sources
+- [Security Controls Architecture](docs/architecture.md) - Technical design
+- [Installation Guide](docs/installation.md) - Setup instructions
+- [YubiKey Guide](docs/yubikey.md) - YubiKey integration
+- [Workflow Sources](.github/workflows/) - GitHub Actions workflows
 
 ### External References
 - [GitHub Security Best Practices](https://docs.github.com/en/code-security)
