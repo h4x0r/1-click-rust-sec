@@ -79,15 +79,15 @@ declare -a ROLLBACK_ACTIONS
 
 # Initialize logging system
 setup_logging() {
-  # Function to initialize logging (no arguments needed)
+  # Function to initialize logging
   mkdir -p "$LOG_DIR"
   touch "$LOG_FILE"
 
-  # Log session start
+  # Log session start with script arguments from global scope
   {
     echo "=== INSTALLATION SESSION START ==="
     echo "Timestamp: $(date)"
-    echo "Script: $0 $*"
+    echo "Script: $0 ${*:-}"
     echo "PWD: $(pwd)"
     echo "User: $(whoami)"
     echo "========================================"
