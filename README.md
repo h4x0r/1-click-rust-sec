@@ -45,9 +45,6 @@ sha256sum -c install-security-controls.sh.sha256
 # Install in YOUR project (includes GitHub security by default)
 chmod +x install-security-controls.sh
 ./install-security-controls.sh
-
-# Skip GitHub security features (if desired)
-./install-security-controls.sh --no-github-security
 ```
 
 ## 🔐 GitHub Security Features {#github-security-features}
