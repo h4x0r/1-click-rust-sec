@@ -156,11 +156,12 @@ gitsign.oidc-client-id=sigstore
 
 1. **Regular Development**: Code, stage changes normally
 2. **Commit**: Run `git commit -m "Your commit message"`
-3. **Browser Opens**: gitsign opens browser for GitHub OAuth
+3. **Browser Opens**: gitsign opens browser for GitHub OAuth (20-second timeout)
 4. **YubiKey Touch**: GitHub prompts for YubiKey authentication
 5. **Touch YubiKey**: Physical touch authenticates your identity
 6. **Automatic Signing**: gitsign receives certificate and signs commit
-7. **Transparency Logging**: Signature automatically logged to Rekor
+7. **Browser Closes**: Browser window closes automatically after authentication
+8. **Transparency Logging**: Signature automatically logged to Rekor
 
 ### **Verification**
 

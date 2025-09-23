@@ -48,6 +48,235 @@ readonly GITLEAKS_BASELINE_FILE="$CONTROL_STATE_DIR/gitleaks-baseline.json"
 readonly HOOKS_PATH_DIR=".githooks"
 readonly PRE_PUSH_D_DIR="$HOOKS_PATH_DIR/pre-push.d"
 
+# =============================================================================
+# STANDARDIZED ERROR CODES AND HANDLING FRAMEWORK
+# =============================================================================
+readonly EXIT_SUCCESS=0
+readonly EXIT_GENERAL_ERROR=1          # Generic failure
+readonly EXIT_USAGE_ERROR=2            # Invalid arguments/usage
+readonly EXIT_PERMISSION_ERROR=3       # Permission denied
+readonly EXIT_NETWORK_ERROR=4          # Download/network issues
+readonly EXIT_TOOL_MISSING=6           # Required tool not found
+readonly EXIT_VALIDATION_ERROR=7       # Input validation failed
+readonly EXIT_CONFIG_ERROR=9           # Configuration error
+readonly EXIT_SECURITY_ERROR=10        # Security check failed
+
+# =============================================================================
+# ENHANCED LOGGING SYSTEM WITH TIMESTAMPS
+# =============================================================================
+readonly LOG_DIR="$CONTROL_STATE_DIR/logs"
+readonly LOG_FILE="$LOG_DIR/install-$(date +%Y%m%d_%H%M%S).log"
+VERBOSE=${VERBOSE:-false}
+
+# =============================================================================
+# TRANSACTION AND ROLLBACK SYSTEM
+# =============================================================================
+readonly TRANSACTION_DIR="$CONTROL_STATE_DIR/transactions"
+TRANSACTION_ACTIVE=false
+declare -a ROLLBACK_ACTIONS
+
+# Initialize logging system
+setup_logging() {
+  mkdir -p "$LOG_DIR"
+  touch "$LOG_FILE"
+
+  # Log session start
+  {
+    echo "=== INSTALLATION SESSION START ==="
+    echo "Timestamp: $(date)"
+    echo "Script: $0 $*"
+    echo "PWD: $(pwd)"
+    echo "User: $(whoami)"
+    echo "========================================"
+  } >> "$LOG_FILE"
+}
+
+# Enhanced logging functions
+log_entry() {
+  local level=$1
+  local message=$2
+  local context=${3:-""}
+  local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  local caller="${FUNCNAME[2]:-main}"
+
+  local log_line="[$timestamp] [$level] [$caller] $message"
+  [[ -n $context ]] && log_line="$log_line | Context: $context"
+
+  echo "$log_line" >> "$LOG_FILE"
+
+  # Also output to terminal if verbose or error/warn
+  if [[ $VERBOSE == true ]] || [[ $level == "ERROR" ]] || [[ $level == "WARN" ]]; then
+    echo "[$(date '+%H:%M:%S')] [$level] $message" >&2
+  fi
+}
+
+log_debug() { [[ $VERBOSE == true ]] && log_entry "DEBUG" "$1" "${2:-}"; }
+log_info()  { log_entry "INFO" "$1" "${2:-}"; }
+log_warn()  { log_entry "WARN" "$1" "${2:-}"; }
+log_error() { log_entry "ERROR" "$1" "${2:-}"; }
+
+# Standardized error handler
+handle_error() {
+  local exit_code=$1
+  local error_msg=$2
+  local context=${3:-""}
+
+  case $exit_code in
+    $EXIT_PERMISSION_ERROR)
+      print_status $RED "❌ Permission Error: $error_msg"
+      echo "💡 Try: sudo $0 $* or check file permissions"
+      ;;
+    $EXIT_NETWORK_ERROR)
+      print_status $RED "❌ Network Error: $error_msg"
+      echo "💡 Check internet connection and retry"
+      ;;
+    $EXIT_TOOL_MISSING)
+      print_status $RED "❌ Missing Tool: $error_msg"
+      echo "💡 Install required dependencies: $context"
+      ;;
+    $EXIT_VALIDATION_ERROR)
+      print_status $RED "❌ Validation Error: $error_msg"
+      echo "💡 Check input: $context"
+      ;;
+    $EXIT_CONFIG_ERROR)
+      print_status $RED "❌ Configuration Error: $error_msg"
+      echo "💡 Check configuration files and permissions"
+      ;;
+    $EXIT_SECURITY_ERROR)
+      print_status $RED "❌ Security Error: $error_msg"
+      echo "💡 Review security requirements: $context"
+      ;;
+    *)
+      print_status $RED "❌ Error: $error_msg"
+      ;;
+  esac
+
+  [[ -n $context ]] && echo "   Context: $context"
+  log_error "$error_msg" "$context"
+
+  # Trigger rollback if transaction is active
+  if [[ $TRANSACTION_ACTIVE == true ]]; then
+    rollback_on_error
+  fi
+
+  exit "$exit_code"
+}
+
+# Safe execution wrapper
+safe_execute() {
+  local operation=$1
+  local error_msg=$2
+  local exit_code=${3:-$EXIT_GENERAL_ERROR}
+  local context=${4:-""}
+
+  log_debug "Executing: $operation" "$context"
+
+  if ! eval "$operation" 2>>"$LOG_FILE"; then
+    handle_error "$exit_code" "$error_msg" "$context"
+  fi
+
+  log_debug "Completed: $operation"
+}
+
+# Transaction management
+start_transaction() {
+  local transaction_name=${1:-"install"}
+  TRANSACTION_ACTIVE=true
+  ROLLBACK_ACTIONS=()
+
+  mkdir -p "$TRANSACTION_DIR"
+
+  log_info "Transaction started: $transaction_name"
+
+  # Set trap for automatic rollback on error
+  trap 'rollback_on_error' ERR
+  trap 'cleanup_transaction' EXIT
+}
+
+add_rollback() {
+  local action=$1
+  ROLLBACK_ACTIONS+=("$action")
+  log_debug "Added rollback action: $action"
+}
+
+commit_transaction() {
+  if [[ $TRANSACTION_ACTIVE == true ]]; then
+    log_info "Transaction committed successfully"
+    TRANSACTION_ACTIVE=false
+    ROLLBACK_ACTIONS=()
+    trap - ERR EXIT
+  fi
+}
+
+rollback_on_error() {
+  if [[ $TRANSACTION_ACTIVE == true ]]; then
+    print_status $YELLOW "⚠️ Error detected - initiating rollback..."
+    log_warn "Automatic rollback triggered"
+
+    # Execute rollback actions in reverse order
+    for ((i=${#ROLLBACK_ACTIONS[@]}-1; i>=0; i--)); do
+      local action="${ROLLBACK_ACTIONS[i]}"
+      log_info "Rolling back: $action"
+
+      if eval "$action" 2>>"$LOG_FILE"; then
+        log_debug "Rollback action succeeded: $action"
+      else
+        log_error "Rollback action failed: $action"
+      fi
+    done
+
+    print_status $GREEN "✅ Rollback completed"
+    TRANSACTION_ACTIVE=false
+  fi
+}
+
+cleanup_transaction() {
+  if [[ $TRANSACTION_ACTIVE == true ]]; then
+    TRANSACTION_ACTIVE=false
+    trap - ERR EXIT
+  fi
+}
+
+# Atomic file operations
+atomic_write() {
+  local file=$1
+  local content=$2
+
+  # Backup original if exists
+  if [[ -f $file ]]; then
+    local backup="$file.backup.$(date +%s)"
+    cp "$file" "$backup"
+    add_rollback "mv '$backup' '$file'"
+    log_debug "Created backup: $backup"
+  else
+    add_rollback "rm -f '$file'"
+  fi
+
+  # Write new content
+  echo "$content" > "$file"
+  log_debug "Atomic write completed: $file"
+}
+
+atomic_move() {
+  local src=$1
+  local dest=$2
+
+  if [[ -f $dest ]]; then
+    local backup="$dest.backup.$(date +%s)"
+    mv "$dest" "$backup"
+    add_rollback "mv '$backup' '$dest'"
+  else
+    add_rollback "rm -f '$dest'"
+  fi
+
+  mv "$src" "$dest"
+  log_debug "Atomic move: $src -> $dest"
+}
+
+# =============================================================================
+# END FRAMEWORK SECTION
+# =============================================================================
+
 # Global flags
 DRY_RUN=false
 SKIP_TOOLS=false
@@ -56,6 +285,7 @@ RUST_PROJECT=true
 INSTALL_HOOKS=true
 INSTALL_CI=true
 INSTALL_DOCS=true
+INSTALL_SIGNING=true
 USE_HOOKS_PATH=false
 INSTALL_GITHUB_SECURITY=true
 
@@ -72,6 +302,7 @@ print_status() {
   local color=$1
   local message=$2
   echo -e "${color}${message}${NC}"
+  log_info "$message"
 }
 
 print_header() {
@@ -331,12 +562,14 @@ DESCRIPTION:
 OPTIONS:
     -h, --help              Show this help message
     -v, --version           Show version information
+    --verbose               Enable verbose logging output
     -d, --dry-run           Show what would be done without making changes
     -f, --force             Force overwrite existing files
     --skip-tools            Skip tool installation (assume tools are available)
     --no-hooks              Skip Git hooks installation
     --no-ci                 Skip CI workflow installation  
     --no-docs               Skip documentation installation
+    --no-signing            Skip gitsign installation and configuration
     --non-rust              Configure for non-Rust project
     --hooks-path            Install hooks using git core.hooksPath (\".githooks\") and chain safely
     --no-github-security    Skip GitHub repository security features (enabled by default)
@@ -439,9 +672,7 @@ show_version() {
 # Check if we're in a git repository
 check_git_repo() {
   if ! git rev-parse --git-dir >/dev/null 2>&1; then
-    print_status $RED "❌ Error: Not in a Git repository"
-    echo "Initialize git first: git init"
-    exit 1
+    handle_error $EXIT_VALIDATION_ERROR "Not in a Git repository" "Initialize git first: git init"
   fi
   print_status $GREEN "✅ Git repository detected"
 }
@@ -512,29 +743,24 @@ check_required_tools() {
   fi
 
   if [[ ${#missing_tools[@]} -gt 0 ]] && [[ $SKIP_TOOLS == false ]]; then
-    print_status $RED "❌ Missing required tools: ${missing_tools[*]}"
-    echo
-    echo "Install missing tools:"
+    local install_instructions=""
     for tool in "${missing_tools[@]}"; do
       case $tool in
         "git")
-          echo "  macOS: brew install git"
-          echo "  Ubuntu: sudo apt install git"
+          install_instructions+="  macOS: brew install git\n  Ubuntu: sudo apt install git\n"
           ;;
         "curl")
-          echo "  macOS: brew install curl"
-          echo "  Ubuntu: sudo apt install curl"
+          install_instructions+="  macOS: brew install curl\n  Ubuntu: sudo apt install curl\n"
           ;;
         "jq")
-          echo "  macOS: brew install jq"
-          echo "  Ubuntu: sudo apt install jq"
+          install_instructions+="  macOS: brew install jq\n  Ubuntu: sudo apt install jq\n"
           ;;
         "cargo" | "rustc")
-          echo "  Install Rust: https://rustup.rs/"
+          install_instructions+="  Install Rust: https://rustup.rs/\n"
           ;;
       esac
     done
-    exit 1
+    handle_error $EXIT_TOOL_MISSING "Missing required tools: ${missing_tools[*]}" "$install_instructions"
   fi
 }
 
@@ -591,6 +817,103 @@ install_security_tools() {
         fi
       fi
     done
+  fi
+
+  # Install gitsign for commit signing (if not disabled)
+  if [[ $INSTALL_SIGNING == true ]]; then
+    install_gitsign
+  fi
+}
+
+# Install and configure gitsign for Sigstore commit signing
+install_gitsign() {
+  print_section "Installing Gitsign for Sigstore Signing"
+
+  # Check if Go is available for gitsign installation
+  if ! command -v go &>/dev/null; then
+    print_status $YELLOW "⚠️ Go not found - gitsign installation requires Go"
+    print_status $BLUE "   Install Go from https://golang.org/dl/ or:"
+    print_status $BLUE "   • macOS: brew install go"
+    print_status $BLUE "   • Ubuntu: sudo apt install golang-go"
+    print_status $BLUE "   • Windows: Download from golang.org"
+    return 0
+  fi
+
+  # Check if gitsign is already installed
+  if command -v gitsign &>/dev/null; then
+    print_status $GREEN "✅ gitsign already installed"
+  else
+    print_status $YELLOW "📦 Installing gitsign..."
+    if [[ $DRY_RUN == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would install gitsign"
+    else
+      if go install github.com/sigstore/gitsign@latest 2>/dev/null; then
+        print_status $GREEN "✅ gitsign installed successfully"
+      else
+        print_status $RED "❌ Failed to install gitsign"
+        print_status $YELLOW "   Try installing manually: go install github.com/sigstore/gitsign@latest"
+        return 1
+      fi
+    fi
+  fi
+
+  # Configure gitsign with manual authentication behavior
+  configure_gitsign_manual_auth
+}
+
+# Configure gitsign for manual authentication with URL/code fallback
+configure_gitsign_manual_auth() {
+  print_status $YELLOW "🔧 Configuring gitsign for manual authentication..."
+
+  if [[ $DRY_RUN == true ]]; then
+    print_status $BLUE "   [DRY RUN] Would configure gitsign settings"
+    return 0
+  fi
+
+  # Enable commit and tag signing
+  safe_execute "git config --global commit.gpgsign true" || print_status $YELLOW "⚠️ Failed to enable commit signing"
+  safe_execute "git config --global tag.gpgsign true" || print_status $YELLOW "⚠️ Failed to enable tag signing"
+  safe_execute "git config --global gpg.format x509" || print_status $YELLOW "⚠️ Failed to set GPG format"
+  safe_execute "git config --global gpg.x509.program gitsign" || print_status $YELLOW "⚠️ Failed to set gitsign as x509 program"
+
+  # Configure Sigstore endpoints
+  safe_execute "git config --global gitsign.fulcio-url 'https://fulcio.sigstore.dev'" || print_status $YELLOW "⚠️ Failed to set Fulcio URL"
+  safe_execute "git config --global gitsign.rekor-url 'https://rekor.sigstore.dev'" || print_status $YELLOW "⚠️ Failed to set Rekor URL"
+  safe_execute "git config --global gitsign.oidc-issuer 'https://oauth2.sigstore.dev/auth'" || print_status $YELLOW "⚠️ Failed to set OIDC issuer"
+  safe_execute "git config --global gitsign.oidc-client-id 'sigstore'" || print_status $YELLOW "⚠️ Failed to set OIDC client ID"
+
+  # Configure balanced authentication behavior (security + usability)
+  safe_execute "git config --global gitsign.autoclose true" || print_status $YELLOW "⚠️ Failed to enable autoclose"
+  safe_execute "git config --global gitsign.autocloseTimeout 20" || print_status $YELLOW "⚠️ Failed to set timeout"
+  safe_execute "git config --global gitsign.connectorID 'https://github.com/login/oauth'" || print_status $YELLOW "⚠️ Failed to set connector ID"
+
+  print_status $GREEN "✅ Gitsign configured with balanced security and usability"
+  print_status $BLUE "   • Browser auto-closes after 20 seconds (enough time for auth)"
+  print_status $BLUE "   • Uses GitHub OAuth for identity verification"
+  print_status $BLUE "   • Ephemeral certificates with transparency logging"
+
+  # Test gitsign configuration and provide troubleshooting guidance
+  if command -v gitsign &>/dev/null; then
+    print_status $BLUE "🧪 Testing gitsign configuration..."
+    if git config --global --get commit.gpgsign >/dev/null 2>&1; then
+      print_status $GREEN "✅ Gitsign ready for commit signing"
+      print_status $BLUE "   Next commit will be signed with Sigstore"
+      echo
+      print_status $YELLOW "💡 Authentication Behavior:"
+      echo "   When you make your first signed commit:"
+      echo "   1. Browser will open to GitHub OAuth page"
+      echo "   2. You have 20 seconds to complete authentication"
+      echo "   3. Browser closes automatically after auth or timeout"
+      echo "   4. If timeout occurs, git commit will fail - simply retry"
+      echo
+      print_status $YELLOW "🔧 Troubleshooting Authentication Failures:"
+      echo "   • Ensure you're logged into GitHub in your default browser"
+      echo "   • Check that pop-ups are not blocked for sigstore.dev"
+      echo "   • If repeated failures: git config --global gitsign.autocloseTimeout 60"
+      echo "   • For CI/CD environments: use GITHUB_TOKEN authentication"
+    else
+      print_status $YELLOW "⚠️ Gitsign configuration may need verification"
+    fi
   fi
 }
 
@@ -1565,8 +1888,14 @@ install_pre_push_hook() {
     fi
     ensure_hooks_path_dispatcher
     local chained_hook="$PRE_PUSH_D_DIR/50-security-pre-push"
-    generate_pre_push_hook >"$chained_hook"
+
+    # Generate hook content and write atomically
+    local hook_content
+    hook_content=$(generate_pre_push_hook)
+    atomic_write "$chained_hook" "$hook_content"
     chmod +x "$chained_hook"
+    add_rollback "chmod -x '$chained_hook'"
+
     print_status $GREEN "✅ Pre-push hook installed (hooksPath): $chained_hook"
     return 0
   fi
@@ -1588,8 +1917,14 @@ install_pre_push_hook() {
     print_status $BLUE "[DRY RUN] Would install pre-push hook to $hook_file"
   else
     mkdir -p .git/hooks
-    generate_pre_push_hook >"$hook_file"
+
+    # Generate hook content and write atomically
+    local hook_content
+    hook_content=$(generate_pre_push_hook)
+    atomic_write "$hook_file" "$hook_content"
     chmod +x "$hook_file"
+    add_rollback "chmod -x '$hook_file'"
+
     print_status $GREEN "✅ Pre-push hook installed: $hook_file"
   fi
 }
@@ -2690,13 +3025,14 @@ Signed Commit + Rekor Transparency Log
 
 1. **Commit Attempt**: Developer runs `git commit`
 2. **gitsign Triggers**: Git calls gitsign for signing
-3. **OIDC Challenge**: gitsign opens browser for authentication
-4. **YubiKey Authentication**: GitHub requires YubiKey touch
+3. **OIDC Challenge**: gitsign opens browser for authentication (20-second timeout)
+4. **YubiKey Authentication**: GitHub requires YubiKey touch (if enabled)
 5. **Token Exchange**: Valid OIDC token received
 6. **Certificate Request**: gitsign requests cert from Fulcio
 7. **Short-lived Certificate**: Fulcio issues 5-10 minute certificate
 8. **Commit Signing**: Certificate signs commit
 9. **Transparency Log**: Signature recorded in Rekor
+10. **Browser Closes**: Browser window closes automatically
 
 ### Key Components
 
@@ -2785,11 +3121,12 @@ gitsign.oidc-client-id=sigstore
 
 1. **Regular Development**: Code, stage changes normally
 2. **Commit**: Run `git commit -m "Your commit message"`
-3. **Browser Opens**: gitsign opens browser for GitHub OAuth
-4. **YubiKey Touch**: GitHub prompts for YubiKey authentication
+3. **Browser Opens**: gitsign opens browser for GitHub OAuth (20-second timeout)
+4. **YubiKey Touch**: GitHub prompts for YubiKey authentication (if enabled)
 5. **Touch YubiKey**: Physical touch authenticates your identity
 6. **Automatic Signing**: gitsign receives certificate and signs commit
-7. **Transparency Logging**: Signature automatically logged to Rekor
+7. **Browser Closes**: Browser window closes automatically after authentication
+8. **Transparency Logging**: Signature automatically logged to Rekor
 
 ### **Verification**
 
@@ -2821,6 +3158,26 @@ git log --show-signature -1 HEAD
 # Test signing
 ./yubikey-gitsign-toggle.sh test
 ```
+
+### **Authentication Behavior**
+
+**Normal Flow (within 20 seconds):**
+- Browser opens to GitHub OAuth
+- Complete authentication
+- Browser closes automatically
+- Commit succeeds with Sigstore signature
+
+**Timeout Scenario (after 20 seconds):**
+- Browser closes automatically
+- Authentication incomplete
+- Git commit fails with signing error
+- Simply retry: `git commit` again
+- Most users complete auth on second attempt
+
+**Troubleshooting:**
+- Ensure you're logged into GitHub in your browser
+- Disable pop-up blockers for sigstore.dev
+- For slow connections: `git config --global gitsign.autocloseTimeout 60`
 
 ---
 
@@ -3341,6 +3698,10 @@ parse_arguments() {
         SHOW_VERSION=true
         shift
         ;;
+      --verbose)
+        VERBOSE=true
+        shift
+        ;;
       -d | --dry-run)
         DRY_RUN=true
         shift
@@ -3377,6 +3738,10 @@ parse_arguments() {
         INSTALL_GITHUB_SECURITY=false
         shift
         ;;
+      --no-signing)
+        INSTALL_SIGNING=false
+        shift
+        ;;
       --check-update)
         CHECK_UPDATE=true
         shift
@@ -3400,10 +3765,20 @@ parse_arguments() {
 
 # Main execution
 main() {
+  # Initialize framework first - but do minimal setup before argument parsing
+  setup_logging
+
   print_header "Security Controls Installer v$SCRIPT_VERSION"
 
   # Parse arguments first, so flags like --version work before other output
   parse_arguments "$@"
+
+  # Now start transaction after parsing arguments (in case of early exits)
+  start_transaction "security-controls-install"
+
+  log_info "=== Security Controls Installation Started ==="
+  log_info "Script version: $SCRIPT_VERSION"
+  log_info "Arguments: $*"
 
   if [[ $DRY_RUN == true ]]; then
     print_status $YELLOW "🔍 DRY RUN MODE - No changes will be made"
@@ -3413,21 +3788,38 @@ main() {
   # Execute upgrade commands (these exit before normal installation)
   execute_upgrade_commands
 
-  # Core setup
-  check_git_repo
-  detect_project_type
-  check_required_tools
+  # Core setup with enhanced error handling
+  safe_execute "check_git_repo" \
+    "Not in a Git repository" \
+    $EXIT_VALIDATION_ERROR \
+    "Initialize git first: git init"
+
+  safe_execute "detect_project_type" \
+    "Failed to detect project type" \
+    $EXIT_VALIDATION_ERROR
+
+  safe_execute "check_required_tools" \
+    "Missing required tools" \
+    $EXIT_TOOL_MISSING \
+    "Install required dependencies"
 
   # Install components
   if [[ $SKIP_TOOLS == false ]]; then
-    install_security_tools
+    safe_execute "install_security_tools" \
+      "Failed to install security tools" \
+      $EXIT_NETWORK_ERROR \
+      "Check internet connection"
   fi
 
   # Configure security settings (Rust-specific and global)
-  configure_cargo_security
+  safe_execute "configure_cargo_security" \
+    "Failed to configure Cargo security" \
+    $EXIT_CONFIG_ERROR
 
   # Install default config/state
-  install_default_config
+  safe_execute "install_default_config" \
+    "Failed to install default configuration" \
+    $EXIT_CONFIG_ERROR
 
   # Install script-only helpers
   install_pinactlite_script
@@ -3457,7 +3849,13 @@ main() {
     print_status $BLUE "🔍 Preview complete - no changes made"
     print_status $BLUE "   Run without --dry-run to install"
   fi
+
+  # Commit transaction on success
+  commit_transaction
+  log_info "=== Installation Completed Successfully ==="
 }
 
-# Execute main function with all arguments
-main "$@"
+# Execute main function with all arguments and error handling
+if ! main "$@"; then
+  handle_error $EXIT_GENERAL_ERROR "Installation failed" "Check logs: $LOG_FILE"
+fi

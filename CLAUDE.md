@@ -91,6 +91,36 @@ GPG Root Key → Repository Signing → Release Signing → Component Verificati
 - **Reporting**: Clear, actionable security reports for all stakeholders
 - **Alerting**: Proactive notification of security issues
 
+### 7. **Single-Script Architecture**
+> "True 1-click means zero external dependencies"
+
+- **Standalone Installer**: Single shell script with no external dependencies
+- **Built-in Components Only**: Uses only bash, curl, git, and standard Unix tools
+- **Self-Contained Framework**: Error handling, logging, and rollback embedded within installer
+- **Zero Configuration**: Works out-of-the-box on any Unix-like system
+- **Offline Capable**: Core functionality works without internet (after initial download)
+
+**Architectural Constraints:**
+- No Python/Node.js/Ruby dependencies
+- No package manager requirements beyond system defaults
+- No external configuration files or databases
+- No separate framework or library installations
+- No multi-file deployments or complex directory structures
+
+**Benefits:**
+- **Universal Compatibility**: Works on any system with bash 3.2+
+- **Zero Installation Friction**: Download one file, run one command
+- **Corporate Firewall Friendly**: No complex dependency resolution
+- **Airgap Compatible**: Can be transferred and run offline
+- **Minimal Attack Surface**: No external code execution or network dependencies
+
+**Implementation Strategy:**
+- Embed all framework code directly in `install-security-controls.sh`
+- Use bash built-ins and standard Unix utilities only
+- Inline all configuration and templates as heredocs
+- Self-contained error handling, logging, and rollback systems
+- Progressive enhancement: add features without breaking simplicity
+
 ---
 
 ## 🔧 Implementation Standards
@@ -101,6 +131,44 @@ GPG Root Key → Repository Signing → Release Signing → Component Verificati
 - **Error Handling**: Comprehensive error handling with user-friendly messages
 - **Testing**: Unit, integration, and security tests for all components
 - **Documentation**: Inline documentation explaining security decisions
+
+### Engineering Best Practices
+> "Quality code is security code"
+
+**Core Programming Principles:**
+- **DRY (Don't Repeat Yourself)**: Extract common patterns into reusable functions/modules
+- **Single Responsibility**: Each function/module has one clear purpose
+- **No Special Cases**: Design general solutions rather than hardcoded exceptions
+- **Fail Fast**: Validate inputs early and provide clear error messages
+- **Immutable by Default**: Prefer immutable data structures and functional approaches
+
+**External Integration Standards:**
+- **Documentation-First**: Study API documentation thoroughly before implementation
+- **Version Pinning**: Always pin external dependencies to specific versions
+- **Graceful Degradation**: Handle external service failures without breaking core functionality
+- **Rate Limiting**: Respect external API limits and implement backoff strategies
+- **Timeout Handling**: Set reasonable timeouts for all external calls
+
+**Code Organization:**
+- **Modular Architecture**: Organize code into logical, testable modules
+- **Clear Interfaces**: Define explicit contracts between components
+- **Separation of Concerns**: Keep business logic separate from I/O operations
+- **Configuration Management**: Externalize configuration, never hardcode values
+- **Resource Management**: Proper cleanup of files, connections, and other resources
+
+**Security-Focused Development:**
+- **Input Validation**: Validate all inputs at system boundaries
+- **Least Privilege**: Request minimal permissions necessary
+- **Defense in Depth**: Layer multiple validation and security checks
+- **Audit Trail**: Log security-relevant operations with sufficient detail
+- **Secret Management**: Never commit secrets; use secure storage mechanisms
+
+**Performance and Reliability:**
+- **Early Optimization**: Profile before optimizing, measure impact
+- **Caching Strategy**: Cache expensive operations with proper invalidation
+- **Memory Management**: Be conscious of memory usage and potential leaks
+- **Concurrent Safety**: Design for thread safety when applicable
+- **Idempotency**: Operations should be safe to retry
 
 ### Tool Integration
 - **Tool Selection Criteria**:
@@ -215,6 +283,7 @@ GPG Root Key → Repository Signing → Release Signing → Component Verificati
 3. **False Positive Rate**: < 1% for pre-push, < 10% for CI?
 4. **Community Adoption**: Widely used and maintained?
 5. **Integration Complexity**: Reasonable implementation effort?
+6. **Single-Script Compatibility**: Can be embedded without external dependencies?
 
 **Implementation Process:**
 1. **Research**: Tool capabilities, community feedback, alternatives
@@ -222,6 +291,37 @@ GPG Root Key → Repository Signing → Release Signing → Component Verificati
 3. **Performance Test**: Measure impact on different project sizes
 4. **Documentation**: Update architecture and usage documentation
 5. **Rollout**: Gradual deployment with monitoring
+
+### Preserving Single-Script Architecture
+
+**Critical Design Decision**: The installer must remain a single, standalone shell script with zero external dependencies.
+
+**Why This Matters:**
+- **Enterprise Adoption**: Corporate environments often restrict external dependencies
+- **Security Posture**: Minimizes attack surface and supply chain risks
+- **Reliability**: No complex dependency resolution or version conflicts
+- **Universality**: Works on any Unix-like system without preparation
+
+**Development Guidelines:**
+- **Embed, Don't Import**: All framework code must be inline within the installer
+- **Standard Tools Only**: bash, curl, git, awk, sed - no Python/Node.js/Ruby
+- **Self-Contained Templates**: Use heredocs for all configuration templates
+- **No External Files**: All logic, configuration, and data embedded in script
+- **Progressive Degradation**: Features work without internet when possible
+
+**Rejected Approaches:**
+- ❌ Separate framework files that must be sourced
+- ❌ Package manager dependencies (pip, npm, gem)
+- ❌ External configuration databases or files
+- ❌ Multi-file installer packages
+- ❌ Docker containers or virtual environments
+
+**Approved Enhancements:**
+- ✅ Embedded error handling frameworks
+- ✅ Inline logging and rollback systems
+- ✅ Heredoc-based configuration templates
+- ✅ Built-in retry and timeout mechanisms
+- ✅ Self-contained testing and validation
 
 ### Testing Strategy
 - **Unit Tests**: Individual component functionality

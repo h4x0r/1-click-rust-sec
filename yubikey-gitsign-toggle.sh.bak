@@ -398,7 +398,7 @@ check_prerequisites() {
           ;;
       esac
     done
-    handle_error $EXIT_TOOL_MISSING "Tool missing"
+    handle_error $EXIT_TOOL_MISSING
   fi
 
   log_info "Prerequisites check completed successfully"
@@ -472,28 +472,28 @@ enable_yubikey_signing() {
     print_status $BLUE "   Run the 1-click-rust-sec installer first to set up gitsign:"
     print_status $BLUE "   curl -sSL https://raw.githubusercontent.com/4n6h4x0r/1-click-rust-sec/main/install-security-controls.sh | bash"
     print_status $BLUE "   Then run this script to enable YubiKey requirement."
-    handle_error $EXIT_CONFIG_ERROR "Configuration error"
+    handle_error $EXIT_CONFIG_ERROR
   fi
 
   # Backup existing configuration
   if ! backup_git_config; then
     log_error "Failed to backup Git configuration"
-    handle_error $EXIT_CONFIG_ERROR "Configuration error"
+    handle_error $EXIT_CONFIG_ERROR
   fi
 
   print_status $BLUE "🔐 Configuring YubiKey requirement for gitsign..."
   log_info "Switching OIDC issuer to GitHub Actions for YubiKey authentication"
 
   # The key change: switch OIDC issuer to GitHub Actions which requires YubiKey
-  safe_execute "git config ${config_scope} gitsign.oidc-issuer 'https://token.actions.githubusercontent.com'" "Setting OIDC issuer for YubiKey auth" || handle_error $EXIT_CONFIG_ERROR "Configuration error"
+  safe_execute "git config ${config_scope} gitsign.oidc-issuer 'https://token.actions.githubusercontent.com'" "Setting OIDC issuer for YubiKey auth" || handle_error $EXIT_CONFIG_ERROR
 
   # Create status file using atomic write
   local status_content
   status_content=$(cat <<EOF
-# YubiKey Requirement Configuration
+# YubiKey Gitsign Configuration
 # Created: $(date)
 # Version: ${SCRIPT_VERSION}
-yubikey_required=true
+enabled=true
 global=${GLOBAL_CONFIG:-false}
 oidc_issuer=https://token.actions.githubusercontent.com
 EOF
@@ -539,10 +539,10 @@ disable_yubikey_signing() {
   # Update status file atomically
   local status_content
   status_content=$(cat <<EOF
-# YubiKey Requirement Configuration
+# YubiKey Gitsign Configuration
 # Created: $(date)
 # Version: ${SCRIPT_VERSION}
-yubikey_required=false
+enabled=false
 global=${GLOBAL_CONFIG:-false}
 oidc_issuer=https://oauth2.sigstore.dev/auth
 EOF
@@ -611,7 +611,7 @@ show_status() {
     echo
     print_status $BLUE "🌐 Authentication Configuration:"
     echo "   autoclose: ${autoclose:-default}"
-    echo "   autoclose-timeout: ${autoclose_timeout:-20} seconds"
+    echo "   autoclose-timeout: ${autoclose_timeout:-default} seconds (30s for manual flow)"
     echo "   connector-id: ${connector_id:-default}"
     echo
   fi
@@ -656,7 +656,7 @@ test_yubikey_signing() {
     log_error "Not in a Git repository for testing"
     print_status $RED "❌ Not in a Git repository"
     echo "Navigate to a Git repository to test signing"
-    handle_error $EXIT_CONFIG_ERROR "Configuration error"
+    handle_error $EXIT_CONFIG_ERROR
   fi
 
   log_debug "Git repository detected, proceeding with test"
@@ -675,7 +675,7 @@ test_yubikey_signing() {
   # Add and commit
   if ! safe_execute "git add '$test_file'" "Adding test file to git"; then
     log_error "Failed to add test file to git"
-    handle_error $EXIT_GENERAL_ERROR "General error"
+    handle_error $EXIT_GENERAL_ERROR
   fi
 
   local commit_message="Test YubiKey-backed Sigstore signing
@@ -722,7 +722,7 @@ Created by: YubiKey Gitsign Toggle Script v${SCRIPT_VERSION}"
     # Clean up test file
     rm -f "$test_file"
     log_debug "Cleaned up test file after failure: $test_file"
-    handle_error $EXIT_GENERAL_ERROR "General error"
+    handle_error $EXIT_GENERAL_ERROR
   fi
 }
 
@@ -739,7 +739,7 @@ interactive_setup() {
   log_info "Step 1: Checking prerequisites"
   if ! check_prerequisites; then
     log_error "Prerequisites check failed"
-    handle_error $EXIT_TOOL_MISSING "Tool missing"
+    handle_error $EXIT_TOOL_MISSING
   fi
 
   if [[ ${NEED_GITSIGN_INSTALL:-false} == true ]]; then
@@ -748,7 +748,7 @@ interactive_setup() {
     print_status $BLUE "   Please run the 1-click-rust-sec installer first:"
     print_status $BLUE "   curl -sSL https://raw.githubusercontent.com/4n6h4x0r/1-click-rust-sec/main/install-security-controls.sh | bash"
     print_status $BLUE "   Then run this script to enable YubiKey requirement."
-    handle_error $EXIT_TOOL_MISSING "Tool missing"
+    handle_error $EXIT_TOOL_MISSING
   fi
 
   echo
@@ -872,15 +872,14 @@ show_troubleshooting_guide() {
   echo
   echo "If the automatic browser flow times out or fails, follow these steps:"
   echo
-  print_status $YELLOW "1. Current Configuration"
-  echo "   • Browser autoclose is ENABLED - window closes after 20 seconds"
-  echo "   • GitHub connector pre-configured for OAuth"
-  echo "   • Balanced security and usability settings"
+  print_status $YELLOW "1. Enhanced Configuration (Already Applied)"
+  echo "   • Browser autoclose is DISABLED - window stays open"
+  echo "   • Timeout extended to 30 seconds"
+  echo "   • GitHub connector pre-configured"
   echo
   print_status $YELLOW "2. When Authentication Window Opens"
-  echo "   • You have 20 seconds to complete GitHub authentication"
+  echo "   • The browser window will remain open for manual interaction"
   echo "   • If redirected to GitHub, sign in if not already signed in"
-  echo "   • Touch YubiKey when prompted (if YubiKey mode is enabled)"
   echo "   • When prompted for 2FA/security key, use your YubiKey"
   echo "   • Touch your YubiKey when it blinks"
   echo
@@ -897,7 +896,7 @@ show_troubleshooting_guide() {
   echo
   print_status $YELLOW "5. Verify Configuration"
   echo "   • Run: $0 status"
-  echo "   • Check that autoclose=true and timeout=20"
+  echo "   • Check that autoclose=false and timeout=30"
   echo "   • Ensure connector-id points to GitHub"
   echo
   print_status $BLUE "📝 Additional Resources"
@@ -990,7 +989,7 @@ main() {
     print_status $BLUE "   Please run the 1-click-rust-sec installer first:"
     print_status $BLUE "   curl -sSL https://raw.githubusercontent.com/4n6h4x0r/1-click-rust-sec/main/install-security-controls.sh | bash"
     print_status $BLUE "   Then run this script to enable YubiKey requirement."
-    handle_error $EXIT_TOOL_MISSING "Tool missing"
+    handle_error $EXIT_TOOL_MISSING
   fi
 
   # Execute command
