@@ -5,7 +5,7 @@
 #
 # Version: 1.0.0
 # License: Apache-2.0
-# Repository: https://github.com/4n6h4x0r/1-click-rust-sec
+# Repository: https://github.com/4n6h4x0r/1-click-github-sec
 
 set -euo pipefail
 
@@ -20,7 +20,7 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m' # No Color
 
 # Configuration
-readonly SCRIPT_VERSION="0.2.6"
+readonly SCRIPT_VERSION="0.3.0"
 readonly GITSIGN_CONFIG_FILE="$HOME/.gitsign-config"
 readonly BACKUP_CONFIG_FILE="$HOME/.git-config-backup"
 
@@ -332,7 +332,7 @@ SECURITY FEATURES:
 REQUIREMENTS:
     - YubiKey 5 series with FIDO2/WebAuthn
     - GitHub account with YubiKey registered
-    - gitsign installed (use 1-click-rust-sec installer)
+    - gitsign installed (use 1-click-github-sec installer)
     - Modern browser for OIDC flow
 
 EOF
@@ -341,7 +341,7 @@ EOF
 show_version() {
   echo "YubiKey Requirement Toggle Script v${SCRIPT_VERSION}"
   echo "Toggle YubiKey requirement for Sigstore Git commit signing"
-  echo "https://github.com/4n6h4x0r/1-click-rust-sec"
+  echo "https://github.com/4n6h4x0r/1-click-github-sec"
 }
 
 # Check if we're in a git repository for local operations
@@ -474,8 +474,8 @@ enable_yubikey_signing() {
   if ! git config ${config_scope} --get commit.gpgsign >/dev/null 2>&1; then
     log_warn "Gitsign is not configured. Please run the main installer first:"
     print_status $YELLOW "⚠️ Gitsign not configured!"
-    print_status $BLUE "   Run the 1-click-rust-sec installer first to set up gitsign:"
-    print_status $BLUE "   curl -sSL https://raw.githubusercontent.com/4n6h4x0r/1-click-rust-sec/main/install-security-controls.sh | bash"
+    print_status $BLUE "   Run the 1-click-github-sec installer first to set up gitsign:"
+    print_status $BLUE "   curl -sSL https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/install-security-controls.sh | bash"
     print_status $BLUE "   Then run this script to enable YubiKey requirement."
     handle_error $EXIT_CONFIG_ERROR "Configuration error"
   fi

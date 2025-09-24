@@ -1,9 +1,15 @@
-# 1-Click Rust Security Controls
+# 1-Click GitHub Security Controls
 
-[![Documentation](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/docs.yml)
-[![Quality Assurance](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/quality-assurance.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/quality-assurance.yml)
-[![CodeQL](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/codeql.yml)
-[![Pinactlite Sync](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/sync-pinactlite.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-rust-sec/actions/workflows/sync-pinactlite.yml)
+<div align="center">
+  <img src="../Security Ronin logo.png" alt="Security Ronin" width="150">
+  <br><br>
+  <em>Created by Albert Hui &lt;albert@securityronin.com&gt;</em>
+</div>
+
+[![Documentation](https://github.com/h4x0r/1-click-github-sec/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/docs.yml)
+[![Quality Assurance](https://github.com/h4x0r/1-click-github-sec/actions/workflows/quality-assurance.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/quality-assurance.yml)
+[![CodeQL](https://github.com/h4x0r/1-click-github-sec/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/codeql.yml)
+[![Pinactlite Sync](https://github.com/h4x0r/1-click-github-sec/actions/workflows/sync-pinactlite.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/sync-pinactlite.yml)
 
 Welcome. This site provides a minimal navigation for key docs. (Updated: Sept 23, 2025)
 
@@ -11,5 +17,5 @@ Welcome. This site provides a minimal navigation for key docs. (Updated: Sept 23
 - For full repository documentation and latest updates, visit the project on GitHub.
 
 Links:
-- GitHub: https://github.com/h4x0r/1-click-rust-sec
-- Issues: https://github.com/h4x0r/1-click-rust-sec/issues
+- GitHub: https://github.com/h4x0r/1-click-github-sec
+- Issues: https://github.com/h4x0r/1-click-github-sec/issues

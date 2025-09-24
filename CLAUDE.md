@@ -1,8 +1,11 @@
-# CLAUDE.md - Design Principles for 1-Click Rust Security
+# CLAUDE.md - Design Principles for 1-Click GitHub Security
+
+*Created by Albert Hui <albert@securityronin.com>*
+*Security Ronin*
 
 ## 🎯 Project Mission
 
-**1-Click Rust Security** provides cryptographically verified, comprehensive security controls for Rust projects with zero compromise on developer experience. We democratize enterprise-grade security for the entire Rust ecosystem.
+**1-Click GitHub Security** provides cryptographically verified, comprehensive security controls for multi-language projects with zero compromise on developer experience. We democratize enterprise-grade security for all development ecosystems - starting with Rust, Node.js, Python, and Go.
 
 ---
 
@@ -74,12 +77,16 @@ GPG Root Key → Repository Signing → Release Signing → Component Verificati
 - User-generated content - never trusted
 
 ### 5. **Ecosystem Integration**
-> "Work with the Rust ecosystem, not against it"
+> "Work with each language ecosystem, not against it"
 
-- **Cargo-First**: Leverage existing Cargo tooling and conventions
-- **Standard Tool Chain**: Use community-standard security tools
-- **Backward Compatibility**: Don't break existing workflows
-- **Cross-Platform**: Support Linux, macOS, Windows (WSL)
+- **Language-Native Tooling**: Leverage existing tooling and conventions for each language
+  - **Rust**: Cargo, rustc, clippy, deny, audit
+  - **Node.js**: npm, ESLint, Prettier, Snyk, retire.js
+  - **Python**: pip, safety, bandit, black, flake8
+  - **Go**: go toolchain, govulncheck, gofmt, golint
+- **Standard Tool Chain**: Use community-standard security tools for each ecosystem
+- **Backward Compatibility**: Don't break existing workflows in any language
+- **Cross-Platform**: Support Linux, macOS, Windows (WSL) across all languages
 - **CI/CD Friendly**: Integrate seamlessly with GitHub Actions, GitLab CI, etc.
 
 ### 6. **Observable Security**
@@ -453,10 +460,10 @@ GPG Root Key → Repository Signing → Release Signing → Component Verificati
 
 ---
 
-**This document serves as the foundation for all development decisions in 1-click-rust-sec. When in doubt, refer to these principles to guide technical and product choices.**
+**This document serves as the foundation for all development decisions in 1-click-github-sec. When in doubt, refer to these principles to guide technical and product choices.**
 
 ---
 
 *Last Updated: January 2025*
-*Version: 1.0.0*
+*Version: 1.1.0*
 *Maintainers: @4n6h4x0r and community contributors*

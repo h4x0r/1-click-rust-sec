@@ -1,23 +1,29 @@
-# 1-Click Rust Security 🛡️
+# 1-Click GitHub Security 🛡️
 
-**Enterprise-grade security controls installer for Rust projects**
+<div align="center">
+  <img src="./Security Ronin logo.png" alt="Security Ronin" width="200">
+</div>
 
-Deploy comprehensive security controls to any Rust project with a single command. This repository serves two purposes:
+**Enterprise-grade security controls installer for multi-language projects**
+
+*Created by Albert Hui <albert@securityronin.com>*
+
+Deploy comprehensive security controls to any project with a single command. Supports Rust, Node.js, Python, Go, and generic projects. This repository serves two purposes:
 
 1. **Security Installer** - Provides an installer that adds 25+ security controls + GitHub security features to YOUR projects
 2. **Reference Implementation** - Demonstrates security best practices with its own enhanced controls
 
-[![Security](https://img.shields.io/badge/Installer%20Provides-35%2B%20Controls-green.svg)](https://github.com/h4x0r/1-click-rust-sec)
+[![Security](https://img.shields.io/badge/Installer%20Provides-35%2B%20Controls-green.svg)](https://github.com/h4x0r/1-click-github-sec)
 [![GitHub Security](https://img.shields.io/badge/GitHub%20Security-6%20Features-blue.svg)](#github-security-features)
 [![This Repo](https://img.shields.io/badge/This%20Repo%20Has-40%2B%20Controls-purple.svg)](#this-repos-security)
 [![Performance](https://img.shields.io/badge/Pre--Push-~60s-orange.svg)](#performance)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.2.6-purple.svg)](https://github.com/h4x0r/1-click-rust-sec/releases)
+[![Version](https://img.shields.io/badge/Version-v0.3.0-purple.svg)](https://github.com/h4x0r/1-click-github-sec/releases)
 
-## 📖 [Complete Documentation →](https://h4x0r.github.io/1-click-rust-sec/)
+## 📖 [Complete Documentation →](https://h4x0r.github.io/1-click-github-sec/)
 
 **For full installation guides, architecture details, and advanced configuration, visit our documentation site:**
-**[https://h4x0r.github.io/1-click-rust-sec/](https://h4x0r.github.io/1-click-rust-sec/)**
+**[https://h4x0r.github.io/1-click-github-sec/](https://h4x0r.github.io/1-click-github-sec/)**
 
 ## 📌 Important Distinction
 
@@ -37,12 +43,12 @@ Deploy comprehensive security controls to any Rust project with a single command
 
 ## 🚀 Quick Start (For YOUR Project)
 
-Install security controls in your Rust project in 30 seconds:
+Install security controls in your project in 30 seconds:
 
 ```bash
 # Download and verify installer
-curl -O https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/install-security-controls.sh
-curl -O https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/install-security-controls.sh.sha256
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/install-security-controls.sh
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/install-security-controls.sh.sha256
 
 # Verify checksum (REQUIRED for security)
 sha256sum -c install-security-controls.sh.sha256
@@ -84,36 +90,50 @@ Enterprise-grade GitHub repository security is now **enabled by default**:
 
 ### Core Security Controls (Pre-Push Hook)
 
-The installer adds these 25+ checks that run automatically before each `git push`:
+The installer adds language-specific security checks that run automatically before each `git push`:
 
-#### 🔴 **Critical (Blocking)**
-1. **Secret Detection** - Blocks AWS keys, GitHub tokens, API keys, private keys
-2. **Vulnerability Scanning** - Blocks known CVEs via cargo-deny
-3. **Test Suite** - Ensures tests pass before push
-4. **Format Enforcement** - Maintains consistent code style
-5. **Linting** - Catches bugs via clippy
-6. **Large Files** - Prevents accidental binary/secret uploads
+#### 🔄 **Universal Checks (All Languages)**
+- **Secret Detection** - Blocks AWS keys, GitHub tokens, API keys, private keys
+- **GitHub Actions SHA Pinning** - Verifies action security
+- **Large File Prevention** - Prevents accidental binary/secret uploads
+- **Commit Signature Verification** - Ensures signed commits
 
-#### 🟡 **Important (Warning)**
-7. GitHub Actions SHA pinning verification
-8. Commit signature verification
-9. License compliance checking
-10. Dependency version pinning
-11. Unsafe code monitoring (cargo-geiger)
-12. Unused dependencies (cargo-machete)
-13. Build script security
-14. Documentation secret scanning
-15. Environment variable hardcoding
-16. Rust edition specification
-17. Import security validation
-18. File permission auditing
-19. Dependency count monitoring
-20. Network address validation
-21. Commit message security
-22. Technical debt tracking
-23. Empty file detection
-24. Cargo.lock validation
-25. Plus additional context-aware checks
+#### 🦀 **Rust Projects (25+ Checks)**
+
+- **Vulnerability Scanning** - Blocks known CVEs via cargo-deny
+- **Code Formatting** - cargo fmt enforcement
+- **Linting** - clippy with security rules
+- **Test Suite** - Ensures tests pass
+- **License Compliance** - cargo-deny license checks
+- **Unsafe Code Monitoring** - cargo-geiger analysis
+- **Unused Dependencies** - cargo-machete detection
+- Plus 18+ additional Rust-specific security checks
+
+#### 📦 **Node.js Projects (12-Point Security Audit)**
+- **Comprehensive npm audit** - Standard + enhanced auditing
+- **Vulnerability Scanning** - Snyk + retire.js for JS libraries
+- **Dependency Analysis** - Unused deps, circular dependencies
+- **License Compliance** - License compatibility checking
+- **Package Integrity** - package-lock.json validation
+- **Bundle Analysis** - Size monitoring and cost analysis
+- **Security Linting** - ESLint with security rules
+- **Code Formatting** - Prettier enforcement
+- Plus additional Node.js-specific security checks
+
+#### 🐍 **Python Projects**
+- **Vulnerability Scanning** - safety + pip-audit for Python packages
+- **SAST Analysis** - bandit for security issues
+- **Code Formatting** - black formatter enforcement
+- **Linting** - flake8/pylint with security rules
+- **Test Suite** - pytest/unittest execution
+- Plus additional Python-specific security checks
+
+#### 🐹 **Go Projects**
+- **Vulnerability Scanning** - govulncheck for Go modules
+- **Code Formatting** - gofmt enforcement
+- **Linting** - golint with security focus
+- **Test Suite** - go test execution
+- Plus additional Go-specific security checks
 
 ### Helper Tools
 
@@ -163,17 +183,34 @@ This repository practices what it preaches with ENHANCED security:
 
 ## 📦 Installation Options
 
-### For Rust Projects (Default)
+### Auto-Detection (Recommended)
 ```bash
 ./install-security-controls.sh
 ```
-Installs all security controls optimized for Rust/Cargo projects.
+Automatically detects your project language and installs optimized security controls.
 
-### For Non-Rust Projects
+**Supported Languages:**
+- **🦀 Rust** - cargo-deny, clippy, fmt, audit, geiger
+- **📦 Node.js** - 12-point npm audit, ESLint, Prettier, Snyk
+- **🐍 Python** - safety, bandit, black, flake8, pip-audit
+- **🐹 Go** - govulncheck, gofmt, golint, go test
+- **⚙️ Generic** - Universal security controls for any project
+
+### Force Specific Language
 ```bash
-./install-security-controls.sh --non-rust
+./install-security-controls.sh --language=nodejs    # Node.js/JavaScript/TypeScript
+./install-security-controls.sh --language=python    # Python projects
+./install-security-controls.sh --language=go        # Go projects
+./install-security-controls.sh --language=rust      # Rust projects
+./install-security-controls.sh --language=generic   # Language-agnostic
 ```
-Installs universal security controls + GitHub security features.
+
+### Polyglot Repository Support
+```bash
+# For repositories with multiple languages
+./install-security-controls.sh --language=rust,nodejs,python
+```
+**Automatic Detection**: The installer automatically detects multiple languages in your repository and installs appropriate security controls for each detected language.
 
 ### Without GitHub Security Features
 ```bash
@@ -282,10 +319,10 @@ test-token-[0-9]+
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 Key areas:
-- New security checks
+- New security checks for supported languages
 - Performance optimizations
-- Multi-language support
-- Tool integrations
+- Additional language support
+- Tool integrations and improvements
 
 ---
 
@@ -330,6 +367,13 @@ A: Always verify the SHA256 checksum. The installer is also open source for full
 
 ---
 
-**🛡️ Secure your Rust projects with confidence**
+## 👨‍💻 Author
+
+**Albert Hui** <albert@securityronin.com>
+*Security Ronin*
+
+---
+
+**🛡️ Secure your projects with confidence**
 
 *Install in seconds, protect forever*

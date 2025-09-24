@@ -6,7 +6,7 @@
 #
 # Version: 0.1.0
 # License: Apache-2.0
-# Repository: https://github.com/4n6h4x0r/1-click-rust-sec
+# Repository: https://github.com/4n6h4x0r/1-click-github-sec
 
 set -euo pipefail
 
@@ -21,7 +21,7 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m' # No Color
 
 # Configuration
-readonly SCRIPT_VERSION="0.2.6"
+readonly SCRIPT_VERSION="0.3.0"
 # shellcheck disable=SC2034 # Placeholder for future use
 readonly REQUIRED_TOOLS_FILE="security-tools-requirements.txt"
 # shellcheck disable=SC2034 # Placeholder for future use
@@ -34,8 +34,8 @@ readonly DOCS_DIR="docs/security"
 readonly VERSION_FILE=".security-controls-version"
 readonly BACKUP_DIR=".security-controls-backup"
 readonly CONFIG_FILE=".security-controls-config"
-readonly REMOTE_VERSION_URL="https://raw.githubusercontent.com/4n6h4x0r/1-click-rust-sec/main/VERSION"
-readonly REMOTE_CHANGELOG_URL="https://raw.githubusercontent.com/4n6h4x0r/1-click-rust-sec/main/CHANGELOG.md"
+readonly REMOTE_VERSION_URL="https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/VERSION"
+readonly REMOTE_CHANGELOG_URL="https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/CHANGELOG.md"
 
 # Local state/config directories
 readonly CONTROL_STATE_DIR=".security-controls"
@@ -287,6 +287,10 @@ atomic_move() {
 DRY_RUN=false
 SKIP_TOOLS=false
 FORCE_INSTALL=false
+# Multi-language support - array of detected languages
+declare -a DETECTED_LANGUAGES=()
+PROJECT_LANGUAGE="auto"  # auto, rust, nodejs, python, go, generic, or comma-separated list
+# Legacy compatibility
 RUST_PROJECT=true
 INSTALL_HOOKS=true
 INSTALL_CI=true
@@ -514,7 +518,7 @@ show_changelog() {
   else
     print_status $RED "❌ Could not fetch changelog"
     echo "   Please check your internet connection"
-    echo "   View online: https://github.com/4n6h4x0r/1-click-rust-sec/blob/main/CHANGELOG.md"
+    echo "   View online: https://github.com/4n6h4x0r/1-click-github-sec/blob/main/CHANGELOG.md"
     exit 1
   fi
 }
@@ -556,13 +560,16 @@ execute_upgrade_commands() {
 
 show_help() {
   cat <<EOF
-🛡️  Security Controls Installer v${SCRIPT_VERSION}
+🛡️  1-Click GitHub Security Controls Installer v${SCRIPT_VERSION}
+
+👨‍💻 Created by Albert Hui <albert@securityronin.com>
+   Security Ronin
 
 USAGE:
     $0 [OPTIONS]
 
 DESCRIPTION:
-    Installs enterprise-grade security controls for Rust projects.
+    Installs enterprise-grade security controls for multi-language projects.
     Provides comprehensive security: local validation (25+ checks) + CI analysis + GitHub security features.
 
 OPTIONS:
@@ -576,7 +583,9 @@ OPTIONS:
     --no-ci                 Skip CI workflow installation  
     --no-docs               Skip documentation installation
     --no-signing            Skip gitsign installation and configuration
-    --non-rust              Configure for non-Rust project
+    --language=LANG         Specify project language(s): rust, nodejs, python, go, generic
+                            Supports multiple: --language=rust,nodejs,python
+                            (auto-detects if not specified - supports polyglot repos)
     --hooks-path            Install hooks using git core.hooksPath (\".githooks\") and chain safely
     --no-github-security    Skip GitHub repository security features (enabled by default)
 
@@ -599,8 +608,14 @@ EXAMPLES:
     # Install only hooks (skip CI, docs, and GitHub security)
     $0 --no-ci --no-docs --no-github-security
 
-    # Configure for non-Rust project (still includes GitHub security)
-    $0 --non-rust
+    # Configure for specific languages
+    $0 --language=nodejs    # JavaScript/TypeScript/Node.js project
+    $0 --language=python    # Python project
+    $0 --language=go        # Go project
+    $0 --language=generic   # Generic project (no specific language)
+
+    # Configure for polyglot repositories
+    $0 --language=rust,nodejs,python  # Multi-language project
 
     # Skip GitHub security features (local security only)
     $0 --no-github-security
@@ -670,9 +685,12 @@ EOF
 }
 
 show_version() {
-  echo "Security Controls Installer v${SCRIPT_VERSION}"
-  echo "Industry-leading security architecture for Rust projects"
-  echo "https://github.com/4n6h4x0r/1-click-rust-sec"
+  echo "🛡️  1-Click GitHub Security Controls v${SCRIPT_VERSION}"
+  echo "👨‍💻 Created by Albert Hui <albert@securityronin.com>"
+  echo "   Security Ronin"
+  echo
+  echo "Enterprise-grade security controls for multi-language projects"
+  echo "https://github.com/4n6h4x0r/1-click-github-sec"
 }
 
 # Check if we're in a git repository
@@ -683,34 +701,119 @@ check_git_repo() {
   print_status $GREEN "✅ Git repository detected"
 }
 
-# Detect project type
-detect_project_type() {
-  if [[ $RUST_PROJECT == true ]]; then
-    if [[ -f "Cargo.toml" ]]; then
-      print_status $GREEN "✅ Rust project detected (Cargo.toml found)"
+# Multi-language detection with polyglot repository support
+detect_project_languages() {
+  local detected_count=0
+  DETECTED_LANGUAGES=()
+
+  # Handle explicit language selection
+  if [[ $PROJECT_LANGUAGE != "auto" ]]; then
+    # Support comma-separated language list: --language=rust,nodejs,python
+    if [[ $PROJECT_LANGUAGE == *","* ]]; then
+      IFS=',' read -ra EXPLICIT_LANGS <<< "$PROJECT_LANGUAGE"
+      for lang in "${EXPLICIT_LANGS[@]}"; do
+        lang=$(echo "$lang" | xargs)  # trim whitespace
+        case "$lang" in
+          "rust"|"nodejs"|"javascript"|"typescript"|"python"|"go"|"generic")
+            DETECTED_LANGUAGES+=("$lang")
+            ;;
+          *)
+            print_status $RED "❌ Unknown language: $lang"
+            exit 1
+            ;;
+        esac
+      done
+      print_status $GREEN "✅ Explicit multi-language configuration: ${DETECTED_LANGUAGES[*]}"
       return 0
     else
-      print_status $YELLOW "⚠️  No Cargo.toml found - using Rust configuration anyway"
-      return 0
+      # Single language specified
+      case "$PROJECT_LANGUAGE" in
+        "rust"|"nodejs"|"javascript"|"typescript"|"python"|"go"|"generic")
+          DETECTED_LANGUAGES=("$PROJECT_LANGUAGE")
+          print_status $GREEN "✅ Explicit language configuration: $PROJECT_LANGUAGE"
+          return 0
+          ;;
+        *)
+          print_status $RED "❌ Unknown language: $PROJECT_LANGUAGE"
+          exit 1
+          ;;
+      esac
     fi
   fi
 
-  # Auto-detect project type
+  print_status $BLUE "🔍 Auto-detecting project language(s)..."
+
+  # Multi-language auto-detection - check all possibilities
   if [[ -f "Cargo.toml" ]]; then
+    DETECTED_LANGUAGES+=("rust")
+    print_status $GREEN "  ✅ Rust detected (Cargo.toml found)"
+    ((detected_count++))
+  fi
+
+  if [[ -f "package.json" ]]; then
+    # Determine if it's TypeScript or JavaScript
+    if [[ -f "tsconfig.json" ]] || grep -q '"typescript"' package.json 2>/dev/null || \
+       find . -name "*.ts" -o -name "*.tsx" 2>/dev/null | head -1 | grep -q .; then
+      DETECTED_LANGUAGES+=("typescript")
+      print_status $GREEN "  ✅ TypeScript detected (package.json + TS files/config)"
+    else
+      DETECTED_LANGUAGES+=("nodejs")
+      print_status $GREEN "  ✅ Node.js detected (package.json found)"
+    fi
+    ((detected_count++))
+  fi
+
+  if [[ -f "pyproject.toml" ]] || [[ -f "requirements.txt" ]] || [[ -f "setup.py" ]] || \
+     find . -maxdepth 2 -name "*.py" 2>/dev/null | head -1 | grep -q .; then
+    DETECTED_LANGUAGES+=("python")
+    print_status $GREEN "  ✅ Python detected (Python files/config found)"
+    ((detected_count++))
+  fi
+
+  if [[ -f "go.mod" ]] || find . -maxdepth 2 -name "*.go" 2>/dev/null | head -1 | grep -q .; then
+    DETECTED_LANGUAGES+=("go")
+    print_status $GREEN "  ✅ Go detected (go.mod or .go files found)"
+    ((detected_count++))
+  fi
+
+  # If no specific languages detected, use generic
+  if [[ $detected_count -eq 0 ]]; then
+    DETECTED_LANGUAGES=("generic")
+    print_status $YELLOW "  ⚠️  No specific language detected - using generic configuration"
+  fi
+
+  # Set legacy compatibility flags
+  if [[ " ${DETECTED_LANGUAGES[*]} " =~ " rust " ]]; then
     RUST_PROJECT=true
-    print_status $GREEN "✅ Auto-detected: Rust project"
-  elif [[ -f "package.json" ]]; then
-    RUST_PROJECT=false
-    print_status $GREEN "✅ Auto-detected: Node.js project"
-  elif [[ -f "go.mod" ]]; then
-    RUST_PROJECT=false
-    print_status $GREEN "✅ Auto-detected: Go project"
-  elif [[ -f "pyproject.toml" ]] || [[ -f "requirements.txt" ]]; then
-    RUST_PROJECT=false
-    print_status $GREEN "✅ Auto-detected: Python project"
   else
     RUST_PROJECT=false
-    print_status $YELLOW "⚠️  Project type unknown - using generic configuration"
+  fi
+
+  # Report detected languages
+  if [[ $detected_count -gt 1 ]]; then
+    print_status $CYAN "🎯 Polyglot repository detected! Languages: ${DETECTED_LANGUAGES[*]}"
+    print_status $CYAN "   Installing security controls for all detected languages"
+  elif [[ $detected_count -eq 1 ]]; then
+    print_status $GREEN "🎯 Single-language repository: ${DETECTED_LANGUAGES[0]}"
+  fi
+
+  return 0
+}
+
+# Check if a specific language is detected
+has_language() {
+  local lang="$1"
+  [[ " ${DETECTED_LANGUAGES[*]} " =~ " ${lang} " ]]
+}
+
+# Legacy function for backward compatibility
+detect_project_type() {
+  detect_project_languages
+  # Set PROJECT_LANGUAGE for legacy code that expects it
+  if [[ ${#DETECTED_LANGUAGES[@]} -eq 1 ]]; then
+    PROJECT_LANGUAGE="${DETECTED_LANGUAGES[0]}"
+  else
+    PROJECT_LANGUAGE="multi"
   fi
 }
 
@@ -783,52 +886,282 @@ install_security_tools() {
     CARGO=(cargo +stable)
   fi
 
-  # Install Rust security tools if Rust project
-  if [[ $RUST_PROJECT == true ]] && command -v cargo &>/dev/null; then
-    # Enhanced security tools with no-brainer additions
-    local rust_security_tools=("cargo-deny" "cargo-geiger" "cargo-cyclonedx" "cargo-machete")
-    local fallback_tools=("cargo-audit" "cargo-license") # Fallbacks if enhanced tools fail
-
-    # Try to install enhanced tools first
-    for tool in "${rust_security_tools[@]}"; do
-      if ! command -v "$tool" &>/dev/null; then
-        print_status $YELLOW "📦 Installing $tool..."
-        if [[ $DRY_RUN == true ]]; then
-          print_status $BLUE "   [DRY RUN] Would install $tool"
+  # Install language-specific security tools for each detected language
+  for lang in "${DETECTED_LANGUAGES[@]}"; do
+    case "$lang" in
+      "rust")
+        if command -v cargo &>/dev/null; then
+          install_rust_security_tools
         else
-          if "${CARGO[@]}" install --locked "$tool" 2>/dev/null; then
-            print_status $GREEN "✅ $tool installed"
-          else
-            print_status $YELLOW "⚠️ $tool installation failed, will use fallback if needed"
-          fi
+          print_status $YELLOW "⚠️ Cargo not found - skipping Rust tool installation"
         fi
-      else
-        print_status $GREEN "✅ $tool already installed"
-      fi
-    done
-
-    # Install fallback tools if enhanced tools aren't available
-    print_status $BLUE "🔄 Ensuring fallback security tools..."
-    for tool in "${fallback_tools[@]}"; do
-      if ! command -v "$tool" &>/dev/null && ! command -v "${tool/audit/deny}" &>/dev/null; then
-        print_status $YELLOW "📦 Installing fallback tool $tool..."
-        if [[ $DRY_RUN == true ]]; then
-          print_status $BLUE "   [DRY RUN] Would install fallback $tool"
-        else
-          if "${CARGO[@]}" install --locked "$tool" 2>/dev/null; then
-            print_status $GREEN "✅ Fallback $tool installed"
-          else
-            print_status $RED "❌ Failed to install $tool"
-          fi
-        fi
-      fi
-    done
-  fi
+        ;;
+      "nodejs"|"typescript")
+        install_nodejs_security_tools
+        ;;
+      "python")
+        install_python_security_tools
+        ;;
+      "go")
+        install_go_security_tools
+        ;;
+      "generic")
+        print_status $BLUE "📦 Using generic security tools only"
+        ;;
+      *)
+        print_status $YELLOW "⚠️ Unknown language: $lang - skipping tools"
+        ;;
+    esac
+  done
 
   # Install gitsign for commit signing (if not disabled)
   if [[ $INSTALL_SIGNING == true ]]; then
     install_gitsign
   fi
+}
+
+# Install Rust security tools (backward compatibility)
+install_rust_security_tools() {
+  print_status $BLUE "🦀 Installing Rust security tools..."
+
+  # Enhanced security tools with no-brainer additions
+  local rust_security_tools=("cargo-deny" "cargo-geiger" "cargo-cyclonedx" "cargo-machete")
+  local fallback_tools=("cargo-audit" "cargo-license") # Fallbacks if enhanced tools fail
+
+  # Try to install enhanced tools first
+  for tool in "${rust_security_tools[@]}"; do
+    if ! command -v "$tool" &>/dev/null; then
+      print_status $YELLOW "📦 Installing $tool..."
+      if [[ $DRY_RUN == true ]]; then
+        print_status $BLUE "   [DRY RUN] Would install $tool"
+      else
+        if "${CARGO[@]}" install --locked "$tool" 2>/dev/null; then
+          print_status $GREEN "✅ $tool installed"
+        else
+          print_status $YELLOW "⚠️ $tool installation failed, will use fallback if needed"
+        fi
+      fi
+    else
+      print_status $GREEN "✅ $tool already installed"
+    fi
+  done
+
+  # Install fallback tools if enhanced tools aren't available
+  print_status $BLUE "🔄 Ensuring fallback security tools..."
+  for tool in "${fallback_tools[@]}"; do
+    if ! command -v "$tool" &>/dev/null && ! command -v "${tool/audit/deny}" &>/dev/null; then
+      print_status $YELLOW "📦 Installing fallback tool $tool..."
+      if [[ $DRY_RUN == true ]]; then
+        print_status $BLUE "   [DRY RUN] Would install fallback $tool"
+      else
+        if "${CARGO[@]}" install --locked "$tool" 2>/dev/null; then
+          print_status $GREEN "✅ Fallback $tool installed"
+        else
+          print_status $RED "❌ Failed to install $tool"
+        fi
+      fi
+    fi
+  done
+}
+
+# Install Node.js/JavaScript/TypeScript security tools
+install_nodejs_security_tools() {
+  print_status $BLUE "🟨 Installing Node.js security tools..."
+
+  # Check if npm is available
+  if ! command -v npm &>/dev/null; then
+    print_status $YELLOW "⚠️ npm not found - skipping Node.js tool installation"
+    print_status $BLUE "   Install Node.js from https://nodejs.org/ or:"
+    print_status $BLUE "   • macOS: brew install node"
+    print_status $BLUE "   • Ubuntu: sudo apt install nodejs npm"
+    return 0
+  fi
+
+  # Core security tools for Node.js projects
+  local nodejs_security_tools=(
+    "eslint"              # JavaScript/TypeScript linting
+    "prettier"            # Code formatting
+    "audit-ci"            # Enhanced npm audit for CI
+    "license-checker"     # License compliance checking
+    "npm-check-updates"   # Dependency update checker
+    "semgrep"             # SAST scanning
+    "@npmcli/arborist"    # npm dependency tree analysis
+    "better-npm-audit"    # Enhanced npm audit with better filtering
+    "npm-audit-resolver"  # Advanced audit resolution
+    "snyk"                # Advanced vulnerability scanning
+    "retire"              # JavaScript library vulnerability scanner
+    "npm-check"           # Interactive dependency updates
+    "depcheck"            # Unused dependency detection
+    "madge"               # Circular dependency detection
+    "bundlewatch"         # Bundle size monitoring
+    "cost-of-modules"     # Analyze cost of dependencies
+  )
+
+  # Optional TypeScript-specific tools
+  if [[ -f "tsconfig.json" ]] || grep -q '"typescript"' package.json 2>/dev/null; then
+    nodejs_security_tools+=(
+      "typescript"        # TypeScript compiler
+      "@typescript-eslint/parser"  # TypeScript ESLint parser
+    )
+  fi
+
+  # Install tools globally for system-wide availability
+  for tool in "${nodejs_security_tools[@]}"; do
+    if ! command -v "${tool%@*}" &>/dev/null && ! npm list -g "$tool" &>/dev/null; then
+      print_status $YELLOW "📦 Installing $tool..."
+      if [[ $DRY_RUN == true ]]; then
+        print_status $BLUE "   [DRY RUN] Would install $tool"
+      else
+        if npm install -g "$tool" 2>/dev/null; then
+          print_status $GREEN "✅ $tool installed"
+        else
+          print_status $YELLOW "⚠️ Failed to install $tool globally"
+          # Try local installation as fallback
+          if [[ -f "package.json" ]]; then
+            print_status $BLUE "   Attempting local installation..."
+            if npm install --save-dev "$tool" 2>/dev/null; then
+              print_status $GREEN "✅ $tool installed locally"
+            else
+              print_status $RED "❌ Failed to install $tool"
+            fi
+          fi
+        fi
+      fi
+    else
+      print_status $GREEN "✅ $tool already installed"
+    fi
+  done
+
+  # Install additional development tools if package.json exists
+  if [[ -f "package.json" ]] && [[ $DRY_RUN == false ]]; then
+    print_status $BLUE "🔧 Configuring package.json security scripts..."
+
+    # Add comprehensive security scripts to package.json
+    if ! grep -q '"audit"' package.json; then
+      print_status $YELLOW "📝 Adding comprehensive npm audit scripts to package.json..."
+      # Basic npm audit
+      npm pkg set scripts.audit="npm audit --audit-level=moderate" 2>/dev/null || true
+      # Enhanced audit with better-npm-audit (if available)
+      npm pkg set scripts."audit:enhanced"="better-npm-audit audit --level moderate" 2>/dev/null || true
+      # Audit with CI-friendly output
+      npm pkg set scripts."audit:ci"="audit-ci --moderate" 2>/dev/null || true
+      # Comprehensive security scan
+      npm pkg set scripts."security:scan"="npm run audit && npm run audit:enhanced && npm run security:retire && npm run security:snyk" 2>/dev/null || true
+    fi
+
+    if ! grep -q '"security:retire"' package.json; then
+      print_status $YELLOW "📝 Adding retire.js scanning script..."
+      npm pkg set scripts."security:retire"="retire --path . --outputformat json --outputpath retire-report.json || true" 2>/dev/null || true
+    fi
+
+    if ! grep -q '"security:snyk"' package.json; then
+      print_status $YELLOW "📝 Adding Snyk scanning script..."
+      npm pkg set scripts."security:snyk"="snyk test --severity-threshold=medium || true" 2>/dev/null || true
+    fi
+
+    if ! grep -q '"security:deps"' package.json; then
+      print_status $YELLOW "📝 Adding dependency analysis script..."
+      npm pkg set scripts."security:deps"="npm ls --depth=0 --json > deps-analysis.json && license-checker --json --out license-report.json" 2>/dev/null || true
+    fi
+
+    if ! grep -q '"lint"' package.json; then
+      print_status $YELLOW "📝 Adding lint script to package.json..."
+      npm pkg set scripts.lint="eslint ." 2>/dev/null || true
+    fi
+
+    if ! grep -q '"format"' package.json; then
+      print_status $YELLOW "📝 Adding format script to package.json..."
+      npm pkg set scripts.format="prettier --write ." 2>/dev/null || true
+      npm pkg set scripts."format:check"="prettier --check ." 2>/dev/null || true
+    fi
+  fi
+}
+
+# Install Python security tools
+install_python_security_tools() {
+  print_status $BLUE "🐍 Installing Python security tools..."
+
+  # Check if pip is available
+  if ! command -v pip &>/dev/null && ! command -v pip3 &>/dev/null; then
+    print_status $YELLOW "⚠️ pip not found - skipping Python tool installation"
+    print_status $BLUE "   Install Python from https://python.org/ or:"
+    print_status $BLUE "   • macOS: brew install python3"
+    print_status $BLUE "   • Ubuntu: sudo apt install python3-pip"
+    return 0
+  fi
+
+  local pip_cmd="pip"
+  command -v pip3 &>/dev/null && pip_cmd="pip3"
+
+  # Core security tools for Python projects
+  local python_security_tools=(
+    "black"               # Code formatting
+    "flake8"              # Linting
+    "pylint"              # Advanced linting
+    "safety"              # Known vulnerability scanning
+    "bandit"              # Security issue scanner
+    "pip-audit"           # PyPI package vulnerability scanner
+    "semgrep"             # SAST scanning
+  )
+
+  for tool in "${python_security_tools[@]}"; do
+    if ! command -v "$tool" &>/dev/null; then
+      print_status $YELLOW "📦 Installing $tool..."
+      if [[ $DRY_RUN == true ]]; then
+        print_status $BLUE "   [DRY RUN] Would install $tool"
+      else
+        if $pip_cmd install --user "$tool" 2>/dev/null; then
+          print_status $GREEN "✅ $tool installed"
+        else
+          print_status $RED "❌ Failed to install $tool"
+        fi
+      fi
+    else
+      print_status $GREEN "✅ $tool already installed"
+    fi
+  done
+}
+
+# Install Go security tools
+install_go_security_tools() {
+  print_status $BLUE "🐹 Installing Go security tools..."
+
+  # Check if go is available
+  if ! command -v go &>/dev/null; then
+    print_status $YELLOW "⚠️ Go not found - skipping Go tool installation"
+    print_status $BLUE "   Install Go from https://golang.org/dl/ or:"
+    print_status $BLUE "   • macOS: brew install go"
+    print_status $BLUE "   • Ubuntu: sudo apt install golang-go"
+    return 0
+  fi
+
+  # Core security tools for Go projects
+  local go_security_tools=(
+    "golang.org/x/tools/cmd/goimports@latest"     # Import management
+    "golang.org/x/vuln/cmd/govulncheck@latest"    # Vulnerability scanner
+    "golang.org/x/lint/golint@latest"             # Linting (legacy but widely used)
+    "honnef.co/go/tools/cmd/staticcheck@latest"   # Advanced static analysis
+    "github.com/securecodewarrior/gosec/v2/cmd/gosec@latest"  # Security scanner
+  )
+
+  for tool in "${go_security_tools[@]}"; do
+    local binary="${tool##*/}"
+    binary="${binary%@*}"
+    if ! command -v "$binary" &>/dev/null; then
+      print_status $YELLOW "📦 Installing $tool..."
+      if [[ $DRY_RUN == true ]]; then
+        print_status $BLUE "   [DRY RUN] Would install $tool"
+      else
+        if go install "$tool" 2>/dev/null; then
+          print_status $GREEN "✅ $binary installed"
+        else
+          print_status $RED "❌ Failed to install $tool"
+        fi
+      fi
+    else
+      print_status $GREEN "✅ $binary already installed"
+    fi
+  done
 }
 
 # Install and configure gitsign for Sigstore commit signing
@@ -1067,6 +1400,539 @@ CARGO_CONFIG_EOF
   fi
 }
 
+# Configure language-specific project files
+configure_language_specific_files() {
+  case "$PROJECT_LANGUAGE" in
+    "nodejs")
+      configure_nodejs_security
+      ;;
+    "python")
+      configure_python_security
+      ;;
+    "go")
+      configure_go_security
+      ;;
+  esac
+}
+
+# Configure Node.js/JavaScript/TypeScript security settings
+configure_nodejs_security() {
+  if [[ ! -f "package.json" ]]; then
+    print_status $YELLOW "⚠️  No package.json found - creating basic Node.js project structure"
+    if [[ $DRY_RUN == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would create package.json"
+      return 0
+    fi
+
+    # Create basic package.json
+    cat > "package.json" <<'NODEJS_PACKAGE_EOF'
+{
+  "name": "my-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+NODEJS_PACKAGE_EOF
+    print_status $GREEN "✅ Created basic package.json"
+  fi
+
+  # Create ESLint configuration
+  create_eslint_config
+
+  # Create Prettier configuration
+  create_prettier_config
+
+  # Create TypeScript configuration if needed
+  if [[ -f "tsconfig.json" ]] || grep -q '"typescript"' package.json 2>/dev/null; then
+    create_typescript_config
+  fi
+
+  # Create npm security configuration
+  create_npm_security_config
+}
+
+# Create ESLint configuration
+create_eslint_config() {
+  if [[ ! -f ".eslintrc.js" ]] && [[ ! -f ".eslintrc.json" ]] && [[ ! -f ".eslintrc.yml" ]]; then
+    print_status $YELLOW "📝 Creating ESLint configuration..."
+    if [[ $DRY_RUN == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would create .eslintrc.js"
+      return 0
+    fi
+
+    cat > ".eslintrc.js" <<'ESLINT_CONFIG_EOF'
+module.exports = {
+  extends: ['eslint:recommended'],
+  env: {
+    node: true,
+    es2021: true,
+    browser: true,
+  },
+  parserOptions: {
+    ecmaVersion: 12,
+    sourceType: 'module',
+  },
+  rules: {
+    // Basic security rules
+    'no-eval': 'error',
+    'no-implied-eval': 'error',
+    'no-new-func': 'error',
+    'no-script-url': 'error',
+
+    // Prevent dangerous globals
+    'no-global-assign': 'error',
+    'no-implicit-globals': 'error',
+
+    // Code quality and security
+    'eqeqeq': 'error',
+    'curly': 'error',
+    'prefer-const': 'error',
+    'no-var': 'error',
+    'no-unused-vars': 'error',
+    'no-undef': 'error',
+
+    // Prevent prototype pollution
+    'no-prototype-builtins': 'error',
+    'no-extend-native': 'error',
+
+    // Prevent regex attacks
+    'no-invalid-regexp': 'error',
+    'no-regex-spaces': 'error',
+
+    // Node.js security
+    'no-path-concat': 'error',
+    'no-process-exit': 'warn',
+    'no-process-env': 'warn',
+
+    // General code quality
+    'no-console': 'warn',
+    'no-debugger': 'error',
+    'no-alert': 'error',
+    'no-duplicate-imports': 'error',
+
+    // Async security
+    'no-await-in-loop': 'warn',
+    'prefer-promise-reject-errors': 'error',
+
+    // Security-focused formatting
+    'quotes': ['error', 'single', { 'avoidEscape': true }],
+    'semi': ['error', 'always'],
+  },
+};
+ESLINT_CONFIG_EOF
+    print_status $GREEN "✅ Created .eslintrc.js with security-focused rules"
+  fi
+}
+
+# Create Prettier configuration
+create_prettier_config() {
+  if [[ ! -f ".prettierrc" ]] && [[ ! -f ".prettierrc.json" ]] && [[ ! -f "prettier.config.js" ]]; then
+    print_status $YELLOW "📝 Creating Prettier configuration..."
+    if [[ $DRY_RUN == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would create .prettierrc"
+      return 0
+    fi
+
+    cat > ".prettierrc" <<'PRETTIER_CONFIG_EOF'
+{
+  "semi": true,
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false
+}
+PRETTIER_CONFIG_EOF
+    print_status $GREEN "✅ Created .prettierrc"
+  fi
+}
+
+# Create TypeScript configuration
+create_typescript_config() {
+  if [[ ! -f "tsconfig.json" ]]; then
+    print_status $YELLOW "📝 Creating TypeScript configuration..."
+    if [[ $DRY_RUN == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would create tsconfig.json"
+      return 0
+    fi
+
+    cat > "tsconfig.json" <<'TYPESCRIPT_CONFIG_EOF'
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+TYPESCRIPT_CONFIG_EOF
+    print_status $GREEN "✅ Created tsconfig.json with strict settings"
+  fi
+}
+
+# Create npm security configuration
+create_npm_security_config() {
+  # Create .npmrc for security settings
+  if [[ ! -f ".npmrc" ]]; then
+    print_status $YELLOW "📝 Creating .npmrc security configuration..."
+    if [[ $DRY_RUN == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would create .npmrc"
+      return 0
+    fi
+
+    cat > ".npmrc" <<'NPMRC_CONFIG_EOF'
+# Security-focused npm configuration
+# Generated by 1-Click GitHub Security
+
+# Audit settings
+audit-level=moderate
+fund=false
+
+# Registry security
+registry=https://registry.npmjs.org/
+strict-ssl=true
+
+# Package verification
+package-lock=true
+package-lock-only=true
+shrinkwrap=false
+
+# Security settings
+audit-signatures=true
+foreground-scripts=false
+ignore-scripts=false
+
+# Cache and temporary settings
+cache-max=86400000
+prefer-offline=false
+offline=false
+
+# Progress and output
+progress=true
+loglevel=warn
+NPMRC_CONFIG_EOF
+    print_status $GREEN "✅ Created .npmrc with security-focused configuration"
+  fi
+
+  # Create audit configuration
+  create_audit_config
+
+  # Create security policy file
+  create_security_policy_file
+}
+
+# Create audit configuration file
+create_audit_config() {
+  if [[ ! -f ".auditrc" ]]; then
+    print_status $YELLOW "📝 Creating audit configuration..."
+    if [[ $DRY_RUN == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would create .auditrc"
+      return 0
+    fi
+
+    cat > ".auditrc" <<'AUDIT_CONFIG_EOF'
+{
+  "audit-level": "moderate",
+  "production": true,
+  "dev": false,
+  "exclude": [],
+  "report-format": "json",
+  "output-format": "table",
+  "advisories": [],
+  "whitelist": [],
+  "allowlist": [],
+  "pass-enoaudit": false,
+  "show-not-found": true
+}
+AUDIT_CONFIG_EOF
+    print_status $GREEN "✅ Created .auditrc audit configuration"
+  fi
+}
+
+# Create security policy file
+create_security_policy_file() {
+  if [[ ! -f "SECURITY.md" ]]; then
+    print_status $YELLOW "📝 Creating SECURITY.md policy template..."
+    if [[ $DRY_RUN == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would create SECURITY.md"
+      return 0
+    fi
+
+    cat > "SECURITY.md" <<'SECURITY_MD_EOF'
+# Security Policy
+
+## Supported Versions
+
+| Version | Supported          |
+| ------- | ------------------ |
+| Latest  | :white_check_mark: |
+
+## Reporting a Vulnerability
+
+Please report security vulnerabilities to [security@yourproject.com] or through GitHub Security Advisories.
+
+### What to Include
+
+- Description of the vulnerability
+- Steps to reproduce
+- Potential impact
+- Suggested fix (if known)
+
+### Response Time
+
+- Initial response: Within 48 hours
+- Status update: Within 7 days
+- Resolution target: Within 30 days for critical issues
+
+## Security Measures
+
+This project implements:
+
+- ✅ Automated dependency scanning (npm audit, Snyk, retire.js)
+- ✅ License compliance checking
+- ✅ Secret scanning (gitleaks)
+- ✅ SHA pinning for GitHub Actions
+- ✅ Pre-push security validation
+- ✅ Comprehensive linting and code analysis
+
+## Dependency Management
+
+- All dependencies are regularly audited
+- Package-lock.json is committed for consistency
+- Security updates are prioritized
+- Vulnerable dependencies are promptly updated
+
+## Code Security
+
+- ESLint with security rules enabled
+- No eval() or similar dangerous functions
+- Strict TypeScript configuration (if applicable)
+- Input validation and sanitization
+SECURITY_MD_EOF
+    print_status $GREEN "✅ Created SECURITY.md policy template"
+  fi
+}
+
+# Configure Python security settings
+configure_python_security() {
+  # Create pyproject.toml for modern Python projects
+  create_pyproject_toml
+
+  # Create flake8 configuration
+  create_flake8_config
+
+  # Create bandit configuration
+  create_bandit_config
+}
+
+# Create pyproject.toml configuration
+create_pyproject_toml() {
+  if [[ ! -f "pyproject.toml" ]]; then
+    print_status $YELLOW "📝 Creating pyproject.toml configuration..."
+    if [[ $DRY_RUN == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would create pyproject.toml"
+      return 0
+    fi
+
+    cat > "pyproject.toml" <<'PYPROJECT_TOML_EOF'
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers"
+testpaths = [
+    "tests",
+]
+
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "*/venv/*",
+    "*/env/*",
+    "tests/*",
+    "setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
+PYPROJECT_TOML_EOF
+    print_status $GREEN "✅ Created pyproject.toml with security-focused configuration"
+  fi
+}
+
+# Create flake8 configuration
+create_flake8_config() {
+  if [[ ! -f ".flake8" ]] && [[ ! -f "setup.cfg" ]]; then
+    print_status $YELLOW "📝 Creating flake8 configuration..."
+    if [[ $DRY_RUN == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would create .flake8"
+      return 0
+    fi
+
+    cat > ".flake8" <<'FLAKE8_CONFIG_EOF'
+[flake8]
+max-line-length = 100
+extend-ignore = E203, W503
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    build,
+    dist,
+    *.egg-info
+per-file-ignores =
+    __init__.py:F401
+FLAKE8_CONFIG_EOF
+    print_status $GREEN "✅ Created .flake8"
+  fi
+}
+
+# Create bandit configuration
+create_bandit_config() {
+  if [[ ! -f ".bandit" ]]; then
+    print_status $YELLOW "📝 Creating bandit security configuration..."
+    if [[ $DRY_RUN == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would create .bandit"
+      return 0
+    fi
+
+    cat > ".bandit" <<'BANDIT_CONFIG_EOF'
+[bandit]
+exclude_dirs = ["/tests", "/test"]
+skips = ["B101"]  # Skip assert_used test (commonly used in tests)
+
+[bandit.any_other_function_with_shell_equals_true]
+shell = [
+    "os.system",
+    "subprocess.run",
+    "subprocess.call",
+    "subprocess.Popen",
+]
+BANDIT_CONFIG_EOF
+    print_status $GREEN "✅ Created .bandit security configuration"
+  fi
+}
+
+# Configure Go security settings
+configure_go_security() {
+  # Create go.mod if it doesn't exist
+  create_go_mod
+
+  # Create golangci-lint configuration
+  create_golangci_config
+}
+
+# Create go.mod file
+create_go_mod() {
+  if [[ ! -f "go.mod" ]]; then
+    print_status $YELLOW "📝 Creating go.mod..."
+    if [[ $DRY_RUN == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would create go.mod"
+      return 0
+    fi
+
+    local module_name
+    module_name=$(basename "$PWD")
+
+    cat > "go.mod" <<EOF
+module $module_name
+
+go 1.21
+EOF
+    print_status $GREEN "✅ Created go.mod"
+  fi
+}
+
+# Create golangci-lint configuration
+create_golangci_config() {
+  if [[ ! -f ".golangci.yml" ]] && [[ ! -f ".golangci.yaml" ]]; then
+    print_status $YELLOW "📝 Creating golangci-lint configuration..."
+    if [[ $DRY_RUN == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would create .golangci.yml"
+      return 0
+    fi
+
+    cat > ".golangci.yml" <<'GOLANGCI_CONFIG_EOF'
+run:
+  timeout: 5m
+  issues-exit-code: 1
+  tests: true
+
+linters-settings:
+  staticcheck:
+    checks: ["all"]
+  gosec:
+    severity: medium
+    confidence: medium
+
+linters:
+  enable:
+    - staticcheck
+    - gosec
+    - govet
+    - errcheck
+    - gofmt
+    - goimports
+    - golint
+    - ineffassign
+    - misspell
+    - unconvert
+    - unused
+  disable:
+    - typecheck
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+GOLANGCI_CONFIG_EOF
+    print_status $GREEN "✅ Created .golangci.yml security configuration"
+  fi
+}
+
 # Create comprehensive deny.toml configuration
 create_deny_toml() {
   cat >deny.toml <<'DENY_TOML_EOF'
@@ -1133,7 +1999,27 @@ DENY_TOML_EOF
 
 # Generate pre-push hook
 generate_pre_push_hook() {
-  if [[ $RUST_PROJECT == true ]]; then
+  case "$PROJECT_LANGUAGE" in
+    "rust")
+      generate_rust_pre_push_hook_content
+      ;;
+    "nodejs")
+      generate_nodejs_pre_push_hook_content
+      ;;
+    "python")
+      generate_python_pre_push_hook_content
+      ;;
+    "go")
+      generate_go_pre_push_hook_content
+      ;;
+    *)
+      generate_generic_pre_push_hook_content
+      ;;
+  esac
+}
+
+# Generate Rust pre-push hook (existing implementation)
+generate_rust_pre_push_hook_content() {
     cat <<'HOOK_EOF'
 #!/bin/bash
 set -euo pipefail
@@ -1723,7 +2609,10 @@ fi
 
 exit 0
 HOOK_EOF
-  else
+}
+
+# Generate generic pre-push hook (existing implementation)
+generate_generic_pre_push_hook_content() {
     cat <<'HOOK_EOF'
 #!/bin/bash
 set -euo pipefail
@@ -1846,7 +2735,683 @@ fi
 
 exit 0
 HOOK_EOF
-  fi
+}
+
+# Generate Node.js/JavaScript/TypeScript pre-push hook
+generate_nodejs_pre_push_hook_content() {
+    cat <<'NODEJS_HOOK_EOF'
+#!/bin/bash
+set -euo pipefail
+
+# Pre-push hook for security validation (Node.js/JavaScript/TypeScript)
+# Generated by 1-Click GitHub Security
+
+echo "🔍 Running pre-push validation checks (Node.js)..."
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+print_status() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${NC}"
+}
+
+# Load optional configuration
+if [[ -f .security-controls/config.env ]]; then
+    source .security-controls/config.env
+fi
+
+# Configuration with defaults
+SKIP_FORMAT_CHECK=${SKIP_FORMAT_CHECK:-false}
+SKIP_LINT_CHECK=${SKIP_LINT_CHECK:-false}
+SKIP_TEST_CHECK=${SKIP_TEST_CHECK:-false}
+SKIP_SECURITY_AUDIT=${SKIP_SECURITY_AUDIT:-false}
+SKIP_SECRET_SCAN=${SKIP_SECRET_SCAN:-false}
+SKIP_PIN_CHECK=${SKIP_PIN_CHECK:-false}
+
+# Exit early if no staged changes
+if ! git diff --cached --quiet; then
+    echo "📝 Staged changes detected, running validation..."
+else
+    echo "✅ No staged changes, skipping pre-push validation"
+    exit 0
+fi
+
+failed_checks=0
+
+# Node.js format check
+if [[ $SKIP_FORMAT_CHECK != true ]]; then
+    print_status $BLUE "🎨 Checking JavaScript/TypeScript formatting..."
+    if command -v prettier &>/dev/null; then
+        if ! prettier --check . &>/dev/null; then
+            print_status $RED "❌ Code formatting check failed"
+            echo "   Fix: prettier --write . (or npm run format)"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ Code formatting looks good"
+        fi
+    elif [[ -f package.json ]] && npm run format:check &>/dev/null 2>&1; then
+        print_status $GREEN "✅ Code formatting looks good (npm script)"
+    else
+        print_status $YELLOW "⚠️  No formatter available (install prettier)"
+    fi
+fi
+
+# Node.js linting
+if [[ $SKIP_LINT_CHECK != true ]]; then
+    print_status $BLUE "🔍 Running JavaScript/TypeScript linting..."
+    if command -v eslint &>/dev/null; then
+        if ! eslint . &>/dev/null; then
+            print_status $RED "❌ ESLint linting failed"
+            echo "   Fix: eslint . --fix (or npm run lint)"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ ESLint linting passed"
+        fi
+    elif [[ -f package.json ]] && npm run lint &>/dev/null 2>&1; then
+        print_status $GREEN "✅ Linting passed (npm script)"
+    else
+        print_status $YELLOW "⚠️  No linter available (install eslint)"
+    fi
+fi
+
+# Node.js testing
+if [[ $SKIP_TEST_CHECK != true ]]; then
+    print_status $BLUE "🧪 Running Node.js tests..."
+    if [[ -f package.json ]]; then
+        if npm test &>/dev/null; then
+            print_status $GREEN "✅ All tests passed"
+        else
+            print_status $RED "❌ Tests failed"
+            echo "   Fix: npm test"
+            failed_checks=$((failed_checks + 1))
+        fi
+    else
+        print_status $YELLOW "⚠️  No package.json found, skipping tests"
+    fi
+fi
+
+# Node.js comprehensive security audit
+if [[ $SKIP_SECURITY_AUDIT != true ]]; then
+    print_status $BLUE "🔐 Running comprehensive npm security audit..."
+    if [[ -f package.json ]]; then
+        local audit_failed=0
+
+        # 1. Standard npm audit (moderate and above)
+        print_status $BLUE "   🔍 Running npm audit (standard)..."
+        if ! npm audit --audit-level=moderate &>/dev/null; then
+            print_status $RED "   ❌ npm audit found vulnerabilities"
+            echo "      Fix: npm audit fix"
+            audit_failed=1
+        else
+            print_status $GREEN "   ✅ npm audit passed"
+        fi
+
+        # 2. Enhanced audit with audit-ci (if available)
+        if command -v audit-ci &>/dev/null; then
+            print_status $BLUE "   🔍 Running audit-ci (enhanced)..."
+            if ! audit-ci --moderate --skip-dev &>/dev/null; then
+                print_status $RED "   ❌ audit-ci found production vulnerabilities"
+                echo "      Fix: npm audit fix --only=prod"
+                audit_failed=1
+            else
+                print_status $GREEN "   ✅ audit-ci passed"
+            fi
+        fi
+
+        # 3. Better npm audit (if available)
+        if command -v better-npm-audit &>/dev/null; then
+            print_status $BLUE "   🔍 Running better-npm-audit..."
+            if ! better-npm-audit audit --level moderate &>/dev/null; then
+                print_status $RED "   ❌ better-npm-audit found issues"
+                echo "      Review: better-npm-audit audit"
+                audit_failed=1
+            else
+                print_status $GREEN "   ✅ better-npm-audit passed"
+            fi
+        fi
+
+        # 4. Snyk test (if available and authenticated)
+        if command -v snyk &>/dev/null; then
+            print_status $BLUE "   🔍 Running Snyk vulnerability scan..."
+            if snyk auth &>/dev/null && snyk test --severity-threshold=medium &>/dev/null; then
+                print_status $GREEN "   ✅ Snyk scan passed"
+            elif snyk test --severity-threshold=medium &>/dev/null 2>&1 | grep -q "authenticated"; then
+                print_status $YELLOW "   ⚠️  Snyk requires authentication (run: snyk auth)"
+            else
+                print_status $RED "   ❌ Snyk found medium+ severity issues"
+                echo "      Fix: snyk wizard or snyk fix"
+                audit_failed=1
+            fi
+        fi
+
+        # 5. Retire.js scan for known vulnerable libraries
+        if command -v retire &>/dev/null; then
+            print_status $BLUE "   🔍 Running retire.js vulnerability scan..."
+            if ! retire --path . --exitwith 1 &>/dev/null; then
+                print_status $RED "   ❌ retire.js found vulnerable JavaScript libraries"
+                echo "      Fix: Update vulnerable dependencies shown by 'retire'"
+                audit_failed=1
+            else
+                print_status $GREEN "   ✅ retire.js scan passed"
+            fi
+        fi
+
+        # 6. Check for package-lock.json and verify integrity
+        if [[ -f "package-lock.json" ]]; then
+            print_status $BLUE "   🔍 Verifying package-lock.json integrity..."
+            if ! npm ci --dry-run &>/dev/null; then
+                print_status $RED "   ❌ package-lock.json integrity check failed"
+                echo "      Fix: rm package-lock.json && npm install"
+                audit_failed=1
+            else
+                print_status $GREEN "   ✅ package-lock.json integrity verified"
+            fi
+        else
+            print_status $YELLOW "   ⚠️  No package-lock.json found (consider adding for security)"
+        fi
+
+        # 7. License compliance check
+        if command -v license-checker &>/dev/null; then
+            print_status $BLUE "   🔍 Checking license compliance..."
+            # Allow common permissive licenses, block GPL and proprietary
+            local blocked_licenses="GPL;AGPL;LGPL;SSPL;OSL;EPL;CDDL;MPL;BUSL"
+            if license-checker --onlyAllow "MIT;BSD;Apache;ISC;BSD-2-Clause;BSD-3-Clause;Unlicense;CC0;WTFPL" --excludePrivatePackages &>/dev/null; then
+                print_status $GREEN "   ✅ License compliance check passed"
+            else
+                print_status $RED "   ❌ Problematic licenses detected"
+                echo "      Review: license-checker --summary"
+                audit_failed=1
+            fi
+        fi
+
+        # 8. Check for outdated packages with known security issues
+        print_status $BLUE "   🔍 Checking for outdated security-critical packages..."
+        if command -v npm-check-updates &>/dev/null; then
+            # Check if any security-critical packages are outdated
+            local outdated_security_packages
+            outdated_security_packages=$(npm outdated --json 2>/dev/null | jq -r 'to_entries[] | select(.key | test("express|lodash|request|moment|serialize-javascript|handlebars|marked|socket.io|ws|jsonwebtoken|bcrypt|crypto-js")) | .key' 2>/dev/null || echo "")
+            if [[ -n "$outdated_security_packages" ]]; then
+                print_status $YELLOW "   ⚠️  Security-critical packages are outdated:"
+                echo "$outdated_security_packages" | while read -r pkg; do
+                    echo "      • $pkg"
+                done
+                print_status $YELLOW "      Consider: npm update or npm-check-updates -u"
+            fi
+        fi
+
+        # 9. Check for unused dependencies
+        if command -v depcheck &>/dev/null; then
+            print_status $BLUE "   🔍 Checking for unused dependencies..."
+            local unused_deps
+            unused_deps=$(depcheck --json 2>/dev/null | jq -r '.dependencies[]' 2>/dev/null || echo "")
+            if [[ -n "$unused_deps" ]]; then
+                print_status $YELLOW "   ⚠️  Unused dependencies detected:"
+                echo "$unused_deps" | while read -r dep; do
+                    [[ -n "$dep" ]] && echo "      • $dep"
+                done
+                print_status $YELLOW "      Consider: npm uninstall unused packages"
+            else
+                print_status $GREEN "   ✅ No unused dependencies found"
+            fi
+        fi
+
+        # 10. Check for circular dependencies
+        if command -v madge &>/dev/null; then
+            print_status $BLUE "   🔍 Checking for circular dependencies..."
+            if madge --circular . &>/dev/null; then
+                print_status $GREEN "   ✅ No circular dependencies found"
+            else
+                print_status $RED "   ❌ Circular dependencies detected"
+                echo "      Review: madge --circular ."
+                audit_failed=1
+            fi
+        fi
+
+        # 11. Global npm audit for system-wide packages (if requested)
+        if [[ "${NPM_GLOBAL_AUDIT:-}" == "true" ]]; then
+            print_status $BLUE "   🔍 Running global npm audit..."
+            if npm audit -g --audit-level=high &>/dev/null; then
+                print_status $GREEN "   ✅ Global npm audit passed"
+            else
+                print_status $YELLOW "   ⚠️  Global npm vulnerabilities found"
+                print_status $YELLOW "      Fix: npm audit fix -g (run with caution)"
+            fi
+        fi
+
+        # 12. Bundle size analysis (if configured)
+        if [[ -f "bundlewatch.config.json" ]] && command -v bundlewatch &>/dev/null; then
+            print_status $BLUE "   🔍 Checking bundle size limits..."
+            if bundlewatch &>/dev/null; then
+                print_status $GREEN "   ✅ Bundle size within limits"
+            else
+                print_status $RED "   ❌ Bundle size exceeds configured limits"
+                echo "      Review: bundlewatch --config bundlewatch.config.json"
+                audit_failed=1
+            fi
+        fi
+
+        # Final audit result
+        if [[ $audit_failed -eq 1 ]]; then
+            print_status $RED "❌ Node.js comprehensive security audit failed"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ Node.js comprehensive security audit passed"
+        fi
+    else
+        print_status $YELLOW "⚠️  No package.json found, skipping npm audit"
+    fi
+fi
+
+# Universal secret scanning
+if [[ $SKIP_SECRET_SCAN != true ]]; then
+    print_status $BLUE "🔍 Scanning for secrets..."
+    if [[ -x ".security-controls/bin/gitleakslite" ]]; then
+        if ! ./.security-controls/bin/gitleakslite protect --staged --no-banner --redact &>/dev/null; then
+            print_status $RED "❌ Secret scan failed"
+            echo "   Secrets detected in staged changes"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ Secret scan passed"
+        fi
+    else
+        print_status $YELLOW "⚠️  No secret scanner available"
+    fi
+fi
+
+# Universal SHA pinning check
+if [[ $SKIP_PIN_CHECK != true ]]; then
+    print_status $BLUE "📌 Checking GitHub Actions SHA pinning..."
+    if [[ -x ".security-controls/bin/pinactlite" ]]; then
+        if ! ./.security-controls/bin/pinactlite pincheck --dir .github/workflows &>/dev/null; then
+            print_status $RED "❌ SHA pinning check failed"
+            echo "   Fix: ./.security-controls/bin/pinactlite autopin --dir .github/workflows --actions --images"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ SHA pinning check passed"
+        fi
+    else
+        print_status $YELLOW "⚠️  No SHA pinning checker available"
+    fi
+fi
+
+# Summary
+if [[ $failed_checks -gt 0 ]]; then
+    echo
+    print_status $RED "💥 Pre-push validation failed!"
+    print_status $RED "❌ Push blocked - fix $failed_checks issue(s) above"
+    echo
+    exit 1
+fi
+
+print_status $GREEN "✅ All pre-push validation checks passed!"
+exit 0
+NODEJS_HOOK_EOF
+}
+
+# Generate Python pre-push hook
+generate_python_pre_push_hook_content() {
+    cat <<'PYTHON_HOOK_EOF'
+#!/bin/bash
+set -euo pipefail
+
+# Pre-push hook for security validation (Python)
+# Generated by 1-Click GitHub Security
+
+echo "🔍 Running pre-push validation checks (Python)..."
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+print_status() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${NC}"
+}
+
+# Load optional configuration
+if [[ -f .security-controls/config.env ]]; then
+    source .security-controls/config.env
+fi
+
+# Configuration with defaults
+SKIP_FORMAT_CHECK=${SKIP_FORMAT_CHECK:-false}
+SKIP_LINT_CHECK=${SKIP_LINT_CHECK:-false}
+SKIP_TEST_CHECK=${SKIP_TEST_CHECK:-false}
+SKIP_SECURITY_AUDIT=${SKIP_SECURITY_AUDIT:-false}
+SKIP_SECRET_SCAN=${SKIP_SECRET_SCAN:-false}
+SKIP_PIN_CHECK=${SKIP_PIN_CHECK:-false}
+
+# Exit early if no staged changes
+if ! git diff --cached --quiet; then
+    echo "📝 Staged changes detected, running validation..."
+else
+    echo "✅ No staged changes, skipping pre-push validation"
+    exit 0
+fi
+
+failed_checks=0
+
+# Python format check
+if [[ $SKIP_FORMAT_CHECK != true ]]; then
+    print_status $BLUE "🎨 Checking Python formatting (black)..."
+    if command -v black &>/dev/null; then
+        if ! black --check . &>/dev/null; then
+            print_status $RED "❌ Python formatting check failed"
+            echo "   Fix: black ."
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ Python formatting looks good"
+        fi
+    else
+        print_status $YELLOW "⚠️  No formatter available (install black)"
+    fi
+fi
+
+# Python linting
+if [[ $SKIP_LINT_CHECK != true ]]; then
+    print_status $BLUE "🔍 Running Python linting..."
+    if command -v flake8 &>/dev/null; then
+        if ! flake8 . &>/dev/null; then
+            print_status $RED "❌ flake8 linting failed"
+            echo "   Fix: flake8 ."
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ flake8 linting passed"
+        fi
+    elif command -v pylint &>/dev/null; then
+        if ! find . -name "*.py" -exec pylint {} \; &>/dev/null; then
+            print_status $RED "❌ pylint linting failed"
+            echo "   Fix: pylint **/*.py"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ pylint linting passed"
+        fi
+    else
+        print_status $YELLOW "⚠️  No linter available (install flake8 or pylint)"
+    fi
+fi
+
+# Python testing
+if [[ $SKIP_TEST_CHECK != true ]]; then
+    print_status $BLUE "🧪 Running Python tests..."
+    if command -v pytest &>/dev/null; then
+        if ! pytest &>/dev/null; then
+            print_status $RED "❌ pytest tests failed"
+            echo "   Fix: pytest"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ All tests passed (pytest)"
+        fi
+    elif [[ -f "test_*.py" ]] || [[ -f "*_test.py" ]]; then
+        if ! python -m unittest discover &>/dev/null; then
+            print_status $RED "❌ unittest tests failed"
+            echo "   Fix: python -m unittest discover"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ All tests passed (unittest)"
+        fi
+    else
+        print_status $YELLOW "⚠️  No tests found"
+    fi
+fi
+
+# Python security audit
+if [[ $SKIP_SECURITY_AUDIT != true ]]; then
+    print_status $BLUE "🔐 Running Python security audit..."
+    if command -v safety &>/dev/null; then
+        if ! safety check &>/dev/null; then
+            print_status $RED "❌ Safety security audit failed"
+            echo "   Fix: safety check"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ Safety security audit passed"
+        fi
+    elif command -v pip-audit &>/dev/null; then
+        if ! pip-audit &>/dev/null; then
+            print_status $RED "❌ pip-audit security audit failed"
+            echo "   Fix: pip-audit"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ pip-audit security audit passed"
+        fi
+    else
+        print_status $YELLOW "⚠️  No security audit tool available (install safety or pip-audit)"
+    fi
+
+    # Additional security scanning with bandit
+    if command -v bandit &>/dev/null; then
+        if ! bandit -r . &>/dev/null; then
+            print_status $RED "❌ Bandit security scan failed"
+            echo "   Fix: bandit -r ."
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ Bandit security scan passed"
+        fi
+    fi
+fi
+
+# Universal secret scanning
+if [[ $SKIP_SECRET_SCAN != true ]]; then
+    print_status $BLUE "🔍 Scanning for secrets..."
+    if [[ -x ".security-controls/bin/gitleakslite" ]]; then
+        if ! ./.security-controls/bin/gitleakslite protect --staged --no-banner --redact &>/dev/null; then
+            print_status $RED "❌ Secret scan failed"
+            echo "   Secrets detected in staged changes"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ Secret scan passed"
+        fi
+    else
+        print_status $YELLOW "⚠️  No secret scanner available"
+    fi
+fi
+
+# Universal SHA pinning check
+if [[ $SKIP_PIN_CHECK != true ]]; then
+    print_status $BLUE "📌 Checking GitHub Actions SHA pinning..."
+    if [[ -x ".security-controls/bin/pinactlite" ]]; then
+        if ! ./.security-controls/bin/pinactlite pincheck --dir .github/workflows &>/dev/null; then
+            print_status $RED "❌ SHA pinning check failed"
+            echo "   Fix: ./.security-controls/bin/pinactlite autopin --dir .github/workflows --actions --images"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ SHA pinning check passed"
+        fi
+    else
+        print_status $YELLOW "⚠️  No SHA pinning checker available"
+    fi
+fi
+
+# Summary
+if [[ $failed_checks -gt 0 ]]; then
+    echo
+    print_status $RED "💥 Pre-push validation failed!"
+    print_status $RED "❌ Push blocked - fix $failed_checks issue(s) above"
+    echo
+    exit 1
+fi
+
+print_status $GREEN "✅ All pre-push validation checks passed!"
+exit 0
+PYTHON_HOOK_EOF
+}
+
+# Generate Go pre-push hook
+generate_go_pre_push_hook_content() {
+    cat <<'GO_HOOK_EOF'
+#!/bin/bash
+set -euo pipefail
+
+# Pre-push hook for security validation (Go)
+# Generated by 1-Click GitHub Security
+
+echo "🔍 Running pre-push validation checks (Go)..."
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+print_status() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${NC}"
+}
+
+# Load optional configuration
+if [[ -f .security-controls/config.env ]]; then
+    source .security-controls/config.env
+fi
+
+# Configuration with defaults
+SKIP_FORMAT_CHECK=${SKIP_FORMAT_CHECK:-false}
+SKIP_LINT_CHECK=${SKIP_LINT_CHECK:-false}
+SKIP_TEST_CHECK=${SKIP_TEST_CHECK:-false}
+SKIP_SECURITY_AUDIT=${SKIP_SECURITY_AUDIT:-false}
+SKIP_SECRET_SCAN=${SKIP_SECRET_SCAN:-false}
+SKIP_PIN_CHECK=${SKIP_PIN_CHECK:-false}
+
+# Exit early if no staged changes
+if ! git diff --cached --quiet; then
+    echo "📝 Staged changes detected, running validation..."
+else
+    echo "✅ No staged changes, skipping pre-push validation"
+    exit 0
+fi
+
+failed_checks=0
+
+# Go format check
+if [[ $SKIP_FORMAT_CHECK != true ]]; then
+    print_status $BLUE "🎨 Checking Go formatting (gofmt)..."
+    if [[ $(gofmt -l . | wc -l) -ne 0 ]]; then
+        print_status $RED "❌ Go formatting check failed"
+        echo "   Fix: gofmt -w ."
+        failed_checks=$((failed_checks + 1))
+    else
+        print_status $GREEN "✅ Go formatting looks good"
+    fi
+fi
+
+# Go linting
+if [[ $SKIP_LINT_CHECK != true ]]; then
+    print_status $BLUE "🔍 Running Go linting..."
+    if command -v staticcheck &>/dev/null; then
+        if ! staticcheck ./... &>/dev/null; then
+            print_status $RED "❌ staticcheck linting failed"
+            echo "   Fix: staticcheck ./..."
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ staticcheck linting passed"
+        fi
+    elif command -v golint &>/dev/null; then
+        if ! golint ./... &>/dev/null; then
+            print_status $RED "❌ golint linting failed"
+            echo "   Fix: golint ./..."
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ golint linting passed"
+        fi
+    else
+        print_status $YELLOW "⚠️  No linter available (install staticcheck or golint)"
+    fi
+fi
+
+# Go testing
+if [[ $SKIP_TEST_CHECK != true ]]; then
+    print_status $BLUE "🧪 Running Go tests..."
+    if ! go test ./... &>/dev/null; then
+        print_status $RED "❌ Go tests failed"
+        echo "   Fix: go test ./..."
+        failed_checks=$((failed_checks + 1))
+    else
+        print_status $GREEN "✅ All Go tests passed"
+    fi
+fi
+
+# Go security audit
+if [[ $SKIP_SECURITY_AUDIT != true ]]; then
+    print_status $BLUE "🔐 Running Go security audit..."
+    if command -v govulncheck &>/dev/null; then
+        if ! govulncheck ./... &>/dev/null; then
+            print_status $RED "❌ govulncheck security audit failed"
+            echo "   Fix: govulncheck ./..."
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ govulncheck security audit passed"
+        fi
+    else
+        print_status $YELLOW "⚠️  No vulnerability scanner available (install govulncheck)"
+    fi
+
+    # Additional security scanning with gosec
+    if command -v gosec &>/dev/null; then
+        if ! gosec ./... &>/dev/null; then
+            print_status $RED "❌ gosec security scan failed"
+            echo "   Fix: gosec ./..."
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ gosec security scan passed"
+        fi
+    fi
+fi
+
+# Universal secret scanning
+if [[ $SKIP_SECRET_SCAN != true ]]; then
+    print_status $BLUE "🔍 Scanning for secrets..."
+    if [[ -x ".security-controls/bin/gitleakslite" ]]; then
+        if ! ./.security-controls/bin/gitleakslite protect --staged --no-banner --redact &>/dev/null; then
+            print_status $RED "❌ Secret scan failed"
+            echo "   Secrets detected in staged changes"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ Secret scan passed"
+        fi
+    else
+        print_status $YELLOW "⚠️  No secret scanner available"
+    fi
+fi
+
+# Universal SHA pinning check
+if [[ $SKIP_PIN_CHECK != true ]]; then
+    print_status $BLUE "📌 Checking GitHub Actions SHA pinning..."
+    if [[ -x ".security-controls/bin/pinactlite" ]]; then
+        if ! ./.security-controls/bin/pinactlite pincheck --dir .github/workflows &>/dev/null; then
+            print_status $RED "❌ SHA pinning check failed"
+            echo "   Fix: ./.security-controls/bin/pinactlite autopin --dir .github/workflows --actions --images"
+            failed_checks=$((failed_checks + 1))
+        else
+            print_status $GREEN "✅ SHA pinning check passed"
+        fi
+    else
+        print_status $YELLOW "⚠️  No SHA pinning checker available"
+    fi
+fi
+
+# Summary
+if [[ $failed_checks -gt 0 ]]; then
+    echo
+    print_status $RED "💥 Pre-push validation failed!"
+    print_status $RED "❌ Push blocked - fix $failed_checks issue(s) above"
+    echo
+    exit 1
+fi
+
+print_status $GREEN "✅ All pre-push validation checks passed!"
+exit 0
+GO_HOOK_EOF
 }
 
 # Ensure hooksPath dispatcher exists and optionally set core.hooksPath
@@ -3077,8 +4642,8 @@ Signed Commit + Rekor Transparency Log
 ### **1-Command Setup**
 ```bash
 # Download the YubiKey toggle script
-curl -O https://raw.githubusercontent.com/4n6h4x0r/1-click-rust-sec/main/yubikey-gitsign-toggle.sh
-curl -O https://raw.githubusercontent.com/4n6h4x0r/1-click-rust-sec/main/yubikey-gitsign-toggle.sh.sha256
+curl -O https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh
+curl -O https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh.sha256
 
 # Verify integrity
 sha256sum -c yubikey-gitsign-toggle.sh.sha256
@@ -3340,7 +4905,7 @@ install_pinactlite_script() {
     print_status $GREEN "✅ Copied pinactlite from canonical source"
   else
     # Fallback: download from repository if not available locally
-    local pinactlite_url="https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/.security-controls/bin/pinactlite"
+    local pinactlite_url="https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/.security-controls/bin/pinactlite"
     if command -v curl >/dev/null 2>&1; then
       curl -sSL "$pinactlite_url" >"$script_path"
       print_status $GREEN "✅ Downloaded pinactlite from repository"
@@ -3373,7 +4938,7 @@ install_gitleakslite_script() {
     print_status $GREEN "✅ Copied gitleakslite from canonical source"
   else
     # Fallback: download from repository if not available locally
-    local gitleakslite_url="https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/.security-controls/bin/gitleakslite"
+    local gitleakslite_url="https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/.security-controls/bin/gitleakslite"
     if command -v curl >/dev/null 2>&1; then
       curl -sSL "$gitleakslite_url" >"$script_path"
       print_status $GREEN "✅ Downloaded gitleakslite from repository"
@@ -3709,8 +5274,9 @@ parse_arguments() {
         INSTALL_DOCS=false
         shift
         ;;
-      --non-rust)
-        RUST_PROJECT=false
+      --language=*)
+        PROJECT_LANGUAGE="${1#--language=}"
+        # Validation will happen in detect_project_languages function
         shift
         ;;
       --hooks-path)
@@ -3759,6 +5325,15 @@ main() {
   # Now start transaction after parsing arguments (in case of early exits)
   start_transaction "security-controls-install"
 
+  # Display startup banner
+  echo
+  print_status $CYAN "══════════════════════════════════════════════════════════════"
+  print_status $CYAN "  🛡️  1-Click GitHub Security Controls v$SCRIPT_VERSION"
+  print_status $CYAN "  👨‍💻  Created by Albert Hui <albert@securityronin.com>"
+  print_status $CYAN "     Security Ronin"
+  print_status $CYAN "══════════════════════════════════════════════════════════════"
+  echo
+
   log_info "=== Security Controls Installation Started ==="
   log_info "Script version: $SCRIPT_VERSION"
   log_info "Arguments: $*"
@@ -3797,6 +5372,11 @@ main() {
   # Configure security settings (Rust-specific and global)
   safe_execute "configure_cargo_security" \
     "Failed to configure Cargo security" \
+    $EXIT_CONFIG_ERROR
+
+  # Configure language-specific security settings
+  safe_execute "configure_language_specific_files" \
+    "Failed to configure language-specific settings" \
     $EXIT_CONFIG_ERROR
 
   # Install default config/state

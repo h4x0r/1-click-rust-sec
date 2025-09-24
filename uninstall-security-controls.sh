@@ -6,7 +6,7 @@ set -euo pipefail
 # Usage: ./uninstall-security-controls.sh [--dry-run] [--yes] [--verbose]
 
 # Script version and metadata
-readonly SCRIPT_VERSION="0.2.6"
+readonly SCRIPT_VERSION="0.3.0"
 readonly SCRIPT_NAME="Security Controls Uninstaller"
 
 # Global flags
@@ -281,7 +281,7 @@ USAGE
 show_version() {
   echo "Security Controls Uninstaller v${SCRIPT_VERSION}"
   echo "Safe removal of 1-Click Rust Security controls"
-  echo "https://github.com/4n6h4x0r/1-click-rust-sec"
+  echo "https://github.com/4n6h4x0r/1-click-github-sec"
 }
 
 # Parse command line arguments
@@ -414,7 +414,7 @@ remove_github_workflows() {
 
   # Check for other workflows that might have been installed
   if [[ -f .github/workflows/codeql.yml ]]; then
-    if grep -q "1-click-rust-sec" .github/workflows/codeql.yml 2>/dev/null; then
+    if grep -q "1-click-github-sec" .github/workflows/codeql.yml 2>/dev/null; then
       maybe_rm .github/workflows/codeql.yml "CodeQL workflow"
     fi
   fi
