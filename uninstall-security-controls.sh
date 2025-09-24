@@ -6,7 +6,7 @@ set -euo pipefail
 # Usage: ./uninstall-security-controls.sh [--dry-run] [--yes] [--verbose]
 
 # Script version and metadata
-readonly SCRIPT_VERSION="0.1.0"
+readonly SCRIPT_VERSION="0.2.6"
 readonly SCRIPT_NAME="Security Controls Uninstaller"
 
 # Global flags
