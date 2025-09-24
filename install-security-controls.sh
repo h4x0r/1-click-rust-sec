@@ -2152,7 +2152,7 @@ else
     PKG_COUNT=0
 fi
 if [[ "${PKG_COUNT:-0}" -eq 0 ]]; then
-    print_status $BLUE "ℹ️ No Rust packages detected (workspace has no members) — skipping Rust-specific checks"
+    print_status $BLUE "ℹ️ No Rust packages detected — skipping Rust-specific checks"
     SKIP_RUST=1
 fi
 
