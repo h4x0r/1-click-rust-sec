@@ -289,7 +289,7 @@ SKIP_TOOLS=false
 FORCE_INSTALL=false
 # Multi-language support - array of detected languages
 declare -a DETECTED_LANGUAGES=()
-PROJECT_LANGUAGE="auto"  # auto, rust, nodejs, python, go, generic, or comma-separated list
+PROJECT_LANGUAGE="auto" # auto, rust, nodejs, python, go, generic, or comma-separated list
 # Legacy compatibility
 RUST_PROJECT=true
 INSTALL_HOOKS=true
@@ -710,11 +710,11 @@ detect_project_languages() {
   if [[ $PROJECT_LANGUAGE != "auto" ]]; then
     # Support comma-separated language list: --language=rust,nodejs,python
     if [[ $PROJECT_LANGUAGE == *","* ]]; then
-      IFS=',' read -ra EXPLICIT_LANGS <<< "$PROJECT_LANGUAGE"
+      IFS=',' read -ra EXPLICIT_LANGS <<<"$PROJECT_LANGUAGE"
       for lang in "${EXPLICIT_LANGS[@]}"; do
-        lang=$(echo "$lang" | xargs)  # trim whitespace
+        lang=$(echo "$lang" | xargs) # trim whitespace
         case "$lang" in
-          "rust"|"nodejs"|"javascript"|"typescript"|"python"|"go"|"generic")
+          "rust" | "nodejs" | "javascript" | "typescript" | "python" | "go" | "generic")
             DETECTED_LANGUAGES+=("$lang")
             ;;
           *)
@@ -728,7 +728,7 @@ detect_project_languages() {
     else
       # Single language specified
       case "$PROJECT_LANGUAGE" in
-        "rust"|"nodejs"|"javascript"|"typescript"|"python"|"go"|"generic")
+        "rust" | "nodejs" | "javascript" | "typescript" | "python" | "go" | "generic")
           DETECTED_LANGUAGES=("$PROJECT_LANGUAGE")
           print_status $GREEN "✅ Explicit language configuration: $PROJECT_LANGUAGE"
           return 0
@@ -752,8 +752,8 @@ detect_project_languages() {
 
   if [[ -f "package.json" ]]; then
     # Determine if it's TypeScript or JavaScript
-    if [[ -f "tsconfig.json" ]] || grep -q '"typescript"' package.json 2>/dev/null || \
-       find . -name "*.ts" -o -name "*.tsx" 2>/dev/null | head -1 | grep -q .; then
+    if [[ -f "tsconfig.json" ]] || grep -q '"typescript"' package.json 2>/dev/null ||
+      find . -name "*.ts" -o -name "*.tsx" 2>/dev/null | head -1 | grep -q .; then
       DETECTED_LANGUAGES+=("typescript")
       print_status $GREEN "  ✅ TypeScript detected (package.json + TS files/config)"
     else
@@ -763,8 +763,8 @@ detect_project_languages() {
     ((detected_count++))
   fi
 
-  if [[ -f "pyproject.toml" ]] || [[ -f "requirements.txt" ]] || [[ -f "setup.py" ]] || \
-     find . -maxdepth 2 -name "*.py" 2>/dev/null | head -1 | grep -q .; then
+  if [[ -f "pyproject.toml" ]] || [[ -f "requirements.txt" ]] || [[ -f "setup.py" ]] ||
+    find . -maxdepth 2 -name "*.py" 2>/dev/null | head -1 | grep -q .; then
     DETECTED_LANGUAGES+=("python")
     print_status $GREEN "  ✅ Python detected (Python files/config found)"
     ((detected_count++))
@@ -896,7 +896,7 @@ install_security_tools() {
           print_status $YELLOW "⚠️ Cargo not found - skipping Rust tool installation"
         fi
         ;;
-      "nodejs"|"typescript")
+      "nodejs" | "typescript")
         install_nodejs_security_tools
         ;;
       "python")
@@ -979,29 +979,29 @@ install_nodejs_security_tools() {
 
   # Core security tools for Node.js projects
   local nodejs_security_tools=(
-    "eslint"              # JavaScript/TypeScript linting
-    "prettier"            # Code formatting
-    "audit-ci"            # Enhanced npm audit for CI
-    "license-checker"     # License compliance checking
-    "npm-check-updates"   # Dependency update checker
-    "semgrep"             # SAST scanning
-    "@npmcli/arborist"    # npm dependency tree analysis
-    "better-npm-audit"    # Enhanced npm audit with better filtering
-    "npm-audit-resolver"  # Advanced audit resolution
-    "snyk"                # Advanced vulnerability scanning
-    "retire"              # JavaScript library vulnerability scanner
-    "npm-check"           # Interactive dependency updates
-    "depcheck"            # Unused dependency detection
-    "madge"               # Circular dependency detection
-    "bundlewatch"         # Bundle size monitoring
-    "cost-of-modules"     # Analyze cost of dependencies
+    "eslint"             # JavaScript/TypeScript linting
+    "prettier"           # Code formatting
+    "audit-ci"           # Enhanced npm audit for CI
+    "license-checker"    # License compliance checking
+    "npm-check-updates"  # Dependency update checker
+    "semgrep"            # SAST scanning
+    "@npmcli/arborist"   # npm dependency tree analysis
+    "better-npm-audit"   # Enhanced npm audit with better filtering
+    "npm-audit-resolver" # Advanced audit resolution
+    "snyk"               # Advanced vulnerability scanning
+    "retire"             # JavaScript library vulnerability scanner
+    "npm-check"          # Interactive dependency updates
+    "depcheck"           # Unused dependency detection
+    "madge"              # Circular dependency detection
+    "bundlewatch"        # Bundle size monitoring
+    "cost-of-modules"    # Analyze cost of dependencies
   )
 
   # Optional TypeScript-specific tools
   if [[ -f "tsconfig.json" ]] || grep -q '"typescript"' package.json 2>/dev/null; then
     nodejs_security_tools+=(
-      "typescript"        # TypeScript compiler
-      "@typescript-eslint/parser"  # TypeScript ESLint parser
+      "typescript"                # TypeScript compiler
+      "@typescript-eslint/parser" # TypeScript ESLint parser
     )
   fi
 
@@ -1095,13 +1095,13 @@ install_python_security_tools() {
 
   # Core security tools for Python projects
   local python_security_tools=(
-    "black"               # Code formatting
-    "flake8"              # Linting
-    "pylint"              # Advanced linting
-    "safety"              # Known vulnerability scanning
-    "bandit"              # Security issue scanner
-    "pip-audit"           # PyPI package vulnerability scanner
-    "semgrep"             # SAST scanning
+    "black"     # Code formatting
+    "flake8"    # Linting
+    "pylint"    # Advanced linting
+    "safety"    # Known vulnerability scanning
+    "bandit"    # Security issue scanner
+    "pip-audit" # PyPI package vulnerability scanner
+    "semgrep"   # SAST scanning
   )
 
   for tool in "${python_security_tools[@]}"; do
@@ -1137,11 +1137,11 @@ install_go_security_tools() {
 
   # Core security tools for Go projects
   local go_security_tools=(
-    "golang.org/x/tools/cmd/goimports@latest"     # Import management
-    "golang.org/x/vuln/cmd/govulncheck@latest"    # Vulnerability scanner
-    "golang.org/x/lint/golint@latest"             # Linting (legacy but widely used)
-    "honnef.co/go/tools/cmd/staticcheck@latest"   # Advanced static analysis
-    "github.com/securecodewarrior/gosec/v2/cmd/gosec@latest"  # Security scanner
+    "golang.org/x/tools/cmd/goimports@latest"                # Import management
+    "golang.org/x/vuln/cmd/govulncheck@latest"               # Vulnerability scanner
+    "golang.org/x/lint/golint@latest"                        # Linting (legacy but widely used)
+    "honnef.co/go/tools/cmd/staticcheck@latest"              # Advanced static analysis
+    "github.com/securecodewarrior/gosec/v2/cmd/gosec@latest" # Security scanner
   )
 
   for tool in "${go_security_tools[@]}"; do
@@ -1425,7 +1425,7 @@ configure_nodejs_security() {
     fi
 
     # Create basic package.json
-    cat > "package.json" <<'NODEJS_PACKAGE_EOF'
+    cat >"package.json" <<'NODEJS_PACKAGE_EOF'
 {
   "name": "my-project",
   "version": "1.0.0",
@@ -1466,7 +1466,7 @@ create_eslint_config() {
       return 0
     fi
 
-    cat > ".eslintrc.js" <<'ESLINT_CONFIG_EOF'
+    cat >".eslintrc.js" <<'ESLINT_CONFIG_EOF'
 module.exports = {
   extends: ['eslint:recommended'],
   env: {
@@ -1539,7 +1539,7 @@ create_prettier_config() {
       return 0
     fi
 
-    cat > ".prettierrc" <<'PRETTIER_CONFIG_EOF'
+    cat >".prettierrc" <<'PRETTIER_CONFIG_EOF'
 {
   "semi": true,
   "trailingComma": "es5",
@@ -1562,7 +1562,7 @@ create_typescript_config() {
       return 0
     fi
 
-    cat > "tsconfig.json" <<'TYPESCRIPT_CONFIG_EOF'
+    cat >"tsconfig.json" <<'TYPESCRIPT_CONFIG_EOF'
 {
   "compilerOptions": {
     "target": "ES2020",
@@ -1597,7 +1597,7 @@ create_npm_security_config() {
       return 0
     fi
 
-    cat > ".npmrc" <<'NPMRC_CONFIG_EOF'
+    cat >".npmrc" <<'NPMRC_CONFIG_EOF'
 # Security-focused npm configuration
 # Generated by 1-Click GitHub Security
 
@@ -1647,7 +1647,7 @@ create_audit_config() {
       return 0
     fi
 
-    cat > ".auditrc" <<'AUDIT_CONFIG_EOF'
+    cat >".auditrc" <<'AUDIT_CONFIG_EOF'
 {
   "audit-level": "moderate",
   "production": true,
@@ -1675,7 +1675,7 @@ create_security_policy_file() {
       return 0
     fi
 
-    cat > "SECURITY.md" <<'SECURITY_MD_EOF'
+    cat >"SECURITY.md" <<'SECURITY_MD_EOF'
 # Security Policy
 
 ## Supported Versions
@@ -1751,7 +1751,7 @@ create_pyproject_toml() {
       return 0
     fi
 
-    cat > "pyproject.toml" <<'PYPROJECT_TOML_EOF'
+    cat >"pyproject.toml" <<'PYPROJECT_TOML_EOF'
 [build-system]
 requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
@@ -1811,7 +1811,7 @@ create_flake8_config() {
       return 0
     fi
 
-    cat > ".flake8" <<'FLAKE8_CONFIG_EOF'
+    cat >".flake8" <<'FLAKE8_CONFIG_EOF'
 [flake8]
 max-line-length = 100
 extend-ignore = E203, W503
@@ -1839,7 +1839,7 @@ create_bandit_config() {
       return 0
     fi
 
-    cat > ".bandit" <<'BANDIT_CONFIG_EOF'
+    cat >".bandit" <<'BANDIT_CONFIG_EOF'
 [bandit]
 exclude_dirs = ["/tests", "/test"]
 skips = ["B101"]  # Skip assert_used test (commonly used in tests)
@@ -1877,7 +1877,7 @@ create_go_mod() {
     local module_name
     module_name=$(basename "$PWD")
 
-    cat > "go.mod" <<EOF
+    cat >"go.mod" <<EOF
 module $module_name
 
 go 1.21
@@ -1895,7 +1895,7 @@ create_golangci_config() {
       return 0
     fi
 
-    cat > ".golangci.yml" <<'GOLANGCI_CONFIG_EOF'
+    cat >".golangci.yml" <<'GOLANGCI_CONFIG_EOF'
 run:
   timeout: 5m
   issues-exit-code: 1
@@ -2020,7 +2020,7 @@ generate_pre_push_hook() {
 
 # Generate Rust pre-push hook (existing implementation)
 generate_rust_pre_push_hook_content() {
-    cat <<'HOOK_EOF'
+  cat <<'HOOK_EOF'
 #!/bin/bash
 set -euo pipefail
 
@@ -2613,7 +2613,7 @@ HOOK_EOF
 
 # Generate generic pre-push hook (existing implementation)
 generate_generic_pre_push_hook_content() {
-    cat <<'HOOK_EOF'
+  cat <<'HOOK_EOF'
 #!/bin/bash
 set -euo pipefail
 
@@ -2739,7 +2739,7 @@ HOOK_EOF
 
 # Generate Node.js/JavaScript/TypeScript pre-push hook
 generate_nodejs_pre_push_hook_content() {
-    cat <<'NODEJS_HOOK_EOF'
+  cat <<'NODEJS_HOOK_EOF'
 #!/bin/bash
 set -euo pipefail
 
@@ -3056,7 +3056,7 @@ NODEJS_HOOK_EOF
 
 # Generate Python pre-push hook
 generate_python_pre_push_hook_content() {
-    cat <<'PYTHON_HOOK_EOF'
+  cat <<'PYTHON_HOOK_EOF'
 #!/bin/bash
 set -euo pipefail
 
@@ -3248,7 +3248,7 @@ PYTHON_HOOK_EOF
 
 # Generate Go pre-push hook
 generate_go_pre_push_hook_content() {
-    cat <<'GO_HOOK_EOF'
+  cat <<'GO_HOOK_EOF'
 #!/bin/bash
 set -euo pipefail
 
