@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Better error handling** - Enhanced user experience and debugging
 
 ### Changed
-- **Project scope expansion** - From 1-click-rust-sec to 1-click-github-sec
+- **Project scope expansion** - From 1-click-github-sec to 1-click-github-sec
 - **Architecture improvements** - Single-script with zero external dependencies
 - **Performance optimizations** - Faster pre-push hook execution
 - **Documentation updates** - Complete redesign of project documentation
@@ -121,8 +121,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ```bash
 # Quick install with verification
-curl -O https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/install-security-controls.sh
-curl -O https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/install-security-controls.sh.sha256
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/install-security-controls.sh
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/install-security-controls.sh.sha256
 sha256sum -c install-security-controls.sh.sha256
 chmod +x install-security-controls.sh
 ./install-security-controls.sh
@@ -130,7 +130,7 @@ chmod +x install-security-controls.sh
 
 ### Feedback
 
-Please report issues at: https://github.com/h4x0r/1-click-rust-sec/issues
+Please report issues at: https://github.com/h4x0r/1-click-github-sec/issues
 
 ### Contributors
 
@@ -141,4 +141,4 @@ Please report issues at: https://github.com/h4x0r/1-click-rust-sec/issues
 ---
 
 [0.3.0]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.0
-[0.1.0]: https://github.com/h4x0r/1-click-rust-sec/releases/tag/v0.1.0
+[0.1.0]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.1.0

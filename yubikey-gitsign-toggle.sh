@@ -752,8 +752,8 @@ interactive_setup() {
   if [[ ${NEED_GITSIGN_INSTALL:-false} == true ]]; then
     echo
     print_status $YELLOW "⚠️ gitsign is not installed"
-    print_status $BLUE "   Please run the 1-click-rust-sec installer first:"
-    print_status $BLUE "   curl -sSL https://raw.githubusercontent.com/4n6h4x0r/1-click-rust-sec/main/install-security-controls.sh | bash"
+    print_status $BLUE "   Please run the 1-click-github-sec installer first:"
+    print_status $BLUE "   curl -sSL https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/install-security-controls.sh | bash"
     print_status $BLUE "   Then run this script to enable YubiKey requirement."
     handle_error $EXIT_TOOL_MISSING "Tool missing"
   fi
@@ -994,8 +994,8 @@ main() {
   if [[ ${NEED_GITSIGN_INSTALL:-false} == true ]] && [[ $COMMAND != "status" ]]; then
     log_warn "gitsign is not installed"
     print_status $YELLOW "⚠️ gitsign is not installed"
-    print_status $BLUE "   Please run the 1-click-rust-sec installer first:"
-    print_status $BLUE "   curl -sSL https://raw.githubusercontent.com/4n6h4x0r/1-click-rust-sec/main/install-security-controls.sh | bash"
+    print_status $BLUE "   Please run the 1-click-github-sec installer first:"
+    print_status $BLUE "   curl -sSL https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/install-security-controls.sh | bash"
     print_status $BLUE "   Then run this script to enable YubiKey requirement."
     handle_error $EXIT_TOOL_MISSING "Tool missing"
   fi

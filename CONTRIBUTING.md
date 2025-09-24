@@ -48,8 +48,8 @@ To provide enterprise-grade security controls that are:
 
 1. **Fork and clone the repository**
 ```bash
-git clone https://github.com/YOUR_USERNAME/1-click-rust-sec.git
-cd 1-click-rust-sec
+git clone https://github.com/YOUR_USERNAME/1-click-github-sec.git
+cd 1-click-github-sec
 ```
 
 2. **Create a feature branch**
@@ -235,8 +235,8 @@ By contributing, you agree that your contributions will be licensed under Apache
 
 ## 🙋 Getting Help
 
-- **Questions**: Open a [GitHub Discussion](https://github.com/h4x0r/1-click-rust-sec/discussions)
-- **Bugs**: Open an [Issue](https://github.com/h4x0r/1-click-rust-sec/issues)
+- **Questions**: Open a [GitHub Discussion](https://github.com/h4x0r/1-click-github-sec/discussions)
+- **Bugs**: Open an [Issue](https://github.com/h4x0r/1-click-github-sec/issues)
 - **Security**: See [Repository Security](REPO_SECURITY.md)
 
 ## 🏆 Recognition

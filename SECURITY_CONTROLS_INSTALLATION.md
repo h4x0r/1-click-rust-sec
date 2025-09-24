@@ -9,7 +9,7 @@ This installer adds security controls to **YOUR** Rust project. It provides:
 - **Configuration files** for security tools
 - **🆕 GitHub security features** (with --github-security option)
 
-**Note**: This repository itself has additional development-specific controls. See [REPO_SECURITY.md](https://github.com/h4x0r/1-click-rust-sec/blob/main/REPO_SECURITY.md) for details about this repo's enhanced security.
+**Note**: This repository itself has additional development-specific controls. See [REPO_SECURITY.md](https://github.com/h4x0r/1-click-github-sec/blob/main/REPO_SECURITY.md) for details about this repo's enhanced security.
 
 ---
 
@@ -19,8 +19,8 @@ This installer adds security controls to **YOUR** Rust project. It provides:
 
 ```bash
 # Download installer and checksum
-curl -O https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/install-security-controls.sh
-curl -O https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/install-security-controls.sh.sha256
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/install-security-controls.sh
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/install-security-controls.sh.sha256
 
 # VERIFY CHECKSUM (Critical!)
 sha256sum -c install-security-controls.sh.sha256
@@ -296,8 +296,8 @@ git push --no-verify
 ### Manual Update
 ```bash
 # Download latest installer
-curl -O https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/install-security-controls.sh
-curl -O https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/install-security-controls.sh.sha256
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/install-security-controls.sh
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/install-security-controls.sh.sha256
 
 # Verify and run
 sha256sum -c install-security-controls.sh.sha256
@@ -311,7 +311,7 @@ chmod +x install-security-controls.sh
 
 ```bash
 # Download uninstaller
-curl -O https://raw.githubusercontent.com/h4x0r/1-click-rust-sec/main/uninstall-security-controls.sh
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/uninstall-security-controls.sh
 
 # Run uninstaller
 chmod +x uninstall-security-controls.sh
@@ -352,9 +352,9 @@ rm -rf docs/security/  # If docs were installed
 ## 🆘 Getting Help
 
 ### Resources
-- [Project Overview](https://github.com/h4x0r/1-click-rust-sec) - GitHub repository
-- [Issues](https://github.com/h4x0r/1-click-rust-sec/issues) - Report problems
-- [Security Architecture](https://github.com/h4x0r/1-click-rust-sec/blob/main/REPO_SECURITY.md) - This repository's enhanced security
+- [Project Overview](https://github.com/h4x0r/1-click-github-sec) - GitHub repository
+- [Issues](https://github.com/h4x0r/1-click-github-sec/issues) - Report problems
+- [Security Architecture](https://github.com/h4x0r/1-click-github-sec/blob/main/REPO_SECURITY.md) - This repository's enhanced security
 
 ### Common Issues
 - **"Command not found"**: Install missing tools per instructions
@@ -374,4 +374,4 @@ rm -rf docs/security/  # If docs were installed
 
 ---
 
-**Questions?** Open an issue at https://github.com/h4x0r/1-click-rust-sec/issues
+**Questions?** Open an issue at https://github.com/h4x0r/1-click-github-sec/issues

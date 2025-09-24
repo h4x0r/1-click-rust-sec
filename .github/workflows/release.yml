@@ -77,8 +77,8 @@ jobs:
 
             ```bash
             # Download and verify installer
-            curl -O https://github.com/h4x0r/1-click-rust-sec/releases/download/${{ github.ref_name }}/install-security-controls.sh
-            curl -O https://github.com/h4x0r/1-click-rust-sec/releases/download/${{ github.ref_name }}/install-security-controls.sh.sha256
+            curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/${{ github.ref_name }}/install-security-controls.sh
+            curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/${{ github.ref_name }}/install-security-controls.sh.sha256
 
             # Verify checksum (REQUIRED for security)
             sha256sum -c install-security-controls.sh.sha256
@@ -106,7 +106,7 @@ jobs:
 
             ### 📚 Documentation
 
-            **[Complete Documentation →](https://h4x0r.github.io/1-click-rust-sec/)**
+            **[Complete Documentation →](https://h4x0r.github.io/1-click-github-sec/)**
 
             ---
 
@@ -118,5 +118,5 @@ jobs:
         run: |
           echo "🔄 README update suggestions:"
           echo "Consider updating README.md Quick Start section to reference this release:"
-          echo "  curl -O https://github.com/h4x0r/1-click-rust-sec/releases/download/${{ github.ref_name }}/install-security-controls.sh"
-          echo "  curl -O https://github.com/h4x0r/1-click-rust-sec/releases/download/${{ github.ref_name }}/install-security-controls.sh.sha256"
+          echo "  curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/${{ github.ref_name }}/install-security-controls.sh"
+          echo "  curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/${{ github.ref_name }}/install-security-controls.sh.sha256"
