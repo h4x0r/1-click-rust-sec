@@ -4,7 +4,7 @@
 # Installs comprehensive security controls for any repository
 # Industry-leading security architecture for Rust projects
 #
-# Version: 0.3.0
+# Version: 0.3.1
 # License: Apache-2.0
 # Repository: https://github.com/4n6h4x0r/1-click-github-sec
 
@@ -21,7 +21,7 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m' # No Color
 
 # Configuration
-readonly SCRIPT_VERSION="0.3.0"
+readonly SCRIPT_VERSION="0.3.1"
 # shellcheck disable=SC2034 # Placeholder for future use
 readonly REQUIRED_TOOLS_FILE="security-tools-requirements.txt"
 # shellcheck disable=SC2034 # Placeholder for future use

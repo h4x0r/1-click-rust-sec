@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2025-01-24
+
+### 🔧 Maintenance Release
+
+**Repository URL Migration and Workflow Fixes** - Complete transition to 1-Click GitHub Security branding and improved CI reliability.
+
+### Fixed
+- **Workflow compatibility** - Updated CI workflows from deprecated `--non-rust` to `--language=generic` option
+- **ShellCheck compliance** - Fixed SC2076 warning in regex comparison for better code quality
+- **Shell script formatting** - Applied consistent formatting with shfmt for better maintainability
+
+### Changed
+- **Repository URL migration** - Updated all documentation and script references from `1-click-rust-sec` to `1-click-github-sec`
+- **Documentation consistency** - Ensured all links point to the correct repository across all files
+- **Release branding** - Updated release titles and descriptions to reflect "1-Click GitHub Security"
+
+### Infrastructure
+- **CI pipeline stability** - All GitHub Actions workflows now pass consistently
+- **Quality assurance** - Fixed shell script linting and formatting issues
+- **Binary synchronization** - Improved sync workflows for helper tools (gitleakslite, pinactlite)
+
+---
+
 ## [0.3.0] - 2025-01-24
 
 ### 🚀 Major Version Update
@@ -140,5 +163,6 @@ Please report issues at: https://github.com/h4x0r/1-click-github-sec/issues
 
 ---
 
+[0.3.1]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.1
 [0.3.0]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.0
 [0.1.0]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.1.0

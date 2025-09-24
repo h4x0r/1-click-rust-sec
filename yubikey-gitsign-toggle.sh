@@ -20,7 +20,7 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m' # No Color
 
 # Configuration
-readonly SCRIPT_VERSION="0.3.0"
+readonly SCRIPT_VERSION="0.3.1"
 readonly GITSIGN_CONFIG_FILE="$HOME/.gitsign-config"
 readonly BACKUP_CONFIG_FILE="$HOME/.git-config-backup"
 
