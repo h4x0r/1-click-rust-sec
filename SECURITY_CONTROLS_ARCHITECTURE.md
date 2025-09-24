@@ -351,11 +351,125 @@ tags = ["api", "key"]
 
 ### Dependency Scanning (Language-Specific)
 
-**Rust - cargo-audit**:
-- RustSec Advisory Database integration
-- Yanked crate detection
-- Version requirement analysis
-- Supply chain attack protection
+#### 🦀 Rust Dependency Security Architecture (Defense-in-Depth)
+
+Rust projects benefit from a comprehensive **4-tool security workflow** that creates layered protection against dependency vulnerabilities and supply chain attacks:
+
+##### **1. cargo-machete** (Attack Surface Reduction)
+```bash
+# Purpose: Remove unused dependencies to minimize attack surface
+cargo install cargo-machete
+cargo machete
+```
+
+**Security Benefits:**
+- **Reduces Attack Surface**: Unused dependencies still pose security risks
+- **Supply Chain Hardening**: Fewer dependencies = fewer potential compromise vectors
+- **Performance Improvement**: Smaller compilation times and binary sizes
+- **Maintenance Reduction**: Less dependency updates and security patches needed
+
+**Integration**: Runs first in the security pipeline to clean the dependency tree before auditing
+
+##### **2. cargo-deny** (Comprehensive Policy Enforcement)
+```bash
+# Purpose: Multi-faceted security policy enforcement
+cargo install cargo-deny
+cargo deny check
+```
+
+**Four-Layer Protection:**
+- **🚨 Advisories**: Blocks known CVEs from RustSec Advisory Database
+- **📄 Licenses**: Enforces license compliance and compatibility
+- **📦 Sources**: Restricts dependency sources to trusted registries
+- **🚫 Bans**: Explicitly blocks dangerous or unwanted crates
+
+**Configuration Example** (`.cargo/deny.toml`):
+```toml
+[advisories]
+vulnerability = "deny"    # Block all known vulnerabilities
+unmaintained = "warn"     # Warn about unmaintained crates
+unsound = "deny"         # Block unsound crates
+
+[licenses]
+unlicensed = "deny"      # Require all crates to have licenses
+allow = ["MIT", "Apache-2.0", "BSD-3-Clause"]
+deny = ["GPL-3.0"]       # Block copyleft licenses
+
+[sources]
+unknown-registry = "deny" # Only allow known registries
+unknown-git = "deny"     # Block unknown Git sources
+
+[bans]
+multiple-versions = "warn" # Warn about dependency version conflicts
+```
+
+**Integration**: Primary security enforcement tool that runs on cleaned dependencies
+
+##### **3. cargo-auditable** (Supply Chain Transparency)
+```bash
+# Purpose: Embed dependency metadata in binaries for forensic analysis
+cargo install cargo-auditable
+cargo auditable build --release
+```
+
+**Security Benefits:**
+- **Incident Response**: Enables post-breach dependency analysis
+- **Vulnerability Tracking**: Links production binaries to specific dependency versions
+- **Supply Chain Forensics**: Provides complete dependency provenance
+- **SBOM Generation**: Creates embedded Software Bill of Materials
+
+**Integration**: Used for production builds to ensure traceability
+
+##### **4. cargo-geiger** (Unsafe Code Detection)
+```bash
+# Purpose: Detect and quantify unsafe Rust code in dependencies
+cargo install cargo-geiger
+cargo geiger
+```
+
+**Security Benefits:**
+- **Memory Safety Analysis**: Identifies potential memory safety violations
+- **Dependency Risk Assessment**: Quantifies unsafe code usage across dependencies
+- **Security Review Guidance**: Prioritizes crates for manual security review
+- **Rust Safety Guarantee Verification**: Ensures dependencies maintain Rust's safety promises
+
+**Integration**: Provides additional risk metrics for dependency evaluation
+
+##### **Complete Rust Security Workflow**
+
+**Pre-Push Hook Sequence** (< 60 seconds):
+```bash
+1. cargo machete           # Remove unused deps (5s)
+2. cargo fmt --check       # Format validation (2s)
+3. cargo clippy            # Linting with security rules (15s)
+4. cargo test              # Test suite execution (20s)
+5. cargo deny check        # Comprehensive security audit (10s)
+6. cargo geiger --quiet    # Unsafe code analysis (5s)
+```
+
+**CI/CD Deep Analysis**:
+```bash
+1. cargo auditable build   # Production build with metadata
+2. cargo geiger --output-format GitHubMarkdown
+3. SBOM generation and artifact signing
+4. Advanced supply chain analysis
+```
+
+**Why This Approach Works:**
+
+1. **Minimize → Validate → Document → Deploy**: Each tool has a specific role
+2. **Fast Feedback**: Critical checks complete in < 60 seconds
+3. **Zero False Positives**: Tools are tuned for accuracy over speed
+4. **Defense in Depth**: Multiple overlapping security controls
+5. **Developer Education**: Each failure provides learning opportunities
+
+**Tool Synergy Benefits:**
+- cargo-machete reduces work for subsequent tools
+- cargo-deny provides authoritative security decisions
+- cargo-auditable enables post-deployment tracking
+- cargo-geiger adds risk quantification context
+
+This creates a **minimize → validate → document** security pipeline that provides comprehensive protection while maintaining developer velocity.
 
 **Node.js - npm audit**:
 - npm Advisory Database

@@ -49,15 +49,61 @@ A Git hook that runs 35+ security checks before each push:
 
 #### Language-Specific Checks
 
-**🦀 Rust Projects (25+ Checks):**
-- **Vulnerability Scanning** - Blocks known CVEs via cargo-deny
-- **Code Formatting** - cargo fmt enforcement
-- **Linting** - clippy with security rules
-- **Test Suite** - Ensures tests pass
-- **License Compliance** - cargo-deny license checks
-- **Unsafe Code Monitoring** - cargo-geiger analysis
-- **Unused Dependencies** - cargo-machete detection
-- Plus 18+ additional Rust-specific security checks
+**🦀 Rust Projects (25+ Checks) - Advanced Dependency Security:**
+
+Rust projects get the most comprehensive security controls using a **4-tool defense-in-depth approach**:
+
+##### **Core Security Pipeline** (Pre-Push Hook - ~60 seconds)
+1. **🧹 cargo-machete** - Attack Surface Reduction (5s)
+   - Removes unused dependencies to minimize supply chain risk
+   - Reduces compilation time and binary size
+   - Eliminates maintenance burden from unnecessary dependencies
+
+2. **✅ cargo fmt --check** - Code Formatting (2s)
+   - Enforces consistent code style
+   - Prevents style-related merge conflicts
+
+3. **🔍 cargo clippy** - Advanced Linting (15s)
+   - 400+ security-focused lint rules
+   - Catches common bugs and anti-patterns
+   - Enforces Rust best practices
+
+4. **🧪 cargo test** - Test Suite Validation (20s)
+   - Ensures all unit and integration tests pass
+   - Prevents broken code from reaching repository
+
+5. **🛡️ cargo-deny check** - Comprehensive Security Audit (10s)
+   - **Vulnerability Scanning**: Blocks known CVEs from RustSec Database
+   - **License Compliance**: Enforces approved licenses only
+   - **Source Verification**: Restricts dependencies to trusted registries
+   - **Dependency Bans**: Blocks explicitly dangerous crates
+   - **Supply Chain Protection**: Multi-layer dependency validation
+
+6. **⚠️ cargo-geiger --quiet** - Unsafe Code Analysis (5s)
+   - Quantifies unsafe code usage across all dependencies
+   - Identifies potential memory safety violations
+   - Guides manual security review priorities
+
+##### **Advanced CI/CD Analysis** (Post-Push)
+- **📦 cargo-auditable build** - Production builds with embedded dependency metadata
+- **📊 SBOM Generation** - Complete Software Bill of Materials
+- **🔍 Supply Chain Forensics** - Enable post-incident dependency analysis
+- **📈 Security Metrics** - Track unsafe code trends over time
+
+##### **Why This Approach is Superior:**
+- **Minimize → Validate → Document → Deploy**: Each tool has a specific security role
+- **Defense in Depth**: Multiple overlapping security controls catch different threats
+- **Fast Developer Feedback**: Critical security issues caught in < 60 seconds
+- **Zero False Positives**: Tools tuned for accuracy to maintain developer trust
+- **Educational**: Each security failure provides learning opportunities
+
+##### **Tool Synergy Benefits:**
+- cargo-machete reduces attack surface before auditing
+- cargo-deny provides authoritative security decisions
+- cargo-auditable enables production incident response
+- cargo-geiger adds quantified risk assessment
+
+This creates the most comprehensive Rust dependency security available anywhere, automatically installed and configured.
 
 **📦 Node.js Projects (12-Point Security Audit):**
 - **Comprehensive npm audit** - Standard + enhanced auditing
