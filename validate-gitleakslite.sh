@@ -54,6 +54,8 @@ log_entry() {
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
   local caller="${FUNCNAME[2]:-main}"
 
+  # Ensure log directory exists before writing
+  [[ ! -d "$LOG_DIR" ]] && mkdir -p "$LOG_DIR"
   echo "[$timestamp] [$level] [$caller] $message" >>"$LOG_FILE"
 }
 
@@ -409,6 +411,9 @@ benchmark_performance() {
 main() {
   local gitleakslite_path="${1:-.security-controls/bin/gitleakslite}"
 
+  # Setup logging early
+  setup_logging
+
   # Parse arguments
   while [[ $# -gt 0 ]]; do
     case $1 in
@@ -427,9 +432,6 @@ main() {
     esac
     shift
   done
-
-  # Setup
-  setup_logging
 
   print_section "Gitleakslite Validation Tool v$SCRIPT_VERSION"
   printf "Testing gitleakslite against statistical sample of secret patterns\n\n"
