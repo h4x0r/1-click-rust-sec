@@ -421,7 +421,7 @@ benchmark_performance() {
 # =============================================================================
 
 main() {
-  local gitleakslite_path="${1:-.security-controls/bin/gitleakslite}"
+  local gitleakslite_path=""
 
   # Setup logging early
   setup_logging
@@ -444,6 +444,11 @@ main() {
     esac
     shift
   done
+
+  # Set default if no path provided
+  if [[ -z $gitleakslite_path ]]; then
+    gitleakslite_path=".security-controls/bin/gitleakslite"
+  fi
 
   print_section "Gitleakslite Validation Tool v$SCRIPT_VERSION"
   printf "Testing gitleakslite against statistical sample of secret patterns\n\n"
