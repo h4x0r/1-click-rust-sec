@@ -471,6 +471,60 @@ cargo geiger
 
 This creates a **minimize → validate → document** security pipeline that provides comprehensive protection while maintaining developer velocity.
 
+##### **Dependabot Integration - Automated Dependency Management**
+
+**Dependabot** serves as the **continuous monitoring and update layer** that complements the local security pipeline:
+
+**🔄 Automated Security Updates:**
+```yaml
+# .github/dependabot.yml (automatically configured)
+version: 2
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+```
+
+**Integration with Rust Security Pipeline:**
+- **Detection Phase**: Dependabot identifies outdated dependencies with known vulnerabilities
+- **PR Creation**: Creates pull requests with dependency updates
+- **Local Validation**: Updated dependencies are automatically validated by the 4-tool pipeline
+- **Approval Workflow**: Security team can review changes before merge
+
+**Synergy Benefits:**
+1. **Proactive Updates**: Dependabot finds updates → Local tools validate security
+2. **Automated Testing**: Each Dependabot PR triggers full security pipeline
+3. **Risk Assessment**: cargo-geiger analyzes unsafe code changes in updates
+4. **Policy Enforcement**: cargo-deny validates updated dependencies against security policies
+5. **Supply Chain Tracking**: cargo-auditable documents update history for forensics
+
+**Complete Update Workflow:**
+```mermaid
+graph LR
+    A[Dependabot Scans] --> B[Creates PR]
+    B --> C[CI Runs 4-Tool Pipeline]
+    C --> D[cargo-machete: Clean deps]
+    D --> E[cargo-deny: Security audit]
+    E --> F[cargo-geiger: Risk analysis]
+    F --> G[cargo-auditable: Document change]
+    G --> H[Security Review]
+    H --> I[Merge Update]
+```
+
+**Why This Integration Works:**
+- **Continuous Monitoring**: Dependabot never sleeps, constantly watching for updates
+- **Automated Validation**: Local tools provide immediate security feedback on updates
+- **Human Oversight**: Security team retains control over critical dependency changes
+- **Forensic Trail**: Complete audit trail from vulnerability discovery to resolution
+
+**Configuration Benefits:**
+- **Automatic**: Enabled by default with GitHub security features
+- **Customizable**: Update schedules, PR limits, and review requirements configurable
+- **Language-Aware**: Understands Rust ecosystem and Cargo.toml structure
+- **Security-Focused**: Prioritizes security updates over feature updates
+
 **Node.js - npm audit**:
 - npm Advisory Database
 - Dependency tree analysis
