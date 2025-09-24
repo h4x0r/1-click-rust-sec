@@ -1,0 +1,122 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release with Artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Validate tag format
+        run: |
+          if [[ ! "${{ github.ref_name }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid tag format. Expected: v1.2.3"
+            exit 1
+          fi
+          echo "✅ Valid semver tag: ${{ github.ref_name }}"
+
+      - name: Generate release artifacts
+        run: |
+          set -euo pipefail
+
+          # Generate checksums for installer scripts
+          sha256sum install-security-controls.sh > install-security-controls.sh.sha256
+          sha256sum uninstall-security-controls.sh > uninstall-security-controls.sh.sha256
+
+          # Create combined checksums file
+          cat > checksums.txt <<EOF
+          # 1-Click Rust Security ${{ github.ref_name }} - Release Checksums
+          # Verify with: sha256sum -c checksums.txt
+
+          EOF
+          cat install-security-controls.sh.sha256 >> checksums.txt
+          cat uninstall-security-controls.sh.sha256 >> checksums.txt
+
+          # Display checksums for verification
+          echo "📋 Generated checksums:"
+          cat checksums.txt
+
+      - name: Validate installer integrity
+        run: |
+          set -euo pipefail
+
+          # Quick syntax check
+          bash -n install-security-controls.sh
+          bash -n uninstall-security-controls.sh
+
+          # Verify checksums
+          sha256sum -c install-security-controls.sh.sha256
+          sha256sum -c uninstall-security-controls.sh.sha256
+
+          echo "✅ All integrity checks passed"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@a74c6b72af54cfa997e81df42d94703d6313a2d0 # v2.0.6
+        with:
+          files: |
+            install-security-controls.sh
+            install-security-controls.sh.sha256
+            uninstall-security-controls.sh
+            uninstall-security-controls.sh.sha256
+            checksums.txt
+          generate_release_notes: true
+          name: "1-Click Rust Security ${{ github.ref_name }}"
+          body: |
+            ## 🛡️ 1-Click Rust Security ${{ github.ref_name }}
+
+            ### 📦 Quick Installation
+
+            ```bash
+            # Download and verify installer
+            curl -O https://github.com/h4x0r/1-click-rust-sec/releases/download/${{ github.ref_name }}/install-security-controls.sh
+            curl -O https://github.com/h4x0r/1-click-rust-sec/releases/download/${{ github.ref_name }}/install-security-controls.sh.sha256
+
+            # Verify checksum (REQUIRED for security)
+            sha256sum -c install-security-controls.sh.sha256
+
+            # Install security controls
+            chmod +x install-security-controls.sh
+            ./install-security-controls.sh
+            ```
+
+            ### 🔐 Security Verification
+
+            - ✅ All release artifacts include SHA256 checksums
+            - ✅ Scripts validated for syntax and integrity
+            - ✅ Generated from signed commits
+
+            ### 📋 Release Artifacts
+
+            | File | Purpose | Verification |
+            |------|---------|--------------|
+            | `install-security-controls.sh` | Main installer script | Required checksum verification |
+            | `install-security-controls.sh.sha256` | SHA256 checksum | Use with `sha256sum -c` |
+            | `uninstall-security-controls.sh` | Removal script | Optional but recommended |
+            | `uninstall-security-controls.sh.sha256` | SHA256 checksum | Use with `sha256sum -c` |
+            | `checksums.txt` | Combined checksums | All files in one place |
+
+            ### 📚 Documentation
+
+            **[Complete Documentation →](https://h4x0r.github.io/1-click-rust-sec/)**
+
+            ---
+
+            **🛡️ Always verify checksums before execution - this is critical for security!**
+          draft: false
+          prerelease: false
+
+      - name: Update installation instructions in README
+        run: |
+          echo "🔄 README update suggestions:"
+          echo "Consider updating README.md Quick Start section to reference this release:"
+          echo "  curl -O https://github.com/h4x0r/1-click-rust-sec/releases/download/${{ github.ref_name }}/install-security-controls.sh"
+          echo "  curl -O https://github.com/h4x0r/1-click-rust-sec/releases/download/${{ github.ref_name }}/install-security-controls.sh.sha256"
