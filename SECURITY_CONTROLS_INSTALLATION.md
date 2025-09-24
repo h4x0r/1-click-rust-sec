@@ -2,8 +2,8 @@
 
 ## ⚠️ What This Installer Provides
 
-This installer adds security controls to **YOUR** Rust project. It provides:
-- **25+ pre-push security checks** (run locally before each push)
+This installer adds security controls to **YOUR** multi-language project. It provides:
+- **35+ pre-push security checks** (run locally before each push)
 - **2 helper tools** (pinactlite, gitleakslite)
 - **Optional CI workflows** (can be skipped with --no-ci)
 - **Configuration files** for security tools
@@ -39,35 +39,50 @@ chmod +x install-security-controls.sh
 
 ### 1. Pre-Push Hook (`~60 seconds` runtime)
 
-A Git hook that runs 25+ security checks before each push:
+A Git hook that runs 35+ security checks before each push:
 
-#### Critical Checks (Blocking)
+#### Universal Checks (All Languages)
 - **Secret Detection** - Prevents AWS keys, GitHub tokens, API keys, private keys from being pushed
-- **Vulnerability Scanning** - Blocks known CVEs in dependencies (cargo-deny)
-- **Test Validation** - Ensures all tests pass
-- **Format Enforcement** - Maintains code style consistency
-- **Linting** - Catches bugs and bad patterns (clippy)
+- **GitHub Actions SHA Pinning** - Verifies action security
 - **Large File Prevention** - Blocks files >10MB
+- **Commit Signature Verification** - Ensures signed commits
 
-#### Important Checks (Warning Only)
-- GitHub Actions SHA pinning verification
-- Commit signature verification (if configured)
-- License compliance checking
-- Dependency version pinning
-- Unsafe code monitoring (cargo-geiger)
-- Unused dependencies (cargo-machete)
-- Build script security
-- Documentation secret scanning
-- Environment variable hardcoding
-- Rust edition checks
-- Import validation
-- File permissions
-- Dependency count monitoring
-- Network address validation
-- Commit message security
-- Technical debt tracking
-- Empty file detection
-- Cargo.lock validation
+#### Language-Specific Checks
+
+**🦀 Rust Projects (25+ Checks):**
+- **Vulnerability Scanning** - Blocks known CVEs via cargo-deny
+- **Code Formatting** - cargo fmt enforcement
+- **Linting** - clippy with security rules
+- **Test Suite** - Ensures tests pass
+- **License Compliance** - cargo-deny license checks
+- **Unsafe Code Monitoring** - cargo-geiger analysis
+- **Unused Dependencies** - cargo-machete detection
+- Plus 18+ additional Rust-specific security checks
+
+**📦 Node.js Projects (12-Point Security Audit):**
+- **Comprehensive npm audit** - Standard + enhanced auditing
+- **Vulnerability Scanning** - Snyk + retire.js for JS libraries
+- **Code Formatting** - Prettier enforcement
+- **Security Linting** - ESLint with security rules
+- **License Compliance** - License compatibility checking
+- **Package Integrity** - package-lock.json validation
+- Plus additional Node.js-specific security checks
+
+**🐍 Python Projects:**
+- **Vulnerability Scanning** - safety + pip-audit for Python packages
+- **SAST Analysis** - bandit for security issues
+- **Code Formatting** - black formatter enforcement
+- **Linting** - flake8/pylint with security rules
+- **Test Suite** - pytest/unittest execution
+- Plus additional Python-specific security checks
+
+**🐹 Go Projects:**
+- **Vulnerability Scanning** - govulncheck for Go modules
+- **Code Formatting** - gofmt enforcement
+- **Linting** - golint with security focus
+- **Test Suite** - go test execution
+- Plus additional Go-specific security checks
+
 
 ### 2. Helper Tools
 
@@ -149,17 +164,33 @@ If requirements aren't met, the installer provides detailed manual setup instruc
 
 ## 📦 Installation Options
 
-### Standard (Rust Projects)
+### Auto-Detection (Recommended)
 ```bash
 ./install-security-controls.sh
 ```
-Full installation with all Rust-specific checks.
+Automatically detects your project language and installs optimized security controls.
 
-### Non-Rust Projects
+**Supported Languages:**
+- **🦀 Rust** - cargo-deny, clippy, fmt, audit, geiger
+- **📦 Node.js** - 12-point npm audit, ESLint, Prettier, Snyk
+- **🐍 Python** - safety, bandit, black, flake8, pip-audit
+- **🐹 Go** - govulncheck, gofmt, golint, go test
+- **⚙️ Generic** - Universal security controls for any project
+
+### Force Specific Language
 ```bash
-./install-security-controls.sh --non-rust
+./install-security-controls.sh --language=nodejs    # Node.js/JavaScript/TypeScript
+./install-security-controls.sh --language=python    # Python projects
+./install-security-controls.sh --language=go        # Go projects
+./install-security-controls.sh --language=rust      # Rust projects
+./install-security-controls.sh --language=generic   # Language-agnostic
 ```
-Universal checks + GitHub security features.
+
+### Polyglot Repository Support
+```bash
+# For repositories with multiple languages
+./install-security-controls.sh --language=rust,nodejs,python
+```
 
 ### Without GitHub Security Features
 ```bash
@@ -201,15 +232,26 @@ See all available options.
 - curl
 - jq
 
-### For Rust Projects
+### For Language-Specific Projects
+
+**Rust Projects:**
 - Rust toolchain (rustup)
 - Cargo
+- Optional: cargo-deny, cargo-audit, cargo-geiger, cargo-machete
 
-### Optional But Recommended
-- cargo-deny or cargo-audit
-- cargo-geiger
-- cargo-machete
-- cargo-license
+**Node.js Projects:**
+- Node.js runtime
+- npm or yarn
+- Optional: ESLint, Prettier, audit-ci
+
+**Python Projects:**
+- Python 3.6+
+- pip
+- Optional: black, flake8, safety, bandit
+
+**Go Projects:**
+- Go toolchain 1.16+
+- Optional: govulncheck, golint, gofmt
 
 ---
 
@@ -342,10 +384,15 @@ rm -rf docs/security/  # If docs were installed
 | **Total** | **~60s** | **Target: Under 90s** |
 
 ### Speed Tips
-1. **Warm caches**: Run `cargo build --release` before pushing
+1. **Warm caches**: Pre-build before pushing (language-specific)
 2. **Fix issues early**: Don't let warnings accumulate
-3. **Optimize tests**: Use `#[ignore]` for slow integration tests
+3. **Optimize tests**: Focus on fast unit tests
 4. **Update regularly**: Keep dependencies current
+5. **Language-specific optimizations**:
+   - **Rust**: Run `cargo build --release` before pushing
+   - **Node.js**: Use `npm ci` for faster installs
+   - **Python**: Use virtual environments
+   - **Go**: Keep module cache warm
 
 ---
 

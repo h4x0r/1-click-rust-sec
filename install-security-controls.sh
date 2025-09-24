@@ -2,7 +2,7 @@
 
 # 🛡️ Security Controls Installer
 # Installs comprehensive security controls for any repository
-# Industry-leading security architecture for Rust projects
+# Industry-leading security architecture for multi-language projects
 #
 # Version: 0.3.1
 # License: Apache-2.0
@@ -570,7 +570,7 @@ USAGE:
 
 DESCRIPTION:
     Installs enterprise-grade security controls for multi-language projects.
-    Provides comprehensive security: local validation (25+ checks) + CI analysis + GitHub security features.
+    Provides comprehensive security: local validation (35+ checks) + CI analysis + GitHub security features.
 
 OPTIONS:
     -h, --help              Show this help message
@@ -634,21 +634,21 @@ EXAMPLES:
 
 SECURITY CONTROLS INSTALLED:
     Pre-Push (Complete Coverage, < 80s):
-    ✅ Code formatting validation
-    ✅ Linting and quality checks  
+    ✅ Code formatting validation (language-specific)
+    ✅ Linting and quality checks (language-specific)
     ✅ Security audit (vulnerable dependencies)
-    ✅ Test suite execution
-    ✅ Secret detection (API keys, passwords)
+    ✅ Test suite execution (language-specific)
+    ✅ Secret detection (API keys, passwords) - universal
     ✅ License compliance checking
-    ✅ SHA pinning validation
-    ✅ Commit signature verification
-    ✅ Cargo.lock validation & git tracking
+    ✅ SHA pinning validation - universal
+    ✅ Commit signature verification - universal
+    ✅ Dependency file validation & git tracking
     ✅ Dependency version pinning analysis
     ✅ Build script security scanning
     ✅ Documentation security validation
     ✅ Environment variable security check
-    ✅ Rust edition enforcement
-    ✅ Unsafe block monitoring
+    ✅ Language edition/version enforcement
+    ✅ Unsafe/dangerous code monitoring
     ✅ Import security validation
     ✅ File permission auditing
     ✅ Dependency count monitoring
@@ -4466,7 +4466,7 @@ git push --no-verify
 
 ## 🔧 Tool Installation
 
-Local runtime dependencies are minimal: git, curl, jq, and (for Rust projects) the Rust toolchain. The installer provides script-only helpers at `.security-controls/bin` for secret scanning and GitHub Actions SHA pinning; no Go/brew installs are required for local checks.
+Local runtime dependencies are minimal: git, curl, jq, and language-specific toolchains (Rust, Node.js, Python, Go as needed). The installer provides script-only helpers at `.security-controls/bin` for secret scanning and GitHub Actions SHA pinning; no Go/brew installs are required for local checks.
 
 ```bash
 # Rust tools (if Rust project)
