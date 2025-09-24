@@ -31,6 +31,7 @@ jobs:
           # Generate checksums for installer scripts
           sha256sum install-security-controls.sh > install-security-controls.sh.sha256
           sha256sum uninstall-security-controls.sh > uninstall-security-controls.sh.sha256
+          sha256sum yubikey-gitsign-toggle.sh > yubikey-gitsign-toggle.sh.sha256
 
           # Create combined checksums file
           cat > checksums.txt <<EOF
@@ -40,6 +41,7 @@ jobs:
           EOF
           cat install-security-controls.sh.sha256 >> checksums.txt
           cat uninstall-security-controls.sh.sha256 >> checksums.txt
+          cat yubikey-gitsign-toggle.sh.sha256 >> checksums.txt
 
           # Display checksums for verification
           echo "📋 Generated checksums:"
@@ -52,10 +54,12 @@ jobs:
           # Quick syntax check
           bash -n install-security-controls.sh
           bash -n uninstall-security-controls.sh
+          bash -n yubikey-gitsign-toggle.sh
 
           # Verify checksums
           sha256sum -c install-security-controls.sh.sha256
           sha256sum -c uninstall-security-controls.sh.sha256
+          sha256sum -c yubikey-gitsign-toggle.sh.sha256
 
           echo "✅ All integrity checks passed"
 
@@ -67,6 +71,8 @@ jobs:
             install-security-controls.sh.sha256
             uninstall-security-controls.sh
             uninstall-security-controls.sh.sha256
+            yubikey-gitsign-toggle.sh
+            yubikey-gitsign-toggle.sh.sha256
             checksums.txt
           generate_release_notes: true
           name: "1-Click Rust Security ${{ github.ref_name }}"
@@ -88,6 +94,21 @@ jobs:
             ./install-security-controls.sh
             ```
 
+            ### 🔑 YubiKey + Sigstore Signing (Advanced)
+
+            ```bash
+            # Download and verify YubiKey toggle script
+            curl -O https://github.com/h4x0r/1-click-rust-sec/releases/download/${{ github.ref_name }}/yubikey-gitsign-toggle.sh
+            curl -O https://github.com/h4x0r/1-click-rust-sec/releases/download/${{ github.ref_name }}/yubikey-gitsign-toggle.sh.sha256
+
+            # Verify checksum
+            sha256sum -c yubikey-gitsign-toggle.sh.sha256
+
+            # Setup YubiKey + Sigstore commit signing
+            chmod +x yubikey-gitsign-toggle.sh
+            ./yubikey-gitsign-toggle.sh
+            ```
+
             ### 🔐 Security Verification
 
             - ✅ All release artifacts include SHA256 checksums
@@ -102,6 +123,8 @@ jobs:
             | `install-security-controls.sh.sha256` | SHA256 checksum | Use with `sha256sum -c` |
             | `uninstall-security-controls.sh` | Removal script | Optional but recommended |
             | `uninstall-security-controls.sh.sha256` | SHA256 checksum | Use with `sha256sum -c` |
+            | `yubikey-gitsign-toggle.sh` | YubiKey + Sigstore signing toggle | Optional advanced feature |
+            | `yubikey-gitsign-toggle.sh.sha256` | SHA256 checksum | Use with `sha256sum -c` |
             | `checksums.txt` | Combined checksums | All files in one place |
 
             ### 📚 Documentation
