@@ -32,7 +32,7 @@ jobs:
           git config user.name Test
 
           # Run installer (should install pinactlite)
-          bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force
+          bash ../install-security-controls.sh --language=generic --no-ci --no-docs --force
 
           # Test that pinactlite was installed
           if [[ ! -x ".security-controls/bin/pinactlite" ]]; then
@@ -70,7 +70,7 @@ jobs:
           echo "📊 Testing installer methodology..."
 
           # Capture full installer output
-          INSTALLER_OUTPUT=$(bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force 2>&1)
+          INSTALLER_OUTPUT=$(bash ../install-security-controls.sh --language=generic --no-ci --no-docs --force 2>&1)
 
           # Check which method was used
           if echo "$INSTALLER_OUTPUT" | grep -q "Copied pinactlite from canonical source"; then
@@ -122,7 +122,7 @@ jobs:
 
           # Copy installer and run it (same as E2E test)
           cp ../install-security-controls.sh .
-          bash ./install-security-controls.sh --non-rust --no-ci --no-docs --force
+          bash ./install-security-controls.sh --language=generic --no-ci --no-docs --force
 
           # Verify the tool that E2E expects exists and is executable
           if [[ ! -x ".security-controls/bin/pinactlite" ]]; then

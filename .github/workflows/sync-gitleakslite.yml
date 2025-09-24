@@ -32,7 +32,7 @@ jobs:
           git config user.name Test
 
           # Run installer (should install gitleakslite)
-          bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force
+          bash ../install-security-controls.sh --language=generic --no-ci --no-docs --force
 
           # Test that gitleakslite was installed
           if [[ ! -x ".security-controls/bin/gitleakslite" ]]; then
@@ -69,9 +69,9 @@ jobs:
           # Run installer to see which method it uses
           echo "📊 Testing installer methodology..."
 
-          if bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force 2>&1 | grep -q "Copied gitleakslite from canonical source"; then
+          if bash ../install-security-controls.sh --language=generic --no-ci --no-docs --force 2>&1 | grep -q "Copied gitleakslite from canonical source"; then
             echo "✅ Installer correctly copies from canonical source"
-          elif bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force 2>&1 | grep -q "Downloaded gitleakslite from repository"; then
+          elif bash ../install-security-controls.sh --language=generic --no-ci --no-docs --force 2>&1 | grep -q "Downloaded gitleakslite from repository"; then
             echo "✅ Installer correctly downloads from repository"
           else
             echo "⚠️ Installer used fallback generation method"
@@ -129,7 +129,7 @@ jobs:
 
           # Copy installer and run it (same as E2E test)
           cp ../install-security-controls.sh .
-          bash ./install-security-controls.sh --non-rust --no-ci --no-docs --force
+          bash ./install-security-controls.sh --language=generic --no-ci --no-docs --force
 
           # Verify the tool that E2E expects exists and is executable
           if [[ ! -x ".security-controls/bin/gitleakslite" ]]; then
@@ -162,11 +162,11 @@ jobs:
           git config user.name Deploy
 
           # Test multiple installer runs produce identical results
-          bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force
+          bash ../install-security-controls.sh --language=generic --no-ci --no-docs --force
           FIRST_SHA=$(sha256sum .security-controls/bin/gitleakslite | cut -d' ' -f1)
 
           rm -rf .security-controls
-          bash ../install-security-controls.sh --non-rust --no-ci --no-docs --force
+          bash ../install-security-controls.sh --language=generic --no-ci --no-docs --force
           SECOND_SHA=$(sha256sum .security-controls/bin/gitleakslite | cut -d' ' -f1)
 
           if [[ "$FIRST_SHA" != "$SECOND_SHA" ]]; then

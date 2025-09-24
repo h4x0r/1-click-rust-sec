@@ -803,7 +803,7 @@ detect_project_languages() {
 # Check if a specific language is detected
 has_language() {
   local lang="$1"
-  [[ " ${DETECTED_LANGUAGES[*]} " =~ " ${lang} " ]]
+  [[ " ${DETECTED_LANGUAGES[*]} " =~ \ ${lang}\  ]]
 }
 
 # Legacy function for backward compatibility

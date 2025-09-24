@@ -32,7 +32,7 @@ jobs:
           git config user.name Sandbox
 
           # Install helpers only (no CI/docs)
-          bash ./install-security-controls.sh --non-rust --no-ci --no-docs --force
+          bash ./install-security-controls.sh --language=generic --no-ci --no-docs --force
 
           # Create workflow with unpinned action and image
           UNPINNED_ACTION="actions/checkout@v4"
@@ -97,7 +97,7 @@ jobs:
           git config user.email sandbox@example.com
           git config user.name Sandbox
           # Use generic mode to avoid requiring Rust toolchain
-          bash ./install-security-controls.sh --non-rust --no-ci --no-docs --force
+          bash ./install-security-controls.sh --language=generic --no-ci --no-docs --force
           # Verify outputs
           test -x .git/hooks/pre-push || (echo "missing pre-push" && exit 1)
           test -x .security-controls/bin/gitleakslite || (echo "missing gitleakslite" && exit 1)
