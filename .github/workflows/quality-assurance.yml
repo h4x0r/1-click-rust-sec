@@ -85,10 +85,58 @@ jobs:
             exit 1
           fi
 
-          # Comprehensive gitleakslite validation (copy script and run)
-          cp ../validate-gitleakslite.sh .
-          chmod +x validate-gitleakslite.sh
-          FORCE_GITLEAKSLITE_VALIDATION=true ./validate-gitleakslite.sh --verbose
+          # Comprehensive gitleakslite validation with dynamic patterns
+          echo "🔍 Running comprehensive gitleakslite validation..."
+
+          # Generate dynamic test patterns to avoid CI secret detection
+          generate_test_patterns() {
+            local -a patterns=()
+            local random_20=$(openssl rand -hex 10)
+            local random_32=$(openssl rand -hex 16)
+            local random_40=$(openssl rand -hex 20)
+            local random_64=$(openssl rand -hex 32)
+            local random_id=$(openssl rand -hex 6)
+
+            patterns+=("AKIA${random_20:0:16}")                    # AWS Access Key
+            patterns+=("ghp_${random_40}")                         # GitHub Personal Access Token
+            patterns+=("sk-proj-${random_64}")                     # OpenAI API Key
+            patterns+=("xoxb-${random_id}-${random_id}-${random_32}")  # Slack Bot Token
+            patterns+=("AIza${random_32}")                         # Google API Key
+            patterns+=("ya29.${random_64}")                        # Google OAuth Token
+            patterns+=("postgresql://user:${random_20}@host/db")   # Database URL
+            patterns+=("mysql://root:${random_20}@localhost/db")   # MySQL URL
+            patterns+=("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.${random_64}.${random_32}") # JWT Token
+
+            printf '%s\n' "${patterns[@]}"
+          }
+
+          # Test gitleakslite with generated patterns
+          test_patterns=$(generate_test_patterns)
+          echo "$test_patterns" > test-secrets.txt
+          git add test-secrets.txt
+
+          echo "Testing gitleakslite detect on generated patterns..."
+          if ./.security-controls/bin/gitleakslite detect --no-banner --redact test-secrets.txt; then
+            echo "❌ gitleakslite failed to detect test patterns"
+            exit 1
+          else
+            echo "✅ gitleakslite correctly detected test patterns"
+          fi
+
+          # Test protect mode
+          echo "Testing gitleakslite protect on staged secrets..."
+          if ./.security-controls/bin/gitleakslite protect --staged --no-banner --redact; then
+            echo "❌ gitleakslite failed to detect staged secrets"
+            exit 1
+          else
+            echo "✅ gitleakslite correctly blocked staged secrets"
+          fi
+
+          # Clean up test file
+          git reset HEAD test-secrets.txt
+          rm -f test-secrets.txt
+
+          echo "✅ Comprehensive gitleakslite validation completed"
 
   installer-self-test:
     name: Installer self-testing
