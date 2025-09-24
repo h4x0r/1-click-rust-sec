@@ -21,6 +21,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
+      - name: Install OpenSSL for gitleakslite validation
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y openssl
+
       - name: Run installer and test helpers
         run: |
           set -euo pipefail
@@ -80,6 +85,11 @@ jobs:
             exit 1
           fi
 
+          # Comprehensive gitleakslite validation (copy script and run)
+          cp ../validate-gitleakslite.sh .
+          chmod +x validate-gitleakslite.sh
+          FORCE_GITLEAKSLITE_VALIDATION=true ./validate-gitleakslite.sh --verbose
+
   installer-self-test:
     name: Installer self-testing
     runs-on: ubuntu-latest
@@ -105,6 +115,7 @@ jobs:
           test -f .security-controls/config.env || (echo "missing config.env" && exit 1)
           # Run pre-push hook directly (should succeed with no staged changes)
           .git/hooks/pre-push
+
 
   sha-pinning-validation:
     name: SHA pinning validation
