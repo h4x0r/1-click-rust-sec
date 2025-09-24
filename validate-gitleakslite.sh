@@ -19,7 +19,7 @@ readonly LOG_FILE
 
 # Validation thresholds
 readonly MIN_DETECTION_RATE=90
-readonly MAX_FALSE_POSITIVE_RATE=50  # Higher for script-only version
+readonly MAX_FALSE_POSITIVE_RATE=50 # Higher for script-only version
 
 # Color codes
 readonly RED='\033[0;31m'
@@ -43,8 +43,8 @@ VERBOSE_MODE=false
 
 setup_logging() {
   mkdir -p "$LOG_DIR"
-  exec 19>&2  # Save stderr to fd 19
-  exec 2>>"$LOG_FILE"  # Redirect stderr to log
+  exec 19>&2          # Save stderr to fd 19
+  exec 2>>"$LOG_FILE" # Redirect stderr to log
 
   log_info "Starting $SCRIPT_NAME v$SCRIPT_VERSION"
   log_info "Log file: $LOG_FILE"
@@ -58,7 +58,7 @@ log_entry() {
   local caller="${FUNCNAME[2]:-main}"
 
   # Ensure log directory exists before writing
-  [[ ! -d "$LOG_DIR" ]] && mkdir -p "$LOG_DIR"
+  [[ ! -d $LOG_DIR ]] && mkdir -p "$LOG_DIR"
   echo "[$timestamp] [$level] [$caller] $message" >>"$LOG_FILE"
 }
 
@@ -85,7 +85,7 @@ print_section() {
 
 cleanup_temp_files() {
   for file in "${TEMP_FILES[@]}"; do
-    [[ -e "$file" ]] && rm -rf "$file" 2>/dev/null || true
+    [[ -e $file ]] && rm -rf "$file" 2>/dev/null || true
   done
 }
 
@@ -185,16 +185,16 @@ generate_false_positive_patterns() {
   local -a patterns=()
 
   # Documentation examples and placeholders (should NOT be detected)
-  patterns+=('AKIAIOSFODNN7EXAMPLE')  # AWS documentation example
+  patterns+=('AKIAIOSFODNN7EXAMPLE') # AWS documentation example
   patterns+=('sk-example-key-replace-me')
   patterns+=('password = "YOUR_PASSWORD_HERE"')
   patterns+=('api_key = "<INSERT_API_KEY>"')
   patterns+=('secret = "***REMOVED***"')
   patterns+=('token: process.env.API_TOKEN')
-  patterns+=('const HASH = "d41d8cd98f00b204e9800998ecf8427e"')  # MD5 hash
+  patterns+=('const HASH = "d41d8cd98f00b204e9800998ecf8427e"') # MD5 hash
   patterns+=('version = "v1.2.3-alpha"')
   patterns+=('uuid = "550e8400-e29b-41d4-a716-446655440000"')
-  patterns+=('password123')  # Too simple/common
+  patterns+=('password123') # Too simple/common
   patterns+=('api-key-goes-here')
   patterns+=('// TODO: Add your API key')
 
@@ -211,7 +211,7 @@ validate_gitleakslite_binary() {
 
   log_info "Validating gitleakslite binary: $gitleakslite_path"
 
-  if [[ ! -x "$gitleakslite_path" ]]; then
+  if [[ ! -x $gitleakslite_path ]]; then
     handle_error $EXIT_VALIDATION_ERROR "Gitleakslite binary not found or not executable: $gitleakslite_path"
   fi
 
@@ -249,7 +249,7 @@ validate_critical_patterns() {
       echo "// Critical pattern test $i"
       echo "$pattern"
       echo "// End test"
-    } > "$test_file"
+    } >"$test_file"
 
     add_temp_file "$test_dir/$test_file"
 
@@ -321,7 +321,7 @@ validate_false_positives() {
       echo "// Non-secret test $i"
       echo "$pattern"
       echo "// Should not be flagged"
-    } > "$test_file"
+    } >"$test_file"
 
     add_temp_file "$test_dir/$test_file"
 
@@ -363,7 +363,7 @@ validate_false_positives() {
     log_info "False positive validation passed: $fp_rate%"
   fi
 
-  return 0  # Always pass false positive test
+  return 0 # Always pass false positive test
 }
 
 benchmark_performance() {
@@ -386,7 +386,7 @@ benchmark_performance() {
     done
     # Add one secret to detect
     echo "const secret = 'sk-$(openssl rand -hex 20)';"
-  } > large_test.js
+  } >large_test.js
 
   add_temp_file "$test_dir/large_test.js"
 
@@ -399,8 +399,8 @@ benchmark_performance() {
   git reset HEAD large_test.js 2>/dev/null || true
 
   end_time=$(date +%s%N)
-  duration_ms=$(( (end_time - start_time) / 1000000 ))
-  file_size_kb=$(( $(wc -c < large_test.js) / 1024 ))
+  duration_ms=$(((end_time - start_time) / 1000000))
+  file_size_kb=$(($(wc -c <large_test.js) / 1024))
 
   cd - >/dev/null
 
@@ -472,15 +472,15 @@ main() {
   fi
 
   echo
-  validate_false_positives "$gitleakslite_path"  # Never fails
+  validate_false_positives "$gitleakslite_path" # Never fails
 
   echo
-  benchmark_performance "$gitleakslite_path"  # Never fails
+  benchmark_performance "$gitleakslite_path" # Never fails
 
   # Final results
   echo
   print_section "Validation Summary"
-  if [[ "$validation_passed" == "true" ]]; then
+  if [[ $validation_passed == "true" ]]; then
     print_status $GREEN "✅ Gitleakslite comprehensive validation PASSED"
     printf "   • Critical pattern detection validated\n"
     printf "   • False positive rate within acceptable limits\n"
@@ -501,10 +501,10 @@ main() {
 # =============================================================================
 
 # Skip validation if disabled, run sampling, or force
-if [[ "${SKIP_GITLEAKSLITE_VALIDATION:-}" == "true" ]]; then
+if [[ ${SKIP_GITLEAKSLITE_VALIDATION:-} == "true" ]]; then
   print_status $CYAN "⏭️ Skipping gitleakslite validation (SKIP_GITLEAKSLITE_VALIDATION=true)"
   exit $EXIT_SUCCESS
-elif [[ "${FORCE_GITLEAKSLITE_VALIDATION:-}" == "true" ]]; then
+elif [[ ${FORCE_GITLEAKSLITE_VALIDATION:-} == "true" ]]; then
   main "$@"
 elif [[ $((RANDOM % 10)) -eq 0 ]]; then
   print_status $CYAN "🎲 Running gitleakslite validation (10% sampling)"
