@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-01-24
+
+### 🚀 Major Version Update
+
+**Transform to 1-Click GitHub Security** - Multi-language support and comprehensive security framework.
+
+### Added
+- **Multi-language support** - Rust, Node.js, Python, Go support
+- **Enhanced installer architecture** - Improved single-script design
+- **Advanced security controls** - Expanded from Rust-specific to universal
+- **Improved documentation** - Comprehensive CLAUDE.md design principles
+- **Better error handling** - Enhanced user experience and debugging
+
+### Changed
+- **Project scope expansion** - From 1-click-rust-sec to 1-click-github-sec
+- **Architecture improvements** - Single-script with zero external dependencies
+- **Performance optimizations** - Faster pre-push hook execution
+- **Documentation updates** - Complete redesign of project documentation
+
+### Security
+- **Enhanced cryptographic verification** - Stronger supply chain protection
+- **Improved secret detection** - Advanced gitleaks integration
+- **Better vulnerability scanning** - Multi-language vulnerability detection
+
+---
+
 ## [0.1.0] - 2025-01-21
 
 ### 🎉 Initial Release
@@ -114,4 +140,5 @@ Please report issues at: https://github.com/h4x0r/1-click-rust-sec/issues
 
 ---
 
+[0.3.0]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.0
 [0.1.0]: https://github.com/h4x0r/1-click-rust-sec/releases/tag/v0.1.0

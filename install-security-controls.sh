@@ -4,7 +4,7 @@
 # Installs comprehensive security controls for any repository
 # Industry-leading security architecture for Rust projects
 #
-# Version: 0.1.0
+# Version: 0.3.0
 # License: Apache-2.0
 # Repository: https://github.com/4n6h4x0r/1-click-github-sec
 
