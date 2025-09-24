@@ -11,8 +11,11 @@ set -euo pipefail
 readonly SCRIPT_NAME="validate-gitleakslite"
 readonly SCRIPT_VERSION="0.2.0"
 readonly LOG_DIR="${HOME}/.gitleakslite-validation/logs"
-readonly LOG_FILE="${LOG_DIR}/validation-$(date '+%Y%m%d-%H%M%S').log"
 readonly TEMP_DIR="/tmp/gitleakslite-validation-$$"
+
+# Generate log file name
+LOG_FILE="${LOG_DIR}/validation-$(date '+%Y%m%d-%H%M%S').log"
+readonly LOG_FILE
 
 # Validation thresholds
 readonly MIN_DETECTION_RATE=90
@@ -28,7 +31,6 @@ readonly NC='\033[0m'
 
 # Standardized error codes
 readonly EXIT_SUCCESS=0
-readonly EXIT_GENERAL_ERROR=1
 readonly EXIT_VALIDATION_ERROR=7
 
 # Global state
@@ -51,7 +53,8 @@ setup_logging() {
 log_entry() {
   local level=$1
   local message=$2
-  local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  local timestamp
+  timestamp=$(date '+%Y-%m-%d %H:%M:%S')
   local caller="${FUNCNAME[2]:-main}"
 
   # Ensure log directory exists before writing
@@ -113,11 +116,17 @@ generate_critical_patterns() {
   local -a patterns=()
 
   # Generate random hex strings for patterns
-  local random_20=$(openssl rand -hex 10)
-  local random_32=$(openssl rand -hex 16)
-  local random_40=$(openssl rand -hex 20)
-  local random_64=$(openssl rand -hex 32)
-  local random_id=$(openssl rand -hex 6)
+  local random_20
+  local random_32
+  local random_40
+  local random_64
+  local random_id
+
+  random_20=$(openssl rand -hex 10)
+  random_32=$(openssl rand -hex 16)
+  random_40=$(openssl rand -hex 20)
+  random_64=$(openssl rand -hex 32)
+  random_id=$(openssl rand -hex 6)
 
   # AWS patterns (most common cloud secrets)
   patterns+=("AKIA${random_20:0:16}")
@@ -144,12 +153,15 @@ generate_critical_patterns() {
   patterns+=("mongodb://admin:${random_20:0:11}@cluster0.mongodb.net:27017/production")
 
   # Private Keys (critical security risk - minimal but recognizable)
-  patterns+=($'-----BEGIN RSA PRIVATE KEY-----\nMII'${random_20:0:20}'...\n-----END RSA PRIVATE KEY-----')
-  patterns+=($'-----BEGIN OPENSSH PRIVATE KEY-----\n'${random_32:0:32}'\n-----END OPENSSH PRIVATE KEY-----')
+  patterns+=($'-----BEGIN RSA PRIVATE KEY-----\nMII'"${random_20:0:20}"$'...\n-----END RSA PRIVATE KEY-----')
+  patterns+=($'-----BEGIN OPENSSH PRIVATE KEY-----\n'"${random_32:0:32}"$'\n-----END OPENSSH PRIVATE KEY-----')
 
   # JWT Token structure (header.payload.signature)
-  local jwt_header=$(printf '{"alg":"HS256","typ":"JWT"}' | base64 -w0 2>/dev/null || base64)
-  local jwt_payload=$(printf '{"sub":"%s","name":"Test","iat":1516239022}' "${random_id:0:10}" | base64 -w0 2>/dev/null || base64)
+  local jwt_header
+  local jwt_payload
+
+  jwt_header=$(printf '{"alg":"HS256","typ":"JWT"}' | base64 -w0 2>/dev/null || base64)
+  jwt_payload=$(printf '{"sub":"%s","name":"Test","iat":1516239022}' "${random_id:0:10}" | base64 -w0 2>/dev/null || base64)
   patterns+=("${jwt_header}.${jwt_payload}.${random_40}")
 
   # Container registry patterns
