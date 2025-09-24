@@ -1,7 +1,7 @@
 # 1-Click GitHub Security Controls
 
 <div align="center">
-  <img src="../Security Ronin logo.png" alt="Security Ronin" width="150">
+  <img src="../1-click-github-sec Logo.png" alt="1-Click GitHub Security" width="150">
   <br><br>
   <em>Created by Albert Hui &lt;albert@securityronin.com&gt;</em>
 </div>

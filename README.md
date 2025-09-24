@@ -1,7 +1,7 @@
 # 1-Click GitHub Security 🛡️
 
 <div align="center">
-  <img src="./Security Ronin logo.png" alt="Security Ronin" width="200">
+  <img src="./1-click-github-sec Logo.png" alt="1-Click GitHub Security" width="200">
 </div>
 
 **Enterprise-grade security controls installer for multi-language projects**
