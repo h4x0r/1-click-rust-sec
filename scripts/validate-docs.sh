@@ -178,7 +178,7 @@ validate_workflows() {
   # Check docs/repo-security.md workflow count
   if [[ -f "docs/repo-security.md" ]]; then
     if grep -q "specialized workflows\|workflow" docs/repo-security.md; then
-      if [[ $actual_workflows -ge 4 ]]; then  # More flexible threshold
+      if [[ $actual_workflows -ge 4 ]]; then # More flexible threshold
         check_result "PASS" "docs/repo-security.md documents workflows (found $actual_workflows)"
       else
         check_result "WARN" "Found only $actual_workflows workflows (may be minimal setup)"
@@ -257,7 +257,7 @@ validate_cross_references() {
     echo "  • $doc"
   done
 
-  if [[ -n "${docs_folder_files:-}" ]]; then
+  if [[ -n ${docs_folder_files:-} ]]; then
     echo "docs/ directory:"
     for doc in "${docs_folder_files[@]}"; do
       echo "  • docs/$doc"
@@ -373,7 +373,6 @@ validate_embedded_docs() {
   else
     check_result "PASS" "Installer correctly removed redundant README.md creation"
   fi
-
 
   # Compare installer-embedded docs with repository docs
   log_info "🔄 Checking sync between installer and repository docs..."
