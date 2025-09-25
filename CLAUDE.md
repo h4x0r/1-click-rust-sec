@@ -144,6 +144,9 @@ GPG Root Key → Repository Signing → Release Signing → Component Verificati
 
 **Core Programming Principles:**
 - **DRY (Don't Repeat Yourself)**: Extract common patterns into reusable functions/modules
+- **YAGNI (You Aren't Gonna Need It)**: Implement only what's needed now, avoid over-engineering
+- **KISS (Keep It Simple, Stupid)**: Choose simple solutions over complex ones when both work
+- **SINE (Single Instance, No Exceptions)**: One canonical way to do each thing
 - **Single Responsibility**: Each function/module has one clear purpose
 - **No Special Cases**: Design general solutions rather than hardcoded exceptions
 - **Fail Fast**: Validate inputs early and provide clear error messages
@@ -344,6 +347,82 @@ GPG Root Key → Repository Signing → Release Signing → Component Verificati
 4. **Signing**: GPG sign all release artifacts
 5. **Checksums**: Generate and publish SHA256 hashes
 6. **Announcement**: Security-focused release notes
+
+---
+
+## 🏛️ Architectural Decision Records (ADRs)
+
+Our design philosophy represents formal architectural decisions that guide all development. These decisions are captured across multiple documents:
+
+### ADR-001: Single-Script Architecture (CLAUDE.md § 7)
+**Decision**: Installer must be a single shell script with zero external dependencies
+**Status**: ✅ Accepted
+**Context**: Enterprise adoption, security posture, reliability, universality
+**Consequences**:
+- ✅ Works in any Unix environment without preparation
+- ✅ Minimal attack surface and supply chain risks
+- ❌ Cannot use external frameworks or multi-file architectures
+- ❌ All functionality must be embedded inline
+
+### ADR-002: External Service Rejection (README.md § Design Philosophy)
+**Decision**: Reject security tools requiring external account registration or GitHub App installation
+**Status**: ✅ Accepted
+**Context**: True 1-click installation requires zero out-of-band setup
+**Consequences**:
+- ✅ Works identically for personal and organizational repositories
+- ✅ No corporate approval barriers or individual friction
+- ❌ Cannot integrate with Socket.dev, Snyk Cloud, Semgrep Cloud
+- ❌ Limited to GitHub-native and downloadable tools
+
+### ADR-003: GitHub-Native Tool Preference (Multiple Documents)
+**Decision**: Prefer GitHub-native security features over third-party services
+**Status**: ✅ Accepted
+**Context**: Zero setup, universal availability, no external dependencies
+**Consequences**:
+- ✅ CodeQL, Dependabot, secret scanning work immediately
+- ✅ No authentication or configuration required
+- ❌ Limited to GitHub's security feature set
+- ❌ Cannot leverage specialized third-party analytics
+
+### ADR-004: Performance Budget for Pre-Push (CLAUDE.md § 2)
+**Decision**: Pre-push hook must complete in under 60 seconds total
+**Status**: ✅ Accepted
+**Context**: Developer experience is a security feature - friction leads to bypass
+**Consequences**:
+- ✅ Fast feedback prevents security bypass behavior
+- ✅ Parallel execution and caching required
+- ❌ Cannot run comprehensive analysis in pre-push
+- ❌ Deep scanning must be deferred to CI tier
+
+### ADR-005: Cryptographic Verification First (CLAUDE.md § 1)
+**Decision**: Every installer, update, and component must be cryptographically verified
+**Status**: ✅ Accepted
+**Context**: Security tools must be more secure than problems they solve
+**Consequences**:
+- ✅ SHA256 checksums for all downloadable components
+- ✅ Supply chain attack prevention
+- ❌ Additional complexity in release process
+- ❌ Cannot use tools without verifiable checksums
+
+### ADR-006: Multi-Language Universal Design (CLAUDE.md § 5)
+**Decision**: Work with each language ecosystem, not against it
+**Status**: ✅ Accepted
+**Context**: Leverage existing tooling and conventions for maximum effectiveness
+**Consequences**:
+- ✅ Use cargo for Rust, npm for Node.js, pip for Python, etc.
+- ✅ Backward compatibility with existing workflows
+- ❌ More complex installer logic for language detection
+- ❌ Must maintain expertise across multiple ecosystems
+
+### Decision Documentation Strategy
+
+**Primary Documentation**: CLAUDE.md (authoritative design principles)
+**User Documentation**: README.md (philosophy explanation with examples)
+**Technical Documentation**: SECURITY_CONTROLS_ARCHITECTURE.md (implementation details)
+
+**Review Process**: All architectural decisions must align with documented principles
+**Change Process**: Principle changes require updating all three documents
+**Rationale Capture**: Tool inclusion/rejection decisions documented with specific principle violations
 
 ---
 
