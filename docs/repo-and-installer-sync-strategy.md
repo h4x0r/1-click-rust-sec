@@ -33,7 +33,7 @@ The 1-Click GitHub Security project requires synchronization across multiple dim
 - `SECURITY_CONTROLS_INSTALLATION.md` - Detailed installation guide
 - `YUBIKEY_SIGSTORE_GUIDE.md` - Hardware security integration
 - `CHANGELOG.md` - Version history and changes
-- `REPO_SECURITY.md` - This repository's security setup
+- `docs/repo-security.md` - This repository's security setup
 
 ### Installer-Generated Documentation
 - `docs/security/README.md` - Embedded security overview (static)

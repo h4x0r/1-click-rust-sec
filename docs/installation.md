@@ -9,7 +9,7 @@ This installer adds security controls to **YOUR** multi-language project. It pro
 - **Configuration files** for security tools
 - **🆕 GitHub security features** (with --github-security option)
 
-**Note**: This repository itself has additional development-specific controls. See [REPO_SECURITY.md](https://github.com/h4x0r/1-click-github-sec/blob/main/REPO_SECURITY.md) for details about this repo's enhanced security.
+**Note**: This repository itself has additional development-specific controls. See [repo-security.md](https://h4x0r.github.io/1-click-github-sec/repo-security) for details about this repo's enhanced security.
 
 ---
 
@@ -467,7 +467,7 @@ rm -rf docs/security/  # If docs were installed
 ### Resources
 - [Project Overview](https://github.com/h4x0r/1-click-github-sec) - GitHub repository
 - [Issues](https://github.com/h4x0r/1-click-github-sec/issues) - Report problems
-- [Security Architecture](https://github.com/h4x0r/1-click-github-sec/blob/main/REPO_SECURITY.md) - This repository's enhanced security
+- [Security Architecture](https://h4x0r.github.io/1-click-github-sec/repo-security) - This repository's enhanced security
 
 ### Common Issues
 - **"Command not found"**: Install missing tools per instructions
