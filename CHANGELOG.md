@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.10] - 2025-09-25
+
+### 🔗 Documentation Link Validation & Standards Release
+
+**Critical Fixes** - Resolved all lychee link checker errors and established comprehensive documentation link format standards to prevent future validation failures.
+
+### Fixed
+- **🔗 Internal File Links** - Fixed docs/index.md to use .md extensions instead of directory paths for lychee compatibility
+- **🌐 Documentation Site URLs** - Removed trailing slashes from MkDocs site URLs to resolve 404 errors
+- **📂 GitHub Username References** - Fixed old 4n6h4x0r → h4x0r username references in README.md
+- **⚙️ Workflow Directory Links** - Fixed .github/workflows relative path to use full GitHub URL in docs/repo-security.md
+- **✅ Lychee Validation** - Eliminated all 16 lychee link checker errors from CI workflow
+
+### Enhanced
+- **📖 Link Format Standards** - Added comprehensive "Documentation Link Format Standards" section to design principles
+- **🔍 Tool Compatibility Guidelines** - Established context-specific link formatting rules for MkDocs vs lychee validation
+- **📋 Validation Process** - Documented systematic process for testing links with both rendering and validation tools
+- **🎯 Format Consistency** - Standardized link formats by context (internal docs, site URLs, GitHub references)
+
+### Technical Details
+- Internal docs now use direct file references (installation.md) instead of directory paths (installation/)
+- Documentation site URLs use clean format without trailing slashes for consistent 200 responses
+- GitHub repository links use full URLs for directory references to avoid file system path issues
+- Added validation commands and common failure/success patterns to design principles
+
 ## [0.4.9] - 2025-09-25
 
 ### 🔧 Documentation Workflow & Process Improvement Release
