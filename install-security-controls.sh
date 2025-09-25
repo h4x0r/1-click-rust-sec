@@ -17,8 +17,8 @@
 # Installs security controls for any repository
 # Industry-leading security architecture for multi-language projects
 #
-# Version: 0.4.1
-# Repository: https://github.com/4n6h4x0r/1-click-github-sec
+# Version: 0.4.7
+# Repository: https://github.com/h4x0r/1-click-github-sec
 
 set -euo pipefail
 
@@ -33,7 +33,7 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m' # No Color
 
 # Configuration
-readonly SCRIPT_VERSION="0.4.2"
+readonly SCRIPT_VERSION="0.4.7"
 # shellcheck disable=SC2034 # Placeholder for future use
 readonly REQUIRED_TOOLS_FILE="security-tools-requirements.txt"
 # shellcheck disable=SC2034 # Placeholder for future use
@@ -46,8 +46,8 @@ readonly DOCS_DIR="docs/security"
 readonly VERSION_FILE=".security-controls-version"
 readonly BACKUP_DIR=".security-controls-backup"
 readonly CONFIG_FILE=".security-controls-config"
-readonly REMOTE_VERSION_URL="https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/VERSION"
-readonly REMOTE_CHANGELOG_URL="https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/CHANGELOG.md"
+readonly REMOTE_VERSION_URL="https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/VERSION"
+readonly REMOTE_CHANGELOG_URL="https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/CHANGELOG.md"
 
 # Local state/config directories
 readonly CONTROL_STATE_DIR=".security-controls"
@@ -530,7 +530,7 @@ show_changelog() {
   else
     print_status $RED "❌ Could not fetch changelog"
     echo "   Please check your internet connection"
-    echo "   View online: https://github.com/4n6h4x0r/1-click-github-sec/blob/main/CHANGELOG.md"
+    echo "   View online: https://github.com/h4x0r/1-click-github-sec/blob/main/CHANGELOG.md"
     exit 1
   fi
 }
@@ -733,7 +733,7 @@ show_version() {
   echo "   Security Ronin"
   echo
   echo "Security controls for multi-language projects"
-  echo "https://github.com/4n6h4x0r/1-click-github-sec"
+  echo "https://github.com/h4x0r/1-click-github-sec"
 }
 
 # Check if we're in a git repository
@@ -5021,8 +5021,8 @@ Signed Commit + Rekor Transparency Log
 ### **1-Command Setup**
 ```bash
 # Download the YubiKey toggle script
-curl -O https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh
-curl -O https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh.sha256
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh.sha256
 
 # Verify integrity
 sha256sum -c yubikey-gitsign-toggle.sh.sha256
