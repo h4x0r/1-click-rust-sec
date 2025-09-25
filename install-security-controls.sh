@@ -717,7 +717,7 @@ CRYPTOGRAPHIC VERIFICATION:
         # Validate against Rekor transparency log
         gitsign verify HEAD
 
-    Learn more: https://h4x0r.github.io/1-click-github-sec/cryptographic-verification/
+    Learn more: https://h4x0r.github.io/1-click-github-sec/cryptographic-verification
 
 REQUIREMENTS:
     - Git repository (initialized)
@@ -4909,9 +4909,9 @@ chmod +x install-security-controls.sh
 
 ## 🔗 Additional Resources
 
-- **Complete Architecture**: https://h4x0r.github.io/1-click-github-sec/architecture/
-- **Installation Guide**: https://h4x0r.github.io/1-click-github-sec/installation/
-- **Cryptographic Verification**: https://h4x0r.github.io/1-click-github-sec/cryptographic-verification/
+- **Complete Architecture**: https://h4x0r.github.io/1-click-github-sec/architecture
+- **Installation Guide**: https://h4x0r.github.io/1-click-github-sec/installation
+- **Cryptographic Verification**: https://h4x0r.github.io/1-click-github-sec/cryptographic-verification
 - **GitHub Repository**: https://github.com/h4x0r/1-click-github-sec
 
 ---

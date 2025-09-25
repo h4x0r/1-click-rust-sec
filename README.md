@@ -78,13 +78,13 @@ chmod +x install-security-controls.sh
 
 ### 🔧 Power Users
 - **[Security Architecture](https://h4x0r.github.io/1-click-github-sec/architecture)** - How everything works
-- **[Cryptographic Verification](https://h4x0r.github.io/1-click-github-sec/cryptographic-verification)** - Signing & transparency
-- **[YubiKey Integration](https://h4x0r.github.io/1-click-github-sec/yubikey-integration)** - Hardware-backed signing
+- **[Cryptographic Verification](https://github.com/h4x0r/1-click-github-sec/blob/main/docs/cryptographic-verification.md)** - Signing & transparency
+- **[YubiKey Integration](https://github.com/h4x0r/1-click-github-sec/blob/main/docs/yubikey-integration.md)** - Hardware-backed signing
 
 ### 👥 Contributors
-- **[Contributing Guide](https://h4x0r.github.io/1-click-github-sec/contributing)** - Development setup
-- **[Repository Security](https://h4x0r.github.io/1-click-github-sec/repo-security)** - This repo's implementation
-- **[Design Principles](https://h4x0r.github.io/1-click-github-sec/design-principles)** - Architectural decisions
+- **[Contributing Guide](https://github.com/h4x0r/1-click-github-sec/blob/main/docs/contributing.md)** - Development setup
+- **[Repository Security](https://github.com/h4x0r/1-click-github-sec/blob/main/docs/repo-security.md)** - This repo's implementation
+- **[Design Principles](https://github.com/h4x0r/1-click-github-sec/blob/main/docs/design-principles.md)** - Architectural decisions
 
 ---
 
@@ -127,7 +127,7 @@ This repository demonstrates "dogfooding plus" - it uses enhanced security contr
 - **🐛 [Report Issues](https://github.com/h4x0r/1-click-github-sec/issues)** - Bug reports and feature requests
 - **📖 [Documentation](https://h4x0r.github.io/1-click-github-sec/)** - Comprehensive guides and references
 - **🔄 [Releases](https://github.com/h4x0r/1-click-github-sec/releases)** - Download latest version
-- **🤝 [Contributing](https://h4x0r.github.io/1-click-github-sec/contributing)** - Help improve the project
+- **🤝 [Contributing](https://github.com/h4x0r/1-click-github-sec/blob/main/docs/contributing.md)** - Help improve the project
 
 ---
 
