@@ -431,13 +431,39 @@ We carefully evaluate each security tool against our principles:
 
 ## 📚 Documentation
 
+### 🌟 Complete Documentation Site
+**[📖 Full Documentation →](https://h4x0r.github.io/1-click-github-sec/)**
+
+### 📋 Core Documentation
+
 | Document | Description | Audience |
 |----------|-------------|----------|
 | [README.md](README.md) | This file - overview and quick start | Everyone |
-| [INSTALLATION.md](SECURITY_CONTROLS_INSTALLATION.md) | Detailed installation guide | Users installing controls |
-| [ARCHITECTURE.md](SECURITY_CONTROLS_ARCHITECTURE.md) | Technical deep-dive | Security engineers |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines | Contributors |
-| [REPO_SECURITY.md](REPO_SECURITY.md) | This repo's security setup | Maintainers |
+| [SECURITY_CONTROLS_INSTALLATION.md](SECURITY_CONTROLS_INSTALLATION.md) | Detailed installation guide | Users installing controls |
+| [SECURITY_CONTROLS_ARCHITECTURE.md](SECURITY_CONTROLS_ARCHITECTURE.md) | Technical architecture deep-dive | Security engineers |
+| [REPO_SECURITY.md](REPO_SECURITY.md) | This repository's security implementation | Maintainers |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines and development setup | Contributors |
+
+### 🔐 Security & Cryptography
+
+| Document | Description | Audience |
+|----------|-------------|----------|
+| [YUBIKEY_SIGSTORE_GUIDE.md](YUBIKEY_SIGSTORE_GUIDE.md) | YubiKey + Sigstore keyless signing setup | Advanced users |
+| [CLAUDE.md](CLAUDE.md) | Design principles and architectural decisions | Maintainers & architects |
+
+### 📖 Process & Coordination
+
+| Document | Description | Audience |
+|----------|-------------|----------|
+| [CHANGELOG.md](CHANGELOG.md) | Version history and release notes | Everyone |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community guidelines and expectations | Everyone |
+| [DOCUMENTATION_SYNC_STRATEGY.md](DOCUMENTATION_SYNC_STRATEGY.md) | Documentation consistency framework | Maintainers |
+
+### 🔗 Online Documentation
+- **[Installation Guide](https://h4x0r.github.io/1-click-github-sec/installation/)**
+- **[Architecture Overview](https://h4x0r.github.io/1-click-github-sec/architecture/)**
+- **[YubiKey + Sigstore Setup](https://h4x0r.github.io/1-click-github-sec/yubikey/)**
+- **[Uninstall Guide](https://h4x0r.github.io/1-click-github-sec/uninstall/)**
 
 ---
 

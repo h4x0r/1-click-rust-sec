@@ -688,6 +688,37 @@ SECURITY CONTROLS INSTALLED:
     ⚠️  Security advisories (manual setup required)
     ❌ Advanced Security (GitHub Enterprise only)
 
+    Cryptographic Signing & Verification:
+    🔑 gitsign - Keyless commit signing with Sigstore
+    🔑 Certificate transparency via Rekor ledger
+    🔑 OIDC identity verification (GitHub/Google/Microsoft)
+    🔑 Short-lived certificates (10 minutes, auto-renewed)
+    🔑 Public auditability of all signatures
+    🔑 No GPG key management required
+    🔑 Enhanced supply chain security
+
+CRYPTOGRAPHIC VERIFICATION:
+    All releases of this installer are cryptographically signed:
+
+    ✅ Signed commits: Every commit verified with Sigstore
+    ✅ Signed tags: All releases signed with keyless certificates
+    ✅ Certificate transparency: Signatures logged in public Rekor ledger
+    ✅ Identity binding: Signatures tied to verified GitHub identities
+    ✅ Tamper detection: Any modification breaks cryptographic proofs
+
+    Verify this installer's authenticity:
+
+        # Verify the release tag
+        git tag -v v${SCRIPT_VERSION}
+
+        # Check commit signatures
+        git log --show-signature -1
+
+        # Validate against Rekor transparency log
+        gitsign verify HEAD
+
+    Learn more: https://h4x0r.github.io/1-click-github-sec/signing/
+
 REQUIREMENTS:
     - Git repository (initialized)
     - Internet connection (for tool downloads)

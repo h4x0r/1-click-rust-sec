@@ -11,11 +11,48 @@
 [![CodeQL](https://github.com/h4x0r/1-click-github-sec/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/codeql.yml)
 [![Pinactlite Sync](https://github.com/h4x0r/1-click-github-sec/actions/workflows/sync-pinactlite.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/sync-pinactlite.yml)
 
-Welcome. This site provides a minimal navigation for key docs. (Updated: Sept 23, 2025)
+**Cryptographically Signed & Verified Security Controls**
 
-- Use the navigation at the left to access the installation guide and architecture.
-- For full repository documentation and latest updates, visit the project on GitHub.
+Deploy security controls to any project with a single command. Supports Rust, Node.js, Python, Go, and generic projects with **cryptographic verification** for supply chain security.
 
-Links:
-- GitHub: https://github.com/h4x0r/1-click-github-sec
-- Issues: https://github.com/h4x0r/1-click-github-sec/issues
+## 🔐 Key Security Features
+
+- **35+ Security Controls** - Comprehensive coverage for all project types
+- **Cryptographic Signing** - All commits and releases signed with Sigstore
+- **Certificate Transparency** - Public audit trail via Rekor ledger
+- **Keyless Verification** - No GPG key management required
+- **Supply Chain Protection** - End-to-end verification of security tools
+
+## 📚 Quick Navigation
+
+Use the navigation menu to explore:
+
+- **[Installation Guide](installation/)** - Get started in minutes
+- **[Security Architecture](architecture/)** - Technical deep-dive
+- **[Cryptographic Signing](signing/)** - Learn about our keyless signing
+- **[Certificate Transparency](transparency/)** - Understand public verification
+- **[YubiKey Integration](yubikey/)** - Hardware-backed signing
+
+## 🔗 External Links
+
+- **[GitHub Repository](https://github.com/h4x0r/1-click-github-sec)** - Source code & releases
+- **[Report Issues](https://github.com/h4x0r/1-click-github-sec/issues)** - Bug reports & feature requests
+- **[Latest Release](https://github.com/h4x0r/1-click-github-sec/releases/latest)** - Download installer
+
+## 🛡️ Verification
+
+Every release is cryptographically signed:
+
+```bash
+# Verify the installer authenticity
+git tag -v v0.4.2
+
+# Expected output:
+# gitsign: Good signature from [maintainer@email.com]
+# Validated Git signature: true
+# Validated Rekor entry: true
+```
+
+---
+
+*Updated: September 25, 2025 - Enhanced with cryptographic signing documentation*

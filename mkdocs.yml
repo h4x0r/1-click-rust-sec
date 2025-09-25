@@ -31,7 +31,15 @@ theme:
     - content.code.copy
 nav:
   - Home: index.md
-  - Installation: installation.md
-  - Architecture: architecture.md
-  - YubiKey + Sigstore: yubikey.md
-  - Uninstall: uninstall.md
+  - Installation Guide: installation.md
+  - Security Architecture: architecture.md
+  - Cryptographic Signing:
+    - YubiKey + Sigstore Setup: yubikey.md
+    - Signed Commits & Tags: signing.md
+    - Certificate Transparency: transparency.md
+  - Advanced Topics:
+    - Repository Security: repo-security.md
+    - Design Principles: design-principles.md
+  - Maintenance:
+    - Uninstall Guide: uninstall.md
+    - Contributing: contributing.md
