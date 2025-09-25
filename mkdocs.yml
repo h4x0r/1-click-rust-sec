@@ -30,16 +30,16 @@ theme:
     - search.share
     - content.code.copy
 nav:
-  - Home: index.md
-  - Installation Guide: installation.md
-  - Security Architecture: architecture.md
-  - Cryptographic Signing:
-    - YubiKey + Sigstore Setup: yubikey.md
-    - Signed Commits & Tags: signing.md
+  - 🏠 Home: index.md
+  - 🚀 Get Started:
+    - Installation Guide: installation.md
+    - Uninstall Guide: uninstall.md
+  - 🔧 Power User Guides:
+    - Security Architecture: architecture.md
+    - Cryptographic Signing: signing.md
     - Certificate Transparency: transparency.md
-  - Advanced Topics:
+    - YubiKey + Hardware: yubikey.md
+  - 👥 Development:
+    - Contributing: contributing.md
     - Repository Security: repo-security.md
     - Design Principles: design-principles.md
-  - Maintenance:
-    - Uninstall Guide: uninstall.md
-    - Contributing: contributing.md

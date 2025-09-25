@@ -434,36 +434,50 @@ We carefully evaluate each security tool against our principles:
 ### 🌟 Complete Documentation Site
 **[📖 Full Documentation →](https://h4x0r.github.io/1-click-github-sec/)**
 
-### 📋 Core Documentation
+---
 
-| Document | Description | Audience |
-|----------|-------------|----------|
-| [README.md](README.md) | This file - overview and quick start | Everyone |
-| [SECURITY_CONTROLS_INSTALLATION.md](SECURITY_CONTROLS_INSTALLATION.md) | Detailed installation guide | Users installing controls |
-| [SECURITY_CONTROLS_ARCHITECTURE.md](SECURITY_CONTROLS_ARCHITECTURE.md) | Technical architecture deep-dive | Security engineers |
+### 🚀 **For End Users** (Get Started Quickly)
+*"I just want security controls installed with minimum hassle"*
+
+| Document | Description | Time to Read |
+|----------|-------------|--------------|
+| **[Installation Guide →](https://h4x0r.github.io/1-click-github-sec/installation/)** | Step-by-step setup (web version) | 5 minutes |
+| [README.md](README.md) | **START HERE** - Overview and quick start | 3 minutes |
+| [CHANGELOG.md](CHANGELOG.md) | What's new in recent versions | 2 minutes |
+| [Uninstall Guide →](https://h4x0r.github.io/1-click-github-sec/uninstall/) | Remove controls if needed | 2 minutes |
+
+**Quick Start**: Download installer → `chmod +x install-security-controls.sh` → `./install-security-controls.sh`
+
+---
+
+### 🔧 **For Power Users** (Technical Details)
+*"I want to understand how this works and customize it"*
+
+| Document | Description | Complexity |
+|----------|-------------|------------|
+| [SECURITY_CONTROLS_ARCHITECTURE.md](SECURITY_CONTROLS_ARCHITECTURE.md) | **Technical deep-dive** - How everything works | Advanced |
+| **[Architecture Overview →](https://h4x0r.github.io/1-click-github-sec/architecture/)** | Web version with diagrams | Advanced |
+| **[Cryptographic Signing →](https://h4x0r.github.io/1-click-github-sec/signing/)** | Signed commits & tags explained | Intermediate |
+| **[Certificate Transparency →](https://h4x0r.github.io/1-click-github-sec/transparency/)** | Sigstore & Rekor verification | Advanced |
+| [YUBIKEY_SIGSTORE_GUIDE.md](YUBIKEY_SIGSTORE_GUIDE.md) | Hardware-backed signing setup | Expert |
+| [SECURITY_CONTROLS_INSTALLATION.md](SECURITY_CONTROLS_INSTALLATION.md) | Detailed installation options | Intermediate |
+
+**For Customization**: Architecture guide → Installation options → Cryptographic signing
+
+---
+
+### 👥 **For Contributors & Maintainers** (Development)
+*"I want to contribute or understand the codebase"*
+
+| Document | Description | Role |
+|----------|-------------|------|
+| [CONTRIBUTING.md](CONTRIBUTING.md) | **Development setup** and guidelines | Contributors |
 | [REPO_SECURITY.md](REPO_SECURITY.md) | This repository's security implementation | Maintainers |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines and development setup | Contributors |
-
-### 🔐 Security & Cryptography
-
-| Document | Description | Audience |
-|----------|-------------|----------|
-| [YUBIKEY_SIGSTORE_GUIDE.md](YUBIKEY_SIGSTORE_GUIDE.md) | YubiKey + Sigstore keyless signing setup | Advanced users |
-| [CLAUDE.md](CLAUDE.md) | Design principles and architectural decisions | Maintainers & architects |
-
-### 📖 Process & Coordination
-
-| Document | Description | Audience |
-|----------|-------------|----------|
-| [CHANGELOG.md](CHANGELOG.md) | Version history and release notes | Everyone |
-| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community guidelines and expectations | Everyone |
+| [CLAUDE.md](CLAUDE.md) | Design principles and architectural decisions | Architects |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community standards | Everyone |
 | [DOCUMENTATION_SYNC_STRATEGY.md](DOCUMENTATION_SYNC_STRATEGY.md) | Documentation consistency framework | Maintainers |
 
-### 🔗 Online Documentation
-- **[Installation Guide](https://h4x0r.github.io/1-click-github-sec/installation/)**
-- **[Architecture Overview](https://h4x0r.github.io/1-click-github-sec/architecture/)**
-- **[YubiKey + Sigstore Setup](https://h4x0r.github.io/1-click-github-sec/yubikey/)**
-- **[Uninstall Guide](https://h4x0r.github.io/1-click-github-sec/uninstall/)**
+**Development Path**: Contributing guide → Design principles → Repository security
 
 ---
 

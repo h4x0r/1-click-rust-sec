@@ -11,47 +11,65 @@
 [![CodeQL](https://github.com/h4x0r/1-click-github-sec/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/codeql.yml)
 [![Pinactlite Sync](https://github.com/h4x0r/1-click-github-sec/actions/workflows/sync-pinactlite.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/sync-pinactlite.yml)
 
-**Cryptographically Signed & Verified Security Controls**
-
-Deploy security controls to any project with a single command. Supports Rust, Node.js, Python, Go, and generic projects with **cryptographic verification** for supply chain security.
-
-## 🔐 Key Security Features
-
-- **35+ Security Controls** - Comprehensive coverage for all project types
-- **Cryptographic Signing** - All commits and releases signed with Sigstore
-- **Certificate Transparency** - Public audit trail via Rekor ledger
-- **Keyless Verification** - No GPG key management required
-- **Supply Chain Protection** - End-to-end verification of security tools
-
-## 📚 Quick Navigation
-
-Use the navigation menu to explore:
-
-- **[Installation Guide](installation/)** - Get started in minutes
-- **[Security Architecture](architecture/)** - Technical deep-dive
-- **[Cryptographic Signing](signing/)** - Learn about our keyless signing
-- **[Certificate Transparency](transparency/)** - Understand public verification
-- **[YubiKey Integration](yubikey/)** - Hardware-backed signing
-
-## 🔗 External Links
-
-- **[GitHub Repository](https://github.com/h4x0r/1-click-github-sec)** - Source code & releases
-- **[Report Issues](https://github.com/h4x0r/1-click-github-sec/issues)** - Bug reports & feature requests
-- **[Latest Release](https://github.com/h4x0r/1-click-github-sec/releases/latest)** - Download installer
-
-## 🛡️ Verification
-
-Every release is cryptographically signed:
+**Deploy Security Controls to Any Project in One Command**
 
 ```bash
-# Verify the installer authenticity
-git tag -v v0.4.2
-
-# Expected output:
-# gitsign: Good signature from [maintainer@email.com]
-# Validated Git signature: true
-# Validated Rekor entry: true
+# Download and run installer (that's it!)
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.2/install-security-controls.sh
+chmod +x install-security-controls.sh
+./install-security-controls.sh
 ```
+
+Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security controls.
+
+---
+
+## 🎯 What You Get
+
+✅ **Pre-push validation** (35+ security checks in <60s)
+✅ **CI/CD workflows** (comprehensive security scanning)
+✅ **GitHub security features** (Dependabot, CodeQL, secret scanning)
+✅ **Cryptographic verification** (signed commits and releases)
+
+---
+
+## 🚀 **New Here?** Start With These
+
+| Guide | Time | What You'll Learn |
+|-------|------|-------------------|
+| **[Installation →](installation/)** | 5 min | Get security controls installed |
+| **[Uninstall →](uninstall/)** | 2 min | Remove controls if needed |
+
+**That's it!** Most users don't need anything else.
+
+---
+
+## 🔧 **Want Technical Details?** Power User Guides
+
+| Guide | Level | What You'll Learn |
+|-------|-------|-------------------|
+| **[Security Architecture →](architecture/)** | Advanced | How everything works together |
+| **[Cryptographic Signing →](signing/)** | Intermediate | Signed commits and releases |
+| **[Certificate Transparency →](transparency/)** | Advanced | Public verification with Rekor |
+| **[YubiKey Integration →](yubikey/)** | Expert | Hardware-backed signing |
+
+---
+
+## 👥 **Contributing?** Development Resources
+
+| Guide | Role | What You'll Learn |
+|-------|------|-------------------|
+| **[Contributing →](contributing/)** | Contributors | Development setup and guidelines |
+| **[Repository Security →](repo-security/)** | Maintainers | This repo's security implementation |
+| **[Design Principles →](design-principles/)** | Architects | Core design decisions |
+
+---
+
+## 🔗 Quick Links
+
+- **[GitHub Repository](https://github.com/h4x0r/1-click-github-sec)** - Source code & latest releases
+- **[Report Issues](https://github.com/h4x0r/1-click-github-sec/issues)** - Found a bug? Let us know
+- **[Latest Release](https://github.com/h4x0r/1-click-github-sec/releases/latest)** - Always get the newest version
 
 ---
 
