@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.11] - 2025-09-25
+
+### 🔗 Final Link Resolution & Reliability Release
+
+**Critical Fixes** - Resolved all remaining lychee link checker errors through pragmatic link strategy ensuring 100% accessibility and reliability.
+
+### Fixed
+- **🌐 Documentation Site 404 Errors** - Replaced problematic MkDocs site URLs with direct GitHub repository links
+- **📎 Trailing Slash Inconsistencies** - Fixed installer script URL formatting to match working patterns
+- **📍 Relative Path References** - Changed docs/installation.md to use relative paths for internal references
+- **✅ Complete Link Validation** - Achieved 100% lychee link checker success rate with reliable link strategy
+
+### Enhanced
+- **🔗 Link Accessibility Strategy** - Prioritized always-accessible GitHub repository links over potentially unavailable site URLs
+- **📋 Reliable Documentation References** - All documentation links now point to guaranteed-available resources
+- **🎯 Version Consistency** - Links point to current version of files without dependency on site deployment timing
+- **⚡ Immediate Availability** - Documentation links work immediately without waiting for site rebuilds
+
+### Technical Details
+- Replaced documentation site URLs with GitHub blob URLs (e.g., github.com/h4x0r/1-click-github-sec/blob/main/docs/contributing.md)
+- Fixed installer script trailing slash inconsistencies to match working URL patterns
+- Changed internal doc references from external site URLs to relative file paths
+- Ensured all links pass lychee validation by pointing to existing, accessible resources
+
 ## [0.4.10] - 2025-09-25
 
 ### 🔗 Documentation Link Validation & Standards Release
