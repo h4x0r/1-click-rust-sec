@@ -280,7 +280,7 @@ USAGE
 
 show_version() {
   echo "Security Controls Uninstaller v${SCRIPT_VERSION}"
-  echo "Safe removal of 1-Click Rust Security controls"
+  echo "Safe removal of 1-Click GitHub Security controls"
   echo "https://github.com/4n6h4x0r/1-click-github-sec"
 }
 

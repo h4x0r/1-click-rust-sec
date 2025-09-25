@@ -35,7 +35,7 @@ jobs:
 
           # Create combined checksums file
           cat > checksums.txt <<EOF
-          # 1-Click Rust Security ${{ github.ref_name }} - Release Checksums
+          # 1-Click GitHub Security ${{ github.ref_name }} - Release Checksums
           # Verify with: sha256sum -c checksums.txt
 
           EOF
@@ -75,9 +75,9 @@ jobs:
             yubikey-gitsign-toggle.sh.sha256
             checksums.txt
           generate_release_notes: true
-          name: "1-Click Rust Security ${{ github.ref_name }}"
+          name: "1-Click GitHub Security ${{ github.ref_name }}"
           body: |
-            ## 🛡️ 1-Click Rust Security ${{ github.ref_name }}
+            ## 🛡️ 1-Click GitHub Security ${{ github.ref_name }}
 
             ### 📦 Quick Installation
 

@@ -205,7 +205,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🎉 Initial Release
 
-**1-Click Rust Security** - Enterprise-grade security controls for Rust projects, installed in seconds.
+**1-Click GitHub Security** - Security controls for multi-language projects, installed in seconds.
 
 ### Added
 
