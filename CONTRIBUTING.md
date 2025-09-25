@@ -1,6 +1,6 @@
-# Contributing to 1-Click Rust Security
+# Contributing to 1-Click GitHub Security
 
-Thank you for your interest in contributing to 1-Click Rust Security! We welcome contributions that improve security for the Rust ecosystem.
+Thank you for your interest in contributing to 1-Click GitHub Security! We welcome contributions that improve security for multi-language development ecosystems.
 
 ## 🎯 Our Mission
 
@@ -18,9 +18,10 @@ To provide enterprise-grade security controls that are:
 - Optimize performance of security validations
 - Add support for new security tools
 
-### 2. Tool Integration
-- Integrate additional security scanners
-- Add support for new languages beyond Rust
+### 2. Multi-Language Support
+- Add security controls for new programming languages
+- Improve existing language-specific integrations (Rust, Node.js, Python, Go, Java)
+- Integrate additional security scanners for specific ecosystems
 - Improve CI/CD pipeline integrations
 - Add IDE plugin support
 
@@ -41,8 +42,13 @@ To provide enterprise-grade security controls that are:
 ### Prerequisites
 - Bash 4.0+
 - Git 2.20+
-- Rust toolchain (for testing Rust-specific features)
 - ShellCheck and shfmt (for shell script linting)
+- Language toolchains for testing (optional):
+  - Rust toolchain (cargo, rustc, clippy)
+  - Node.js (npm, node)
+  - Python (pip, python3)
+  - Go (go toolchain)
+  - Java (mvn, gradle)
 
 ### Local Development
 
@@ -67,12 +73,23 @@ git checkout -b feature/your-feature-name
 # Run the installer in dry-run mode
 ./install-security-controls.sh --dry-run
 
-# Test specific components
+# Test language-specific modes
+./install-security-controls.sh --language=rust --dry-run
+./install-security-controls.sh --language=nodejs --dry-run
+./install-security-controls.sh --language=python --dry-run
+./install-security-controls.sh --language=go --dry-run
+
+# Test documentation and functional synchronization
+./scripts/validate-docs.sh
+./scripts/count-controls.sh
+./scripts/sync-security-controls.sh --check
+
+# Test specific security tools
 ./.security-controls/bin/pinactlite pincheck --dir .github/workflows
 ./.security-controls/bin/gitleakslite detect --no-banner
 
 # Run shell linting
-shellcheck *.sh
+shellcheck *.sh scripts/*.sh
 shfmt -d -i 2 -ci -s .
 ```
 

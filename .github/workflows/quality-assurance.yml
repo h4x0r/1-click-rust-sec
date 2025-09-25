@@ -334,3 +334,11 @@ jobs:
           else
             echo "⚠️ Control counting script not found, skipping"
           fi
+
+          # Run functional synchronization check (dogfooding plus validation)
+          if [[ -f "./scripts/sync-security-controls.sh" ]]; then
+            chmod +x ./scripts/sync-security-controls.sh
+            ./scripts/sync-security-controls.sh --check
+          else
+            echo "⚠️ Security control sync script not found, skipping"
+          fi

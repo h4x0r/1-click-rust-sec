@@ -220,11 +220,18 @@ validate_control_claims() {
 validate_cross_references() {
   log_info "🔍 Validating cross-references..."
 
+  # Dynamic discovery of documentation files
+  local all_docs
+  all_docs=($(find . -maxdepth 1 -name "*.md" -not -name "README.md" -exec basename {} \; | sort))
+
+  log_info "📋 Discovered documentation files:"
+  for doc in "${all_docs[@]}"; do
+    echo "  • $doc"
+  done
+
   # Check documentation links in README
   if [[ -f "README.md" ]]; then
-    local doc_files=("SECURITY_CONTROLS_INSTALLATION.md" "SECURITY_CONTROLS_ARCHITECTURE.md" "CONTRIBUTING.md" "REPO_SECURITY.md")
-
-    for doc_file in "${doc_files[@]}"; do
+    for doc_file in "${all_docs[@]}"; do
       if grep -q "$doc_file" README.md; then
         if [[ -f "$doc_file" ]]; then
           check_result "PASS" "Cross-reference to $doc_file exists and file found"
@@ -232,7 +239,27 @@ validate_cross_references() {
           check_result "FAIL" "Cross-reference to $doc_file found but file missing"
         fi
       else
-        check_result "WARN" "No cross-reference to $doc_file found in README.md"
+        # Only warn for important docs, not all docs
+        case "$doc_file" in
+          CONTRIBUTING.md|REPO_SECURITY.md|SECURITY_CONTROLS_*.md|CHANGELOG.md)
+            check_result "WARN" "No cross-reference to $doc_file found in README.md"
+            ;;
+          *)
+            check_result "PASS" "Optional doc $doc_file - cross-reference not required"
+            ;;
+        esac
+      fi
+    done
+
+    # Check for orphaned references (links to non-existent docs)
+    local linked_docs
+    linked_docs=($(grep -o '\[.*\]([A-Z_]*\.md)' README.md | sed 's/.*(\([^)]*\)).*/\1/' | sort -u))
+
+    for linked_doc in "${linked_docs[@]}"; do
+      if [[ ! -f "$linked_doc" ]]; then
+        check_result "FAIL" "README.md links to non-existent file: $linked_doc"
+      else
+        check_result "PASS" "README.md link verified: $linked_doc"
       fi
     done
   fi
@@ -256,13 +283,39 @@ validate_cross_references() {
 validate_embedded_docs() {
   log_info "🔍 Validating embedded documentation..."
 
-  if [[ ! -f "install-security-controls.sh" ]]; then
-    check_result "WARN" "install-security-controls.sh not found, skipping embedded doc validation"
+  if [[ ! -f "$INSTALLER_SCRIPT" ]]; then
+    check_result "WARN" "$INSTALLER_SCRIPT not found, skipping embedded doc validation"
     return
   fi
 
-  # Check if installer has embedded YubiKey guide
-  if grep -q "YubiKey + Sigstore Integration Guide" install-security-controls.sh; then
+  # Dynamic discovery of embedded documentation patterns
+  local embedded_patterns=(
+    "YubiKey + Sigstore Integration Guide"
+    "# Security Controls"
+    "## Installation Guide"
+    "## Architecture Overview"
+    "## Troubleshooting"
+  )
+
+  log_info "🔍 Scanning for embedded documentation patterns..."
+
+  for pattern in "${embedded_patterns[@]}"; do
+    if grep -q "$pattern" "$INSTALLER_SCRIPT"; then
+      check_result "PASS" "Found embedded content: $pattern"
+    else
+      case "$pattern" in
+        "YubiKey + Sigstore Integration Guide"|"# Security Controls")
+          check_result "WARN" "Missing embedded content: $pattern"
+          ;;
+        *)
+          check_result "PASS" "Optional embedded content: $pattern (not required)"
+          ;;
+      esac
+    fi
+  done
+
+  # Legacy check - Check if installer has embedded YubiKey guide
+  if grep -q "YubiKey + Sigstore Integration Guide" "$INSTALLER_SCRIPT"; then
     check_result "PASS" "Installer contains embedded YubiKey guide"
 
     # Compare with standalone guide

@@ -4,7 +4,7 @@ This document describes the comprehensive security controls protecting the **1-C
 
 ## 🎯 Overview
 
-This repository implements a **"dogfooding plus"** approach:
+This repository implements a **"dogfooding plus philosophy"** approach:
 - Uses everything the installer provides (35+ security controls)
 - Adds development-specific security controls (5+ additional controls)
 - Implements 6 specialized CI/CD workflows
@@ -255,6 +255,7 @@ The repository includes comprehensive automation to maintain documentation consi
 - `scripts/version-sync.sh` - Synchronizes version numbers across all files
 - `scripts/count-controls.sh` - Audits actual security control counts vs marketing claims
 - `scripts/validate-docs.sh` - Cross-reference and consistency validation
+- `scripts/sync-security-controls.sh` - **NEW**: Functional synchronization of security controls
 
 **CI Integration:**
 - Documentation validation runs automatically in quality-assurance.yml workflow
@@ -271,7 +272,33 @@ The repository includes comprehensive automation to maintain documentation consi
 
 # Sync version across all files
 ./scripts/version-sync.sh --check
+
+# Check functional synchronization (dogfooding plus validation)
+./scripts/sync-security-controls.sh --check
+
+# Apply missing security controls to repository
+./scripts/sync-security-controls.sh --sync
 ```
+
+### Functional Synchronization (Dogfooding Plus Implementation)
+
+**Critical Issue Identified**: We had Trivy vulnerability scanning in installer templates but missing from our actual repository workflows. This violates our dogfooding plus philosophy.
+
+**Functional Sync Tool**: `scripts/sync-security-controls.sh`
+- **Purpose**: Ensures our repository implements ALL security controls that the installer provides to users
+- **Philosophy**: "If it's not good enough for us, it's not good enough for users"
+- **Process**: Extracts security controls from installer templates, compares with repo implementation, identifies gaps
+
+**Sync Categories:**
+1. **Installer → Repo**: Controls that should exist in both (vulnerability scanning, secret detection, etc.)
+2. **Repo Only**: Development-specific controls (tool sync, docs, releases)
+3. **Missing**: Controls in installer templates but missing from repo workflows
+
+**Why This Matters:**
+- **Quality Assurance**: We become alpha testers of our own security controls
+- **Bug Discovery**: Issues surface in our development before user deployment
+- **Trust Building**: Users can inspect our repository to see controls in action
+- **Consistency**: Prevents functional drift between what we build and what we use
 
 ### Adding New Security Controls
 

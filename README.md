@@ -338,6 +338,18 @@ chmod +x install-security-controls.sh
 - **Smart caching** for repeated operations
 - **No waiting** for external API calls in critical path
 
+#### 🍽️ **Dogfooding Plus Philosophy**
+- **We use what we build**: This repository implements ALL security controls that the installer provides
+- **Plus enhanced controls**: Additional development-specific workflows (tool sync, docs, releases)
+- **Alpha testing**: We are the first to discover issues with our own security controls
+- **Functional synchronization**: Automated tools ensure repo controls stay in sync with installer templates
+
+**Why This Matters:**
+- **Quality assurance**: If it's not good enough for us, it's not good enough for users
+- **Rapid bug discovery**: Issues surface in our development workflow before user deployment
+- **Continuous validation**: Our daily development validates the installer's security effectiveness
+- **Trust building**: Users can inspect our repository to see the exact security controls in action
+
 ### Tool Selection Criteria
 
 We carefully evaluate each security tool against our principles:
