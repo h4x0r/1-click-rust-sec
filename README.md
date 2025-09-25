@@ -58,7 +58,7 @@ chmod +x install-security-controls.sh
 ./install-security-controls.sh
 ```
 
-## 🔐 GitHub Security Features {#github-security-features}
+## 🔐 GitHub Security Features
 
 Enterprise-grade GitHub repository security is now **enabled by default**:
 
@@ -150,7 +150,7 @@ Two lightweight bash scripts for security operations:
 
 ---
 
-## 🏰 This Repository's Security {#this-repos-security}
+## 🏰 This Repository's Security
 
 This repository practices what it preaches with ENHANCED security:
 
@@ -258,7 +258,7 @@ test-token-[0-9]+
 
 ---
 
-## 📊 Performance {#performance}
+## 📊 Performance
 
 ### Pre-Push Hook Timing
 - Format check: ~2s
