@@ -457,8 +457,7 @@ We carefully evaluate each security tool against our principles:
 |----------|-------------|------------|
 | [SECURITY_CONTROLS_ARCHITECTURE.md](SECURITY_CONTROLS_ARCHITECTURE.md) | **Technical deep-dive** - How everything works | Advanced |
 | **[Architecture Overview →](https://h4x0r.github.io/1-click-github-sec/architecture/)** | Web version with diagrams | Advanced |
-| **[Cryptographic Signing →](https://h4x0r.github.io/1-click-github-sec/signing/)** | Signed commits & tags explained | Intermediate |
-| **[Certificate Transparency →](https://h4x0r.github.io/1-click-github-sec/transparency/)** | Sigstore & Rekor verification | Advanced |
+| **[Cryptographic Verification →](https://h4x0r.github.io/1-click-github-sec/cryptographic-verification/)** | Signed commits, tags & transparency | Intermediate |
 | [YUBIKEY_SIGSTORE_GUIDE.md](YUBIKEY_SIGSTORE_GUIDE.md) | Hardware-backed signing setup | Expert |
 | [SECURITY_CONTROLS_INSTALLATION.md](SECURITY_CONTROLS_INSTALLATION.md) | Detailed installation options | Intermediate |
 

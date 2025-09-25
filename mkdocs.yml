@@ -36,8 +36,7 @@ nav:
     - Uninstall Guide: uninstall.md
   - 🔧 Power User Guides:
     - Security Architecture: architecture.md
-    - Cryptographic Signing: signing.md
-    - Certificate Transparency: transparency.md
+    - Cryptographic Verification: cryptographic-verification.md
     - YubiKey + Hardware: yubikey.md
   - 👥 Development:
     - Contributing: contributing.md

@@ -49,8 +49,7 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 | Guide | Level | What You'll Learn |
 |-------|-------|-------------------|
 | **[Security Architecture →](architecture/)** | Advanced | How everything works together |
-| **[Cryptographic Signing →](signing/)** | Intermediate | Signed commits and releases |
-| **[Certificate Transparency →](transparency/)** | Advanced | Public verification with Rekor |
+| **[Cryptographic Verification →](cryptographic-verification/)** | Intermediate | Signed commits, releases & transparency |
 | **[YubiKey Integration →](yubikey/)** | Expert | Hardware-backed signing |
 
 ---

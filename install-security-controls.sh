@@ -717,7 +717,7 @@ CRYPTOGRAPHIC VERIFICATION:
         # Validate against Rekor transparency log
         gitsign verify HEAD
 
-    Learn more: https://h4x0r.github.io/1-click-github-sec/signing/
+    Learn more: https://h4x0r.github.io/1-click-github-sec/cryptographic-verification/
 
 REQUIREMENTS:
     - Git repository (initialized)
