@@ -22,10 +22,10 @@
 
 **Implementation Guidelines:**
 - SHA256 checksums for all downloadable components
-- GPG signatures for critical releases
-- Signed commits for all repository changes
+- Sigstore/gitsign signatures for all commits and releases (keyless cryptographic signing)
+- Signed commits for all repository changes with Rekor transparency log verification
 - Reproducible builds with deterministic outputs
-- Audit trails for all security decisions
+- Audit trails for all security decisions with public transparency
 
 ### 2. **Developer Experience as Security Feature**
 > "Friction is the enemy of security adoption"
@@ -62,13 +62,13 @@
 
 **Chain of Trust:**
 ```
-GPG Root Key → Repository Signing → Release Signing → Component Verification
+Sigstore Certificate Authority → GitHub OIDC Identity → gitsign Signing → Rekor Transparency Log → Component Verification
 ```
 
 **Verification Levels:**
 1. **SHA256 Checksums**: Minimum verification (integrity)
-2. **GPG Signatures**: Recommended verification (authenticity + integrity)  
-3. **Repository Clone**: Maximum verification (full transparency)
+2. **Sigstore/gitsign Signatures**: Recommended verification (keyless authenticity + integrity with transparency)
+3. **Repository Clone**: Maximum verification (full transparency with Rekor audit trail)
 
 **Trust Boundaries:**
 - Package managers (cargo, npm, brew) - considered trusted
@@ -500,9 +500,9 @@ lychee docs/**/*.md README.md --config lychee.toml
    - **Never manually update version numbers** - this causes CI validation failures
 2. **Testing**: Full test suite on multiple platforms
 3. **Documentation**: Update all relevant documentation
-4. **Signing**: GPG sign all release artifacts
-5. **Checksums**: Generate and publish SHA256 hashes
-6. **Announcement**: Security-focused release notes
+4. **Signing**: Sigstore/gitsign sign all commits and release tags (cryptographically verifiable via Rekor transparency log)
+5. **Checksums**: Generate and publish SHA256 hashes for release artifacts
+6. **Announcement**: Security-focused release notes with cryptographic verification instructions
 
 ---
 
