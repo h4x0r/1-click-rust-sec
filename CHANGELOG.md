@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.9] - 2025-09-25
+
+### 🔧 Documentation Workflow & Process Improvement Release
+
+**Critical Fixes** - Resolved documentation workflow failures and established systematic file management processes to prevent future issues.
+
+### Fixed
+- **📋 Documentation Workflow Failures** - Fixed .github/workflows/docs.yml to reference correct file paths after documentation consolidation
+- **🔗 Broken Internal Links** - Corrected yubikey/ → yubikey-integration/ link in docs/index.md
+- **📦 Version References** - Updated docs/index.md installer example from v0.4.5 to v0.4.8
+- **🐚 Shellcheck Issues** - Resolved formatting and syntax issues in scripts/validate-docs.sh
+- **⚠️ Lychee Link Checker** - Eliminated false failures from non-existent file references
+
+### Enhanced
+- **📖 File Management Process** - Added comprehensive "File Management and Impact Analysis" section to design principles
+- **🔍 Systematic Validation** - Established 3-step process for file operations: global search → multi-dimensional update → validation
+- **📋 Process Documentation** - Captured lessons learned from workflow failures as institutional knowledge
+- **✅ CI Reliability** - All documentation validation now passes consistently with proper file references
+
+### Technical Details
+- Updated workflow paths from old root files to docs/ directory structure
+- Fixed shellcheck SC formatting issues (comment spacing, variable expansion)
+- Established mandatory global search process before file operations
+- Connected file management to broader multi-dimensional synchronization strategy
+
 ## [0.4.8] - 2025-09-25
 
 ### 🔧 CI Infrastructure & Version Management Fix Release

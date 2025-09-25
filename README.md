@@ -14,7 +14,7 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 [![GitHub Security](https://img.shields.io/badge/GitHub%20Security-6%20Features-blue.svg)](https://h4x0r.github.io/1-click-github-sec/)
 [![Performance](https://img.shields.io/badge/Pre--Push-%3C60s-orange.svg)](https://h4x0r.github.io/1-click-github-sec/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.4.8-purple.svg)](https://github.com/h4x0r/1-click-github-sec/releases)
+[![Version](https://img.shields.io/badge/Version-v0.4.9-purple.svg)](https://github.com/h4x0r/1-click-github-sec/releases)
 
 ---
 
