@@ -1,21 +1,21 @@
 # 1-Click GitHub Security Controls
 
 <div align="center">
-  <img src="../1-click-github-sec Logo.png" alt="1-Click GitHub Security" width="150">
-  <br><br>
-  <em>Created by Albert Hui &lt;albert@securityronin.com&gt;</em>
+  <img src="./1-click-github-sec Logo.png" alt="1-Click GitHub Security" width="200">
 </div>
 
-[![Documentation](https://github.com/h4x0r/1-click-github-sec/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/docs.yml)
-[![Quality Assurance](https://github.com/h4x0r/1-click-github-sec/actions/workflows/quality-assurance.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/quality-assurance.yml)
-[![CodeQL](https://github.com/h4x0r/1-click-github-sec/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/codeql.yml)
-[![Pinactlite Sync](https://github.com/h4x0r/1-click-github-sec/actions/workflows/sync-pinactlite.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/sync-pinactlite.yml)
+**Created by Albert Hui <albert@securityronin.com>** [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/alberthui) [![Website](https://img.shields.io/badge/Website-4285F4?style=flat-square&logo=google-chrome&logoColor=white)](https://www.securityronin.com/)
+
+[![Documentation](https://github.com/4n6h4x0r/1-click-github-sec/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/4n6h4x0r/1-click-github-sec/actions/workflows/docs.yml)
+[![Quality Assurance](https://github.com/4n6h4x0r/1-click-github-sec/actions/workflows/quality-assurance.yml/badge.svg?branch=main)](https://github.com/4n6h4x0r/1-click-github-sec/actions/workflows/quality-assurance.yml)
+[![CodeQL](https://github.com/4n6h4x0r/1-click-github-sec/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/4n6h4x0r/1-click-github-sec/actions/workflows/codeql.yml)
+[![Pinactlite Sync](https://github.com/4n6h4x0r/1-click-github-sec/actions/workflows/sync-pinactlite.yml/badge.svg?branch=main)](https://github.com/4n6h4x0r/1-click-github-sec/actions/workflows/sync-pinactlite.yml)
 
 **Deploy Security Controls to Any Project in One Command**
 
 ```bash
 # Download and run installer (that's it!)
-curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.2/install-security-controls.sh
+curl -O https://github.com/4n6h4x0r/1-click-github-sec/releases/download/v0.4.2/install-security-controls.sh
 chmod +x install-security-controls.sh
 ./install-security-controls.sh
 ```
@@ -66,9 +66,9 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 
 ## 🔗 Quick Links
 
-- **[GitHub Repository](https://github.com/h4x0r/1-click-github-sec)** - Source code & latest releases
-- **[Report Issues](https://github.com/h4x0r/1-click-github-sec/issues)** - Found a bug? Let us know
-- **[Latest Release](https://github.com/h4x0r/1-click-github-sec/releases/latest)** - Always get the newest version
+- **[GitHub Repository](https://github.com/4n6h4x0r/1-click-github-sec)** - Source code & latest releases
+- **[Report Issues](https://github.com/4n6h4x0r/1-click-github-sec/issues)** - Found a bug? Let us know
+- **[Latest Release](https://github.com/4n6h4x0r/1-click-github-sec/releases/latest)** - Always get the newest version
 
 ---
 

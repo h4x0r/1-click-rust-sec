@@ -261,8 +261,8 @@ fi
 
 **Step 1: Download with checksums**
 ```bash
-curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.2/install-security-controls.sh
-curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.2/checksums.txt
+curl -O https://github.com/4n6h4x0r/1-click-github-sec/releases/download/v0.4.2/install-security-controls.sh
+curl -O https://github.com/4n6h4x0r/1-click-github-sec/releases/download/v0.4.2/checksums.txt
 ```
 
 **Step 2: Verify file integrity**
@@ -274,7 +274,7 @@ sha256sum -c checksums.txt --ignore-missing
 **Step 3: Verify cryptographic signatures**
 ```bash
 # Clone repository to verify signatures
-git clone https://github.com/h4x0r/1-click-github-sec.git
+git clone https://github.com/4n6h4x0r/1-click-github-sec.git
 cd 1-click-github-sec
 
 # Verify the release tag signature
