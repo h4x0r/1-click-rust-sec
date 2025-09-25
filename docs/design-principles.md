@@ -362,7 +362,13 @@ GPG Root Key → Repository Signing → Release Signing → Component Verificati
 - **User Acceptance Tests**: Real-world usage scenarios
 
 ### Release Process
-1. **Version Bumping**: Semantic versioning (security fixes = patch)
+1. **Version Bumping**: **CRITICAL - Always use `./scripts/version-sync.sh X.Y.Z`** to maintain consistency across:
+   - VERSION file (Single Source of Truth)
+   - README.md version badge
+   - install-security-controls.sh SCRIPT_VERSION
+   - mkdocs.yml site version
+   - CHANGELOG.md entries (manual verification)
+   - **Never manually update version numbers** - this causes CI validation failures
 2. **Testing**: Full test suite on multiple platforms
 3. **Documentation**: Update all relevant documentation
 4. **Signing**: GPG sign all release artifacts

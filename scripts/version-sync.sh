@@ -107,7 +107,7 @@ update_readme_version() {
   fi
 
   # Update version badge
-  sed -i.bak "s/Version-v[0-9]\+\.[0-9]\+\.[0-9]\+/Version-v${version}/g" "$readme"
+  sed -i.bak "s/Version-v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/Version-v${version}/g" "$readme"
   rm -f "${readme}.bak"
   log_success "Updated README.md version badge: v$version"
 }
@@ -123,7 +123,7 @@ update_installer_version() {
   fi
 
   # Update SCRIPT_VERSION variable
-  sed -i.bak "s/readonly SCRIPT_VERSION=\"[0-9]\+\.[0-9]\+\.[0-9]\+\"/readonly SCRIPT_VERSION=\"${version}\"/g" "$installer"
+  sed -i.bak "s/readonly SCRIPT_VERSION=\"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"/readonly SCRIPT_VERSION=\"${version}\"/g" "$installer"
   rm -f "${installer}.bak"
   log_success "Updated installer script version: $version"
 }
@@ -139,7 +139,7 @@ update_mkdocs_version() {
   fi
 
   # Update site version
-  sed -i.bak "s/site_name: .* v[0-9]\+\.[0-9]\+\.[0-9]\+/site_name: 1-Click GitHub Security v${version}/g" "$mkdocs"
+  sed -i.bak "s/site_name: .* v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/site_name: 1-Click GitHub Security v${version}/g" "$mkdocs"
   rm -f "${mkdocs}.bak"
   log_success "Updated mkdocs.yml version: v$version"
 }
