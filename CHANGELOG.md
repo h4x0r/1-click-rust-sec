@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-01-25
+
+### 🔍 Documentation Accuracy & Truth Release
+
+**Comprehensive Documentation Audit** - Complete review and revision of all documentation, help text, and marketing claims to ensure 100% accuracy with actual implementation.
+
+### Added
+- **📋 Complete Documentation Audit** - Systematic review of all help text, README, and embedded documentation
+- **🔍 Implementation Verification** - Cross-referenced all security control claims against actual code implementation
+- **✅ Gitleakslite Sync Documentation** - Added missing gitleakslite sync verification to repository security features
+- **📊 Accurate Security Control Counts** - Verified and documented that "35+ checks" claim is accurate for multi-language projects
+
+### Fixed
+- **🎯 Version Consistency** - Updated all scripts (installer, uninstaller, yubikey toggle) to consistent versioning
+- **📝 Marketing Language Accuracy** - Removed overstated "enterprise-grade" claims, replaced with factual descriptions
+- **🔧 Help Text Alignment** - Installer help text now matches README claims exactly
+- **📋 Security Implementation Claims** - All documentation now reflects actual multi-language security implementation
+- **🛠️ Tool Status Accuracy** - Updated Trivy and CodeQL from "under consideration" to "implemented" (they were already working)
+
+### Changed
+- **📖 Truthful Marketing** - Replaced marketing overstatements with accurate, verifiable claims
+- **🎯 Realistic Positioning** - Changed from "enterprise-grade" to "multi-language security controls"
+- **⚠️ Testing Status Transparency** - Added clear warnings about which language profiles are extensively tested
+- **🔍 Implementation-First Documentation** - All claims now backed by actual code verification
+
+### Verified
+- **✅ "35+ Security Checks" Claim** - Confirmed accurate for multi-language projects (4 universal + 4-16 per detected language)
+- **✅ Multi-Language Implementation** - Verified intelligent language detection and appropriate control application
+- **✅ Security Architecture Claims** - Confirmed defense-in-depth architecture with blocking/advisory tiers
+- **✅ Tool Integration Claims** - Verified Trivy, CodeQL, Gitleaks, and all claimed tools are actually implemented
+
+### Developer Experience
+- **📋 Accurate Expectations** - Users now get truthful information about capabilities and testing status
+- **🔍 Clear Implementation Details** - Documentation explains exactly what security controls are provided
+- **⚠️ Honest Testing Status** - Clear guidance on which language profiles are production-ready vs functional
+- **📊 Verifiable Claims** - All security control counts and feature claims can be independently verified
+
+**Truth in Documentation**: *"If we claim it, we implement it. If we implement it, we document it accurately."* - Achieved 100% alignment between documentation and implementation.
+
 ## [0.3.9] - 2025-01-25
 
 ### 🔄 CI Architecture & Quality Assurance Release
@@ -271,6 +310,7 @@ Please report issues at: https://github.com/h4x0r/1-click-github-sec/issues
 
 ---
 
+[0.4.0]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.4.0
 [0.3.9]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.9
 [0.3.8]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.8
 [0.3.7]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.7

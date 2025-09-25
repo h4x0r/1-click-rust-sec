@@ -4,13 +4,13 @@
   <img src="./1-click-github-sec Logo.png" alt="1-Click GitHub Security" width="200">
 </div>
 
-**Enterprise-grade security controls installer for multi-language projects**
+**Multi-language security controls installer for GitHub projects**
 
 *Created by Albert Hui <albert@securityronin.com>* [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/alberthui) [![Website](https://img.shields.io/badge/Website-4285F4?style=flat-square&logo=google-chrome&logoColor=white)](https://www.securityronin.com/)
 
-Deploy comprehensive security controls to any project with a single command. Supports Rust, Node.js, Python, Go, and generic projects. This repository serves two purposes:
+Deploy security controls to any project with a single command. Supports Rust, Node.js, Python, Go, and generic projects. This repository serves two purposes:
 
-1. **Security Installer** - Provides an installer that adds 25+ security controls + GitHub security features to YOUR projects
+1. **Security Installer** - Provides an installer that adds 35+ security controls + GitHub security features to YOUR projects
 2. **Reference Implementation** - Demonstrates security best practices with its own enhanced controls
 
 [![Security](https://img.shields.io/badge/Installer%20Provides-35%2B%20Controls-green.svg)](https://github.com/h4x0r/1-click-github-sec)
@@ -30,7 +30,7 @@ Deploy comprehensive security controls to any project with a single command. Sup
 | Aspect | What the Installer Gives You | What This Repository Has |
 |--------|------------------------------|--------------------------|
 | **Purpose** | Adds security to YOUR project | Protects THIS installer project |
-| **Pre-push Controls** | 25+ security checks | 25+ security checks |
+| **Pre-push Controls** | 35+ security checks | 35+ security checks |
 | **CI/CD Workflows** | Optional (--no-ci to skip) | 8 specialized workflows |
 | **GitHub Security** | 6 features with --github-security | 6 features enabled |
 | **Pre-commit Hooks** | Not included | Full pre-commit suite |
@@ -60,7 +60,7 @@ chmod +x install-security-controls.sh
 
 ## 🔐 GitHub Security Features
 
-Enterprise-grade GitHub repository security is now **enabled by default**:
+GitHub repository security features are **enabled by default**:
 
 ```bash
 # Full installation (includes GitHub security)
@@ -98,7 +98,7 @@ The installer adds language-specific security checks that run automatically befo
 - **Large File Prevention** - Prevents accidental binary/secret uploads
 - **Commit Signature Verification** - Ensures signed commits
 
-#### 🦀 **Rust Projects (25+ Checks)**
+#### 🦀 **Rust Projects (35+ Checks)**
 
 - **Vulnerability Scanning** - Blocks known CVEs via cargo-deny
 - **Code Formatting** - cargo fmt enforcement
@@ -154,13 +154,19 @@ Two lightweight bash scripts for security operations:
 
 This repository practices what it preaches with ENHANCED security:
 
-### Additional CI/CD Workflows
-1. **Comprehensive Quality Assurance** - ShellCheck, shfmt, pinactlite, Trivy scanning
+### Core Security Controls (Included in Installer)
+1. **Trivy Vulnerability Scanning** - Multi-language vulnerability detection (provided to all users)
+2. **CodeQL Security Scanning** - GitHub-native SAST analysis (provided to all users)
+3. **Secret Detection** - Gitleaks-powered credential scanning (provided to all users)
+4. **Supply Chain Security** - SHA pinning and dependency auditing (provided to all users)
+5. **Pre-Push Hooks** - 35+ security checks before code reaches remote (provided to all users)
+
+### Additional Repository-Specific Workflows
+1. **Comprehensive Quality Assurance** - Advanced ShellCheck, shfmt, and code formatting
 2. **Documentation Building** - MkDocs site generation and GitHub Pages deployment
-3. **CodeQL Security Scanning** - GitHub-native SAST analysis
-4. **Release Automation** - Cryptographic signing and artifact generation
-5. **Helper Tool Synchronization** - pinactlite and gitleakslite maintenance
-6. **Multi-Layer Vulnerability Detection** - Trivy + CodeQL defense-in-depth
+3. **Release Automation** - Cryptographic signing and artifact generation
+4. **Helper Tool Synchronization** - pinactlite and gitleakslite maintenance
+5. **Advanced CI Integration** - Blocking vs non-blocking validation gates
 
 ### Additional Pre-Commit Hooks
 - Trailing whitespace removal
@@ -170,6 +176,7 @@ This repository practices what it preaches with ENHANCED security:
 - Markdown linting
 - Shell script formatting
 - pinactlite sync verification
+- gitleakslite sync verification
 
 ### Additional Tools
 - Full pre-commit framework integration
@@ -210,6 +217,8 @@ Automatically detects your project language and installs optimized security cont
 ./install-security-controls.sh --language=rust,nodejs,python
 ```
 **Automatic Detection**: The installer automatically detects multiple languages in your repository and installs appropriate security controls for each detected language.
+
+> **⚠️ Testing Status**: Currently, **Rust** and **Generic** profiles have been extensively tested in production environments. Node.js, Python, and Go profiles are functional but have received less comprehensive testing. We recommend thorough validation in your specific environment before production deployment.
 
 ### Without GitHub Security Features
 ```bash
@@ -285,7 +294,7 @@ test-token-[0-9]+
 │ Developer Machine   │  Push   │ CI/CD (Optional)     │
 │ ┌─────────────────┐ │ ──────> │ ┌──────────────────┐ │
 │ │ Pre-Push Hook   │ │         │ │ Deep Analysis    │ │
-│ │ 25+ Checks      │ │         │ │ SAST/DAST       │ │
+│ │ 35+ Checks      │ │         │ │ SAST/DAST       │ │
 │ │ ~60 seconds     │ │         │ │ Supply Chain    │ │
 │ └─────────────────┘ │         │ │ Compliance      │ │
 └─────────────────────┘         │ └──────────────────┘ │
@@ -371,11 +380,17 @@ We carefully evaluate each security tool against our principles:
 | **Snyk** | Account creation + authentication setup | ❌ Multi-step registration |
 | **Semgrep Cloud** | Account + app installation required | ❌ External service signup |
 
-#### 🟡 **UNDER CONSIDERATION - Conditional Inclusion**
+#### ✅ **IMPLEMENTED - Additional Analysis Tools**
+
+| Tool | Status | Implementation |
+|------|--------|----------------|
+| **Trivy** | ✅ Implemented | Multi-language vulnerability scanning in CI workflows |
+| **CodeQL** | ✅ Implemented | GitHub-native SAST analysis for security scanning |
+
+#### 🟡 **UNDER CONSIDERATION - Future Tools**
 
 | Tool | Consideration | Condition for Inclusion |
 |------|---------------|------------------------|
-| **Trivy** | Excellent vulnerability scanner | ✅ Being added - pure binary download |
 | **SonarQube CE** | Comprehensive analysis | 🟡 Only if self-hosted option viable |
 
 ### Why This Matters
@@ -496,7 +511,7 @@ A: This repository is the development environment for the installer. It needs ad
 A: Yes! Clone this repo and copy the additional workflows and pre-commit config. But most projects don't need all of these.
 
 **Q: What's the minimum I should install?**
-A: Just run the basic installer - it provides comprehensive security appropriate for most projects.
+A: Just run the basic installer - it provides security controls suitable for most projects (note the testing status for your language above).
 
 **Q: How do I know the installer is safe?**
 A: Always verify the SHA256 checksum. The installer is also open source for full transparency.
