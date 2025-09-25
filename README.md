@@ -155,13 +155,12 @@ Two lightweight bash scripts for security operations:
 This repository practices what it preaches with ENHANCED security:
 
 ### Additional CI/CD Workflows
-1. **Pinning Validation** - Ensures all actions use SHA pins
-2. **Shell Linting** - shellcheck + shfmt validation
-3. **Documentation Building** - MkDocs site generation
-4. **E2E Testing** - Full installation testing
-5. **Helper Sync Validation** - Ensures tool consistency
-6. **Installer Self-Test** - Validates installer integrity
-7. **Documentation Deployment** - GitHub Pages automation
+1. **Comprehensive Quality Assurance** - ShellCheck, shfmt, pinactlite, Trivy scanning
+2. **Documentation Building** - MkDocs site generation and GitHub Pages deployment
+3. **CodeQL Security Scanning** - GitHub-native SAST analysis
+4. **Release Automation** - Cryptographic signing and artifact generation
+5. **Helper Tool Synchronization** - pinactlite and gitleakslite maintenance
+6. **Multi-Layer Vulnerability Detection** - Trivy + CodeQL defense-in-depth
 
 ### Additional Pre-Commit Hooks
 - Trailing whitespace removal

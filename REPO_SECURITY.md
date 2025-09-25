@@ -1,14 +1,17 @@
 # This Repository's Security Architecture
 
-This document describes the comprehensive security controls protecting the **1-Click Rust Security** repository itself. These controls go beyond what the installer provides to end users, serving as both protection and validation for the installer project.
+This document describes the comprehensive security controls protecting the **1-Click GitHub Security** repository itself. These controls go beyond what the installer provides to end users, serving as both protection and validation for the installer project.
 
 ## 🎯 Overview
 
 This repository implements a **"dogfooding plus"** approach:
-- Uses everything the installer provides
-- Adds development-specific security controls
-- Implements testing and validation workflows
+- Uses everything the installer provides (35+ security controls)
+- Adds development-specific security controls (5+ additional controls)
+- Implements 6 specialized CI/CD workflows
 - Maintains documentation and distribution security
+- Provides reference implementation for security best practices
+
+**Total Security Controls in This Repository: 40+ comprehensive security checks**
 
 ## 📊 Security Controls Comparison Tables
 
@@ -158,12 +161,13 @@ repos:
 
 ### Layer 3: CI/CD Workflows (GitHub Actions)
 
-Four specialized workflows for continuous validation:
+Six specialized workflows for continuous validation:
 
 #### 1. `quality-assurance.yml`
 - **Purpose**: Comprehensive quality and security validation
-- **Tools**: Multiple security and quality tools
-- **Checks**: Format, linting, tests, security scans, dependency analysis
+- **Tools**: ShellCheck, shfmt, pinactlite, Trivy vulnerability scanner
+- **Checks**: Format, linting, tests, security scans, dependency analysis, vulnerability detection
+- **Security**: Trivy SARIF upload to GitHub Security tab (complementing CodeQL)
 - **Features**: Combined workflow for efficient CI pipeline
 
 #### 2. `docs.yml`
@@ -187,6 +191,12 @@ Four specialized workflows for continuous validation:
 - **Purpose**: Ensures gitleakslite tool version consistency
 - **Checks**: Script synchronization between installer and repo
 - **Tools**: gitleakslite tool maintenance and updates
+
+#### 6. `release.yml`
+- **Purpose**: Automated release process with security validation
+- **Checks**: Version consistency, changelog updates, artifact generation
+- **Security**: Cryptographic signing, checksum generation, supply chain protection
+- **Artifacts**: Installer scripts, checksums, release notes with security focus
 
 ### Layer 4: Repository Configuration
 

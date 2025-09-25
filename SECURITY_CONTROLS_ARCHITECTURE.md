@@ -100,7 +100,7 @@ detect_project_languages() {
 | **Linting** | clippy | eslint | pylint/flake8 | golint | spotbugs | - |
 | **Testing** | cargo test | npm test | pytest | go test | mvn test | - |
 | **License Check** | cargo-deny | license-checker | pip-licenses | go-licenses | license-maven | - |
-| **SAST** | CodeQL + cargo-geiger | CodeQL | CodeQL + bandit | CodeQL + gosec | CodeQL + spotbugs | CodeQL |
+| **SAST** | CodeQL + Trivy + cargo-geiger | CodeQL + Trivy | CodeQL + Trivy + bandit | CodeQL + Trivy + gosec | CodeQL + Trivy + spotbugs | CodeQL + Trivy |
 | **Supply Chain** | cargo-auditable | npm audit | pip-audit | go mod | dependency-check | - |
 
 ### Universal Security Controls
@@ -108,7 +108,7 @@ detect_project_languages() {
 These controls work across all supported languages:
 
 - **Secret Detection** - gitleaks patterns detect secrets in any codebase
-- **SAST Analysis** - CodeQL security scanning for all supported languages
+- **SAST Analysis** - CodeQL + Trivy defense-in-depth security scanning for all supported languages
 - **SHA Pinning Validation** - GitHub Actions pinning is universal
 - **Git Hooks Infrastructure** - Pre-push hook framework
 - **GitHub Security Features** - Dependabot, branch protection, secret scanning
@@ -352,8 +352,13 @@ tags = ["api", "key"]
 
 ### SAST Analysis (Universal + Language-Specific)
 
-**Primary Tool**: CodeQL (GitHub's semantic code analysis engine)
+**Defense-in-Depth Strategy**: CodeQL + Trivy multi-layer security scanning
+
+**CodeQL (Primary SAST)**: GitHub's semantic code analysis engine
 **Coverage**: JavaScript, TypeScript, Python, Java, C#, Go, Ruby, C/C++
+
+**Trivy (Vulnerability Detection)**: Comprehensive vulnerability and misconfiguration scanner
+**Coverage**: Container images, file systems, git repositories, language packages
 **Integration**: Automatic workflow generation + CI/CD integration
 
 #### 🔍 CodeQL Implementation
@@ -600,11 +605,21 @@ graph LR
 
 ### Static Analysis Security Testing (SAST)
 
-**Multi-Language - semgrep**:
-- 2000+ security rules
-- Custom rule development
-- Language-specific patterns
-- CI/CD integration
+**Universal - CodeQL + Trivy Defense-in-Depth**:
+
+**CodeQL (Primary SAST)**:
+- GitHub-native security scanning
+- Multi-language support (20+ languages)
+- Zero configuration setup
+- Integration with GitHub Security tab
+- Automated security advisories
+
+**Trivy (Vulnerability Scanning)**:
+- Comprehensive vulnerability database
+- Container and filesystem scanning
+- SARIF output to GitHub Security
+- Complementary to CodeQL analysis
+- Multi-format detection (OS packages, language packages)
 
 **Language-Specific Tools**:
 - **Rust**: cargo-geiger (unsafe code detection)
