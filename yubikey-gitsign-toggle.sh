@@ -16,7 +16,7 @@
 # 🔑 YubiKey Gitsign Toggle Script
 # Enables/disables YubiKey-backed Sigstore commit signing
 #
-# Version: 0.4.1
+# Version: 0.4.2
 # Repository: https://github.com/4n6h4x0r/1-click-github-sec
 
 set -euo pipefail
