@@ -323,6 +323,58 @@ GPG Root Key → Repository Signing → Release Signing → Component Verificati
 4. **Documentation**: Update architecture and usage documentation
 5. **Rollout**: Gradual deployment with monitoring
 
+### File Management and Impact Analysis
+
+**Critical Rule**: File renames, moves, and deletions require comprehensive impact analysis across the entire codebase.
+
+**Problem**: When files are renamed or moved, references can be scattered across:
+- Documentation internal links
+- CI/CD workflow files (`.github/workflows/*.yml`)
+- Scripts and automation tools
+- Configuration files (`mkdocs.yml`, `lychee.toml`)
+- Installer script embedded documentation
+- Cross-references in other documentation
+
+**Required Process for File Changes:**
+1. **Pre-Change Analysis**: Search globally for ALL references to the file(s)
+   ```bash
+   # Search for any references to files being changed
+   git grep -n "old-filename.md"
+   git grep -n "OLD_FILENAME"
+   git grep -n "old_filename"
+   ```
+
+2. **Multi-Dimensional Update**: Update ALL discovered references simultaneously:
+   - Documentation links and cross-references
+   - Workflow trigger paths and file lists
+   - Script file arguments and parameters
+   - Configuration navigation and includes
+   - Any hardcoded file paths or names
+
+3. **Validation**: Test all affected systems after changes:
+   ```bash
+   # Test documentation builds
+   mkdocs build
+   # Test workflow validation
+   ./scripts/validate-docs.sh
+   # Test link checking
+   lychee docs/**/*.md README.md
+   ```
+
+**Common Failure Pattern**:
+- ❌ Updating documentation links but forgetting workflow files
+- ❌ Updating workflows but missing configuration files
+- ❌ Updating repository files but missing installer script references
+- ❌ Moving files without checking cross-references
+
+**Success Pattern**:
+- ✅ Global search reveals ALL references before making changes
+- ✅ All references updated atomically in same commit
+- ✅ Validation tools run to confirm no broken links or references
+- ✅ CI workflows tested to ensure they pass after changes
+
+**Lesson**: File structural changes are **multi-dimensional operations** that require systematic impact analysis across all project components. The synchronization complexity described in `docs/repo-and-installer-sync-strategy.md` applies to file management operations as well.
+
 ### Preserving Single-Script Architecture
 
 **Critical Design Decision**: The installer must remain a single, standalone shell script with zero external dependencies.
