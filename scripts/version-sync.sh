@@ -241,7 +241,8 @@ sync_all_versions() {
   echo "  1. Review changes: git diff"
   echo "  2. Update CHANGELOG.md if needed"
   echo "  3. Commit changes: git add . && git commit -m 'version: bump to $version'"
-  echo "  4. Create release: git tag v$version && git push --tags"
+  echo "  4. Create SIGNED release: git tag -s v$version -m 'Release message' && git push --tags"
+  echo "     (Use -s flag for Sigstore/gitsign signing - stronger security than unsigned tags)"
 }
 
 # Main execution
