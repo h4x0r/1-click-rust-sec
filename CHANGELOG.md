@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.7] - 2025-01-25
+
+### 🚀 Major Enhancement Release
+
+**Intelligent Multi-Language Detection & Comprehensive Documentation** - Revolutionary pre-push hook language detection and complete Rust dependency security documentation.
+
+### Added
+- **🔍 Intelligent Language Detection** - Pre-push hook now detects Rust, Node.js, TypeScript, Python, Go, and Generic projects at runtime
+- **📋 Security Check Planning** - Shows users exactly which security checks will run for their detected languages
+- **🦀 Comprehensive Rust Dependency Documentation** - Complete documentation of 4-tool security architecture (cargo-machete, cargo-deny, cargo-geiger, cargo-auditable)
+- **🤖 Dependabot Integration Documentation** - Explained how Dependabot complements local security pipeline
+- **🎯 Polyglot Repository Support** - Unified hook handles multiple languages in single repository
+- **📖 Enhanced Architecture Documentation** - Complete defense-in-depth security workflow documentation
+
+### Changed
+- **Multi-Language Architecture** - Replaced language-specific hooks with unified runtime detection
+- **Improved User Experience** - Clear language detection messages replace confusing "workspace" terminology
+- **Educational Focus** - Pre-push hook explains what checks will run and why
+- **Documentation Consolidation** - Merged multi-language architecture into main architecture docs
+
+### Fixed
+- **Misleading Messages** - Removed confusing "workspace has no members" messages
+- **Language Detection** - Fixed detection logic for complex project structures
+- **Documentation Consistency** - Aligned all documentation with multi-language implementation
+
+### Security
+- **Enhanced Documentation** - Complete security rationale for all Rust dependency tools
+- **Tool Synergy Explanation** - Documented how cargo tools work together for defense-in-depth
+- **Continuous Monitoring** - Explained Dependabot's role in ongoing security maintenance
+
+### Performance
+- **Runtime Detection** - Language detection happens at execution time, not install time
+- **Optimized Workflow** - Single hook handles all languages efficiently
+- **Clear Communication** - Users immediately understand security coverage
+
+---
+
 ## [0.3.1] - 2025-01-24
 
 ### 🔧 Maintenance Release
@@ -163,6 +200,7 @@ Please report issues at: https://github.com/h4x0r/1-click-github-sec/issues
 
 ---
 
+[0.3.7]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.7
 [0.3.1]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.1
 [0.3.0]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.0
 [0.1.0]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.1.0
