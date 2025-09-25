@@ -645,7 +645,7 @@ EXAMPLES:
     $0 --backup
 
 SECURITY CONTROLS INSTALLED:
-    Pre-Push (Complete Coverage, < 80s):
+    Pre-Push (Complete Coverage, < 60s):
     ✅ Code formatting validation (language-specific)
     ✅ Linting and quality checks (language-specific)
     ✅ Security audit (vulnerable dependencies)
@@ -4715,162 +4715,214 @@ install_documentation() {
     mkdir -p "$DOCS_DIR"
   fi
 
-  # Install README
-  local readme_file="$DOCS_DIR/README.md"
-  if [[ $DRY_RUN == true ]]; then
-    print_status $BLUE "[DRY RUN] Would install README to $readme_file"
-  else
-    cat <<'EOF' >"$readme_file"
-# Security Controls
-
-This repository includes comprehensive security controls with industry-leading security architecture.
-
-## 🛡️ Security Architecture
-
-Our security model employs a **two-stage approach**:
-
-1. **Pre-Push Controls**: Fast validation (< 60s) that catches critical issues early
-2. **Post-Push Controls**: Comprehensive CI analysis for deep security insights
-
-### Pre-Push Controls (Fast Validation)
-
-- ✅ Code formatting validation
-- ✅ Linting and quality checks
-- ✅ Security audit (vulnerable dependencies)
-- ✅ Test suite execution
-- ✅ Secret detection (API keys, passwords)
-- ✅ License compliance checking
-- ✅ SHA pinning validation
-- ✅ Commit signature verification
-
-### Post-Push Controls (Comprehensive Analysis)
-
-- 🔍 Static security analysis (SAST)
-- 🔍 Vulnerability scanning (Trivy)
-- 🔍 Supply chain verification
-- 🔍 SBOM generation
-- 🔍 Security metrics collection
-- 🔍 Integration testing
-- 🔍 Compliance reporting
-
-## 🚀 Quick Start
-
-### For Developers
-
-1. **Normal Development**: Code as usual
-2. **Commit**: Create commits locally
-3. **Push**: Pre-push hook validates automatically (< 60s)
-4. **CI/CD**: Comprehensive security analysis runs in background
-
-### Fixing Pre-Push Failures
-
-The pre-push hook provides specific fix instructions for each failure:
-
-```bash
-# Format issues
-cargo fmt --all
-
-# Linting issues
-cargo clippy --all-targets --all-features --fix
-
-# Security vulnerabilities
-cargo audit fix
-
-# Secrets detected
-# Remove secrets and use environment variables
-
-# GitHub Actions not pinned
-.security-controls/bin/pinactlite pinactlite --dir .github/workflows
-```
-
-### Emergency Bypass
-
-For urgent fixes (use sparingly):
-
-```bash
-git push --no-verify
-```
-
-## 🔧 Tool Installation
-
-Local runtime dependencies are minimal: git, curl, jq, and language-specific toolchains (Rust, Node.js, Python, Go as needed). The installer provides script-only helpers at `.security-controls/bin` for secret scanning and GitHub Actions SHA pinning; no Go/brew installs are required for local checks.
-
-```bash
-# Rust tools (if Rust project)
-cargo install cargo-audit cargo-license
-```
-
-## 🔐 Enable Sigstore commit signing (YubiKey)
-
-See docs/security/YUBIKEY_SIGSTORE_GUIDE.md for a hardware-backed, keyless commit signing workflow using YubiKey + Sigstore. It improves supply-chain integrity with short-lived certs and public transparency logs.
-
-## 📊 Security Benefits
-
-- **Zero Secret Exposure**: Secrets blocked at source
-- **Supply Chain Protection**: SHA pinning + verification
-- **Vulnerability Prevention**: Multi-layer scanning
-- **Compliance Automation**: Continuous legal/security validation
-- **Fast Feedback**: Issues caught early in workflow
-- **Clear Guidance**: Specific fix instructions provided
-
-## 🎯 Performance
-
-- **Pre-Push Time**: ~55 seconds average
-- **Security Coverage**: 14+ comprehensive controls
-- **Developer Impact**: 10x faster issue resolution vs CI failures
-
-## 🔐 GitHub Security Features (Optional)
-
-With the `--github-security` option, the installer also configures:
-
-### ✅ **Automatically Configured**
-- **Dependabot Vulnerability Alerts** - Automated dependency scanning
-- **Dependabot Security Fixes** - Automated security update PRs
-- **Branch Protection Rules** - Requires PR reviews and status checks
-- **CodeQL Security Scanning** - Automated code analysis workflow
-- **Secret Scanning** - Server-side secret detection (auto-enabled)
-- **Secret Push Protection** - Blocks secrets at GitHub level
-
-### 📋 **Manual Setup Required**
-- **Security Advisories** - Private vulnerability reporting (web interface)
-- **Advanced Security** - GitHub Enterprise only (not available for public repos)
-
-### 🛠️ **Requirements**
-- GitHub CLI (`gh`) installed and authenticated
-- Repository admin permissions for branch protection
-- GitHub repository (not local-only)
-
-### 💡 **Usage**
-```bash
-# Enable all GitHub security features
-./install-security-controls.sh --github-security
-```
-
-If requirements aren't met, detailed manual setup instructions are provided.
-
-## 📈 Compliance
-
-- ✅ NIST SSDF aligned
-- ✅ SLSA Level 2 compliant
-- ✅ OpenSSF best practices
-- ✅ Supply chain transparency (SBOM)
-
-EOF
-    print_status $GREEN "✅ Security README installed: $readme_file"
-  fi
+  # README removed - redundant with ARCHITECTURE.md
+  # All essential information is now in ARCHITECTURE.md
 
   # Install architecture documentation
-  local arch_file="$DOCS_DIR/ARCHITECTURE.md"
+  local arch_file="$DOCS_DIR/architecture.md"
   if [[ $DRY_RUN == true ]]; then
     print_status $BLUE "[DRY RUN] Would install architecture documentation to $arch_file"
   else
-    # Copy from the embedded architecture documentation
-    echo "# Security Controls Architecture - See main repository for full details" >"$arch_file"
+    # Install focused architecture documentation for users
+    cat <<'ARCH_EOF' >"$arch_file"
+# Security Controls Architecture
+
+## 🎯 What's Installed in Your Repository
+
+This document explains the security architecture deployed in your project by 1-Click GitHub Security.
+
+### 📊 Performance & Coverage Metrics
+| Metric | Value | Impact |
+|--------|--------|--------|
+| **Pre-Push Validation** | < 60 seconds | ⚡ Developer workflow preservation |
+| **Security Controls** | 35+ comprehensive | 🛡️ Complete attack vector coverage |
+| **Language Support** | Multi-language | 🌐 Universal project compatibility |
+| **Issue Resolution Speed** | 10x faster | 🚀 Early detection advantage |
+
+## 🏗️ Two-Tier Security Architecture
+
+### Tier 1: Pre-Push Controls (< 60 seconds)
+**Purpose**: Block critical issues before they enter the repository
+
+**Controls Installed**:
+- ✅ **Secret Detection** - Blocks API keys, passwords, tokens (gitleakslite)
+- ✅ **Vulnerability Scanning** - Catches known security issues (language-specific)
+- ✅ **Code Quality** - Linting and formatting validation (language-specific)
+- ✅ **Test Validation** - Ensures tests pass before push (language-specific)
+- ✅ **Supply Chain Security** - SHA pinning, dependency validation (pinactlite)
+- ✅ **License Compliance** - Validates dependency licenses (language-specific)
+
+### Tier 2: Post-Push Controls (CI/CD Analysis)
+**Purpose**: Comprehensive analysis and reporting
+
+**Workflows Installed** (optional, via --workflows flag):
+- 🔍 **Static Analysis** - SAST with CodeQL and Trivy
+- 🔍 **Dependency Auditing** - Automated vulnerability detection
+- 🔍 **Security Reporting** - SBOM generation and metrics
+- 🔍 **Compliance Checking** - License and policy validation
+
+## 🔧 Components Installed
+
+### Pre-Push Hook
+**Location**: `.git/hooks/pre-push`
+**Function**: Runs security validation before every push
+**Performance**: Completes in < 60 seconds
+**Bypass**: `git push --no-verify` (emergency use only)
+
+### Security Tools
+**Location**: `.security-controls/bin/`
+- `gitleakslite` - Secret detection (embedded binary)
+- `pinactlite` - GitHub Actions SHA pinning (embedded binary)
+
+### Configuration Files
+- `.security-controls-version` - Tracks installed version
+- `.security-controls-config` - Installation configuration
+- Language-specific configs (e.g., `.cargo/audit.toml`, `.eslintrc.js`)
+
+### Optional CI/CD Workflows
+**Location**: `.github/workflows/`
+- `security-ci-workflow.yml` - Comprehensive security analysis
+- Additional specialized workflows (if --workflows used)
+
+## 🚀 Developer Workflow Integration
+
+### Normal Development
+1. **Code** - Write code as usual
+2. **Commit** - `git commit` works normally
+3. **Push** - Pre-push hook validates automatically (< 60s)
+4. **CI** - Optional comprehensive analysis runs in background
+
+### When Pre-Push Fails
+The hook provides specific fix instructions:
+
+```bash
+# Format issues
+cargo fmt --all                    # Rust
+npm run format                     # Node.js
+black .                           # Python
+go fmt ./...                      # Go
+
+# Linting issues
+cargo clippy --all-targets --fix  # Rust
+npm run lint --fix               # Node.js
+flake8 . --fix                   # Python
+golint ./...                     # Go
+
+# Security vulnerabilities
+cargo audit fix                   # Rust
+npm audit fix                    # Node.js
+safety check                     # Python
+govulncheck ./...               # Go
+
+# Secrets detected
+# Remove secrets, use environment variables
+
+# GitHub Actions not SHA-pinned
+.security-controls/bin/pinactlite pinactlite --dir .github/workflows
+```
+
+## 🔐 GitHub Security Features (Optional)
+
+When installed with `--github-security` flag:
+
+### Automatically Configured
+- **Dependabot Vulnerability Alerts** - Automated dependency scanning
+- **Dependabot Security Fixes** - Automated security update PRs
+- **Branch Protection Rules** - Requires reviews and status checks
+- **CodeQL Security Scanning** - Automated code analysis
+- **Secret Scanning** - Server-side secret detection
+- **Secret Push Protection** - Blocks secrets at GitHub level
+
+## 🎯 Language-Specific Security
+
+### Rust Projects
+- `cargo audit` - Vulnerability scanning
+- `cargo clippy` - Security linting
+- `cargo test` - Test validation
+- `cargo license` - License compliance
+
+### Node.js Projects
+- `npm audit` - Vulnerability scanning
+- `eslint` - Security linting
+- `npm test` - Test validation
+- `license-checker` - License compliance
+
+### Python Projects
+- `safety check` - Vulnerability scanning
+- `bandit` - Security linting
+- `pytest` - Test validation
+- `pip-licenses` - License compliance
+
+### Go Projects
+- `govulncheck` - Vulnerability scanning
+- `golint` - Security linting
+- `go test` - Test validation
+- `go-licenses` - License compliance
+
+### Generic Projects
+- Universal secret detection
+- GitHub Actions SHA pinning
+- Basic file validation
+
+## 🛠️ Maintenance and Updates
+
+### Upgrading Security Controls
+```bash
+# Download latest installer
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/latest/download/install-security-controls.sh
+
+# Run upgrade (preserves your settings)
+chmod +x install-security-controls.sh
+./install-security-controls.sh --upgrade
+```
+
+### Manual Tool Updates
+```bash
+# Update embedded security tools
+.security-controls/bin/gitleakslite --update
+.security-controls/bin/pinactlite --update
+```
+
+### Configuration Management
+- Version tracked in `.security-controls-version`
+- Settings preserved in `.security-controls-config`
+- Backups created in `.security-controls-backup/`
+
+## 📊 Monitoring and Metrics
+
+### Pre-Push Performance
+- Target: < 60 seconds total execution time
+- Parallel execution for efficiency
+- Tool-specific timeouts prevent hangs
+
+### Security Coverage
+- 35+ comprehensive security controls
+- Multi-language vulnerability detection
+- Supply chain attack prevention
+- Secret exposure prevention
+
+### Compliance Standards
+- ✅ NIST SSDF aligned
+- ✅ SLSA Level 2 compliant
+- ✅ OpenSSF best practices
+- ✅ SBOM generation ready
+
+## 🔗 Additional Resources
+
+- **Complete Architecture**: https://h4x0r.github.io/1-click-github-sec/architecture/
+- **Installation Guide**: https://h4x0r.github.io/1-click-github-sec/installation/
+- **Cryptographic Verification**: https://h4x0r.github.io/1-click-github-sec/cryptographic-verification/
+- **GitHub Repository**: https://github.com/h4x0r/1-click-github-sec
+
+---
+
+*This architecture document describes the security controls installed in your specific repository. For complete technical details, see the full documentation at the links above.*
+ARCH_EOF
     print_status $GREEN "✅ Architecture documentation installed: $arch_file"
   fi
 
   # Install YubiKey + Sigstore guide
-  local yubi_file="$DOCS_DIR/YUBIKEY_SIGSTORE_GUIDE.md"
+  local yubi_file="$DOCS_DIR/yubikey-integration.md"
   if [[ $DRY_RUN == true ]]; then
     print_status $BLUE "[DRY RUN] Would install YubiKey guide to $yubi_file"
   else
@@ -5133,6 +5185,169 @@ git config --global gitsign.rekor-url "https://rekor.your-company.com"
 - Treat --no-verify pushes as emergencies only
 
 ---
+
+## 🚨 Troubleshooting
+
+### **Common Issues**
+
+#### YubiKey Not Recognized
+```bash
+# Check YubiKey detection
+ykman list
+
+# If not found:
+# - Try different USB port
+# - Update YubiKey Manager: pip install --upgrade yubikey-manager
+# - Check if YubiKey is registered with GitHub
+```
+
+#### GitHub Authentication Fails
+```bash
+# Clear cached credentials
+gitsign initialize --oidc-issuer=https://token.actions.githubusercontent.com
+
+# Re-run with verbose output
+GITSIGN_LOG=debug git commit --amend --no-edit
+```
+
+#### Commit Signing Intermittently Fails
+```bash
+# Common causes and solutions:
+# 1. YubiKey timeout - touch YubiKey when prompted
+# 2. Browser session expired - clear browser cache
+# 3. Network issues - check internet connectivity
+# 4. YubiKey PIN locked - unlock with: ykman fido reset
+```
+
+#### Browser Opens But Authentication Fails
+```bash
+# Ensure GitHub account has verified email
+# Check if corporate firewall blocks token.actions.githubusercontent.com
+# Try different browser or incognito mode
+```
+
+### **Verification Issues**
+
+#### "no signature found"
+```bash
+# Check if commit was actually signed
+git log --show-signature -1
+
+# If no signature, ensure gitsign is configured:
+git config --get commit.gpgsign  # should be "true"
+git config --get gpg.format      # should be "x509"
+git config --get gpg.x509.program # should be "gitsign"
+```
+
+#### "certificate verification failed"
+```bash
+# Certificate may have expired (10 min lifetime)
+# Re-sign the commit:
+git commit --amend --no-edit
+
+# Check Rekor entry:
+rekor-cli search --email your-email@github.com
+```
+
+### **Performance Issues**
+
+#### Slow Signing Process
+```bash
+# YubiKey Series 5.4+ recommended for fastest performance
+# Ensure latest YubiKey firmware:
+ykman info
+
+# Close unnecessary browser tabs to reduce memory usage
+# Consider using YubiKey 5C Nano for permanent insertion
+```
+
+### **Advanced Troubleshooting**
+
+#### Enable Debug Logging
+```bash
+# Set debug environment variables
+export GITSIGN_LOG=debug
+export SIGSTORE_LOG_LEVEL=debug
+
+# Run git commit and capture logs
+git commit -m "debug test" 2>&1 | tee gitsign-debug.log
+```
+
+#### Check Certificate Details
+```bash
+# Examine certificate in transparency log
+gitsign verify HEAD --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+
+# Manual Rekor verification
+rekor-cli get --uuid $(rekor-cli search --email your-email@example.com | head -1)
+```
+
+## 📊 Comparison with Other Signing Methods
+
+### **vs Traditional GPG**
+
+| Aspect | Traditional GPG | YubiKey + Sigstore |
+|--------|----------------|-------------------|
+| **Key Management** | Complex (backup, expiry, revocation) | None (keyless) |
+| **Hardware Security** | Optional (can use YubiKey) | Required (YubiKey mandatory) |
+| **Certificate Lifetime** | Years (until manually revoked) | Minutes (automatic expiry) |
+| **Identity Verification** | Web of trust / manual | OIDC provider verified |
+| **Transparency** | None | Public Rekor log |
+| **Phishing Resistance** | No (password-based) | Yes (FIDO2/WebAuthn) |
+| **Setup Complexity** | High | Medium |
+| **Enterprise Support** | Good | Excellent |
+
+### **vs SSH Signing**
+
+| Aspect | SSH Signing | YubiKey + Sigstore |
+|--------|-------------|-------------------|
+| **Hardware Support** | Yes (SSH keys on YubiKey) | Yes (YubiKey required) |
+| **Identity Verification** | Manual key distribution | OIDC provider verified |
+| **Certificate Transparency** | None | Public Rekor log |
+| **Automatic Expiry** | No (manual rotation) | Yes (10 minutes) |
+| **GitHub Integration** | Native support | Native support |
+| **Enterprise PKI** | Possible | Built-in |
+
+### **vs Keyless Sigstore (no YubiKey)**
+
+| Aspect | Keyless Sigstore | YubiKey + Sigstore |
+|--------|------------------|-------------------|
+| **Hardware Security** | No (software only) | Yes (YubiKey required) |
+| **Phishing Resistance** | Limited | Excellent (FIDO2) |
+| **Setup Complexity** | Low | Medium |
+| **Security Level** | Good | Excellent |
+| **Compliance** | Basic | Enhanced |
+
+### **Recommendation Matrix**
+
+| Use Case | Recommended Method | Rationale |
+|----------|-------------------|-----------|
+| **Personal Projects** | Keyless Sigstore | Simple setup, good security |
+| **Professional Development** | YubiKey + Sigstore | Enhanced security, compliance ready |
+| **Enterprise/Regulated** | YubiKey + Sigstore | Maximum security, audit trail |
+| **Open Source Maintainer** | YubiKey + Sigstore | Trust building, supply chain security |
+
+## 📈 Adoption Strategy
+
+### **Individual Developer**
+1. **Personal Projects**: Start with personal repositories
+2. **Learn the Flow**: Get comfortable with YubiKey + browser flow
+3. **Test Thoroughly**: Verify signatures are working correctly
+4. **Professional Usage**: Apply to work projects once confident
+
+### **Team/Organization**
+1. **Pilot Program**: Select early adopters for initial testing
+2. **Infrastructure**: Ensure all developers have YubiKey 5 series
+3. **Training**: Conduct setup sessions and troubleshooting workshops
+4. **Policy**: Establish guidelines for when signing is required
+5. **Monitoring**: Track adoption metrics and support requests
+
+### **Enterprise**
+1. **Security Review**: Validate Sigstore against enterprise policies
+2. **Infrastructure**: Consider private Fulcio/Rekor instances
+3. **Integration**: Connect with existing identity providers
+4. **Compliance**: Map to regulatory requirements (SOX, etc.)
+5. **Rollout**: Phased deployment with success metrics
 
 ## 🔗 Resources
 
@@ -5527,7 +5742,7 @@ show_summary() {
   if [[ $INSTALL_DOCS == true ]]; then
     print_status $BLUE "📚 Documentation:"
     print_status $GREEN "   ✅ Installed to $DOCS_DIR/"
-    print_status $BLUE "   📖 Includes: README, architecture, usage guides"
+    print_status $BLUE "   📖 Includes: architecture.md, yubikey-integration.md"
   fi
 
   if [[ $INSTALL_GITHUB_SECURITY == true ]]; then
