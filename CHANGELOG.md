@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.12] - 2025-09-25
+
+### 📖 Cryptographic Documentation Accuracy Release
+
+**Critical Documentation Update** - Corrected all cryptographic signing references from GPG to Sigstore/gitsign to accurately reflect our actual implementation and prevent user confusion.
+
+### Fixed
+- **🔐 Signing Documentation** - Updated CLAUDE.md design principles to reflect Sigstore/gitsign instead of GPG signing
+- **📋 Process Documentation** - Fixed release process to reference Sigstore/gitsign signing with Rekor transparency log
+- **🔗 Chain of Trust** - Updated cryptographic trust model from GPG root key to Sigstore CA + GitHub OIDC + Rekor
+- **📊 Architecture References** - Fixed architecture.md cryptographic verification references from GPG to Sigstore/gitsign
+- **🛡️ Security Documentation** - Updated repo-security.md signing references to reflect actual Sigstore implementation
+
+### Enhanced
+- **📖 Implementation Accuracy** - All documentation now correctly describes our keyless signing approach
+- **🔍 Verification Instructions** - Updated verification levels to reflect Sigstore signatures with transparency
+- **🎯 User Guidance** - Eliminated confusion between GPG and Sigstore - clearly established Sigstore/gitsign usage
+- **📋 Consistency** - Comprehensive review and update of all cryptographic signing references across documentation
+
+### Technical Details
+- Design principles now accurately describe Sigstore CA → GitHub OIDC → gitsign → Rekor chain of trust
+- Release process reflects actual Sigstore/gitsign signing instead of traditional GPG signatures
+- Architecture documentation correctly references Sigstore/gitsign signatures for cryptographic verification
+- Repository security documentation updated to show Sigstore/gitsign in release and commit signing workflows
+- All references to GPG key management replaced with keyless signing benefits and transparency
+
 ## [0.4.11] - 2025-09-25
 
 ### 🔗 Final Link Resolution & Reliability Release
