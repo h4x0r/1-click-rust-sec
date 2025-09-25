@@ -302,6 +302,107 @@ test-token-[0-9]+
 
 ---
 
+## 🎯 Design Philosophy
+
+### True 1-Click Installation
+
+**"1-Click" means exactly that**: Download one script, run one command, get enterprise security.
+
+```bash
+# This is ALL you need:
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/install-security-controls.sh
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/install-security-controls.sh.sha256
+sha256sum -c install-security-controls.sh.sha256
+chmod +x install-security-controls.sh
+./install-security-controls.sh
+```
+
+**No account creation. No external service registration. No GitHub App installations.**
+
+### Core Design Principles
+
+#### 🚀 **Zero External Dependencies**
+- **Single shell script** with embedded framework
+- **No account signups** or external service dependencies
+- **No GitHub Apps** requiring marketplace installation
+- **Works offline** after initial download
+
+#### 🛡️ **Security Without Compromise**
+- **Cryptographic verification** for all components (SHA256)
+- **GitHub-native tools** preferred (CodeQL, Dependabot, etc.)
+- **Downloadable binaries** over external services
+- **Fail secure** - blocks rather than allows on errors
+
+#### ⚡ **Performance First**
+- **Sub-60 second** pre-push validation
+- **Parallel execution** of independent checks
+- **Smart caching** for repeated operations
+- **No waiting** for external API calls in critical path
+
+### Tool Selection Criteria
+
+We carefully evaluate each security tool against our principles:
+
+#### ✅ **INCLUDED - Meets All Criteria**
+
+| Tool | Why Included | 1-Click Compatible |
+|------|--------------|-------------------|
+| **CodeQL** | GitHub-native, zero setup, universal SAST | ✅ Auto-generates workflows |
+| **gitleaks** | Downloadable binary, works offline | ✅ Embedded in installer |
+| **cargo-deny** | Language toolchain, no external deps | ✅ Pure Rust cargo tool |
+| **npm audit** | Built into npm, no accounts needed | ✅ Native Node.js tooling |
+
+#### ❌ **REJECTED - Violates Core Principles**
+
+| Tool | Why Rejected | Violates Principle |
+|------|--------------|-------------------|
+| **Socket.dev** | Requires account + GitHub App install | ❌ External dependencies |
+| **Snyk** | Account creation + authentication setup | ❌ Multi-step registration |
+| **Semgrep Cloud** | Account + app installation required | ❌ External service signup |
+
+#### 🟡 **UNDER CONSIDERATION - Conditional Inclusion**
+
+| Tool | Consideration | Condition for Inclusion |
+|------|---------------|------------------------|
+| **Trivy** | Excellent vulnerability scanner | ✅ Being added - pure binary download |
+| **SonarQube CE** | Comprehensive analysis | 🟡 Only if self-hosted option viable |
+
+### Why This Matters
+
+**Corporate Environment Friendly**: No need to request IT approval for external accounts or marketplace apps.
+
+**Individual Developer Friendly**: Works identically on personal repos (`user/project`) and organizational repos (`org/project`).
+
+**Security Focused**: External service dependencies increase attack surface and create supply chain risks.
+
+**Reliability**: No network dependencies in critical security path means it works in air-gapped environments.
+
+### Examples in Practice
+
+#### ✅ **How We Add New Security Tools**
+
+```bash
+# Example: Adding Trivy (perfect 1-click candidate)
+# 1. Download Trivy binary during installation
+# 2. Generate GitHub workflow that uses downloaded binary
+# 3. No user accounts or external setup required
+# 4. Works immediately after installation
+```
+
+#### ❌ **What We Don't Do**
+
+```bash
+# This would violate our principles:
+# "Please create an account at security-service.com"
+# "Install our GitHub App from the marketplace"
+# "Authenticate with your API key"
+# "Configure your organization settings"
+```
+
+**Result**: Our installer works for everyone, everywhere, immediately. That's true 1-click security.
+
+---
+
 ## 📚 Documentation
 
 | Document | Description | Audience |
