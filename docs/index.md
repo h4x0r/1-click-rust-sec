@@ -37,8 +37,8 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 
 | Guide | Time | What You'll Learn |
 |-------|------|-------------------|
-| **[Installation →](installation/)** | 5 min | Get security controls installed |
-| **[Uninstall →](uninstall/)** | 2 min | Remove controls if needed |
+| **[Installation →](installation.md)** | 5 min | Get security controls installed |
+| **[Uninstall →](uninstall.md)** | 2 min | Remove controls if needed |
 
 **That's it!** Most users don't need anything else.
 
@@ -48,9 +48,9 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 
 | Guide | Level | What You'll Learn |
 |-------|-------|-------------------|
-| **[Security Architecture →](architecture/)** | Advanced | How everything works together |
-| **[Cryptographic Verification →](cryptographic-verification)** | Intermediate | Signed commits, releases & transparency |
-| **[YubiKey Integration →](yubikey-integration/)** | Expert | Hardware-backed signing |
+| **[Security Architecture →](architecture.md)** | Advanced | How everything works together |
+| **[Cryptographic Verification →](cryptographic-verification.md)** | Intermediate | Signed commits, releases & transparency |
+| **[YubiKey Integration →](yubikey-integration.md)** | Expert | Hardware-backed signing |
 
 ---
 
@@ -58,9 +58,9 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 
 | Guide | Role | What You'll Learn |
 |-------|------|-------------------|
-| **[Contributing →](contributing/)** | Contributors | Development setup and guidelines |
-| **[Repository Security →](repo-security/)** | Maintainers | This repo's security implementation |
-| **[Design Principles →](design-principles/)** | Architects | Core design decisions |
+| **[Contributing →](contributing.md)** | Contributors | Development setup and guidelines |
+| **[Repository Security →](repo-security.md)** | Maintainers | This repo's security implementation |
+| **[Design Principles →](design-principles.md)** | Architects | Core design decisions |
 
 ---
 

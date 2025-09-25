@@ -463,7 +463,7 @@ Repository Security Chain:
 - [Security Controls Architecture](architecture.md) - Technical design
 - [Installation Guide](installation.md) - Setup instructions
 - [YubiKey Guide](yubikey-integration.md) - YubiKey integration
-- [Workflow Sources](.github/workflows/) - GitHub Actions workflows
+- [Workflow Sources](https://github.com/h4x0r/1-click-github-sec/tree/main/.github/workflows) - GitHub Actions workflows
 
 ### External References
 - [GitHub Security Best Practices](https://docs.github.com/en/code-security)
