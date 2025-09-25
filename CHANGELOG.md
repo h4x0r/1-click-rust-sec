@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.9] - 2025-01-25
+
+### 🔄 CI Architecture & Quality Assurance Release
+
+**Blocking vs Non-blocking CI Gates** - Major CI restructuring to separate functional/security validation (blocking) from quality/linting (non-blocking), plus comprehensive QA fixes.
+
+### Added
+- **🚫 Critical Validation Job** - New blocking CI job for functional synchronization and documentation validation
+- **⚠️ Non-blocking Quality Gates** - Shell script linting, formatting, and quality checks now use `continue-on-error: true`
+- **📋 License Compliance** - Added proper Apache 2.0 license headers to all validation scripts
+
+### Fixed
+- **🐛 cargo-deny Configuration** - Migrated to version 2 format, fixed `unmaintained` property value from invalid "warn" to "workspace"
+- **⚡ Documentation Validation Hanging** - Fixed arithmetic expansion syntax causing indefinite hangs in `validate-docs.sh`
+- **🔧 Supply Chain Security Script** - Fixed same arithmetic expansion issues preventing security validation completion
+- **🎯 CI Job Dependencies** - Restructured workflow to ensure functional checks are blocking while quality is advisory
+
+### Changed
+- **🏗️ CI Philosophy** - Implemented "linting etc. are QA issues and should be non-blocking; function and doc sync should be blocking"
+- **📊 Job Categorization** - Clear separation between critical validation (blocks releases) and quality assurance (improves code)
+- **⚙️ Error Handling** - Quality jobs continue on error while security/functional jobs fail fast
+
+### Performance
+- **⚡ Script Reliability** - Documentation validation now completes consistently instead of hanging
+- **🚀 Faster CI Feedback** - Quality issues no longer block functional validation from running
+- **🎯 Focused Blocking** - Only critical functional/security issues block releases
+
+### Developer Experience
+- **✅ Reliable Release Pipeline** - Functional checks properly gate releases while quality feedback remains available
+- **📋 Clear Job Status** - Easy distinction between must-fix (blocking) and should-fix (non-blocking) issues
+- **🔍 Better Debugging** - Arithmetic expansion fixes eliminate mysterious script hangs
+
+**Architecture Achievement**: *"Functional and doc sync should be blocking, correct?"* - Implemented proper CI gating philosophy with blocking functional validation and advisory quality checks.
+
 ## [0.3.8] - 2025-01-25
 
 ### 🛡️ Dogfooding Plus Compliance & CI Reliability Release
@@ -237,6 +271,8 @@ Please report issues at: https://github.com/h4x0r/1-click-github-sec/issues
 
 ---
 
+[0.3.9]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.9
+[0.3.8]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.8
 [0.3.7]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.7
 [0.3.1]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.1
 [0.3.0]: https://github.com/h4x0r/1-click-github-sec/releases/tag/v0.3.0
