@@ -307,3 +307,30 @@ jobs:
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
+
+  documentation-validation:
+    name: Documentation Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Validate documentation consistency
+        run: |
+          set -euo pipefail
+
+          # Run documentation validation script
+          if [[ -f "./scripts/validate-docs.sh" ]]; then
+            chmod +x ./scripts/validate-docs.sh
+            ./scripts/validate-docs.sh
+          else
+            echo "⚠️ Documentation validation script not found, skipping"
+          fi
+
+          # Run control count verification
+          if [[ -f "./scripts/count-controls.sh" ]]; then
+            chmod +x ./scripts/count-controls.sh
+            ./scripts/count-controls.sh
+          else
+            echo "⚠️ Control counting script not found, skipping"
+          fi

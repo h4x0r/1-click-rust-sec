@@ -165,8 +165,8 @@ Six specialized workflows for continuous validation:
 
 #### 1. `quality-assurance.yml`
 - **Purpose**: Comprehensive quality and security validation
-- **Tools**: ShellCheck, shfmt, pinactlite, Trivy vulnerability scanner
-- **Checks**: Format, linting, tests, security scans, dependency analysis, vulnerability detection
+- **Tools**: ShellCheck, shfmt, pinactlite, Trivy vulnerability scanner, documentation validation scripts
+- **Checks**: Format, linting, tests, security scans, dependency analysis, vulnerability detection, documentation consistency
 - **Security**: Trivy SARIF upload to GitHub Security tab (complementing CodeQL)
 - **Features**: Combined workflow for efficient CI pipeline
 
@@ -246,6 +246,32 @@ All workflows display real-time status in README:
 - SLSA Level 2 compliance 🔄 (in progress)
 
 ## 🔧 Maintenance Workflows
+
+### Documentation Synchronization Automation
+
+The repository includes comprehensive automation to maintain documentation consistency:
+
+**Automation Scripts:**
+- `scripts/version-sync.sh` - Synchronizes version numbers across all files
+- `scripts/count-controls.sh` - Audits actual security control counts vs marketing claims
+- `scripts/validate-docs.sh` - Cross-reference and consistency validation
+
+**CI Integration:**
+- Documentation validation runs automatically in quality-assurance.yml workflow
+- Prevents documentation drift through automated checks
+- Validates version consistency, control counts, cross-references, and embedded documentation
+
+**Maintenance Commands:**
+```bash
+# Check all documentation consistency
+./scripts/validate-docs.sh
+
+# Verify security control counts
+./scripts/count-controls.sh
+
+# Sync version across all files
+./scripts/version-sync.sh --check
+```
 
 ### Adding New Security Controls
 
