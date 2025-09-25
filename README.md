@@ -6,7 +6,7 @@
 
 **Enterprise-grade security controls installer for multi-language projects**
 
-*Created by Albert Hui <albert@securityronin.com>*
+*Created by Albert Hui <albert@securityronin.com>* [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/alberthui) [![Website](https://img.shields.io/badge/Website-4285F4?style=flat-square&logo=google-chrome&logoColor=white)](https://www.securityronin.com/)
 
 Deploy comprehensive security controls to any project with a single command. Supports Rust, Node.js, Python, Go, and generic projects. This repository serves two purposes:
 
@@ -442,8 +442,10 @@ Key areas:
 
 Found a security issue? Please:
 1. **DO NOT** open a public issue
-2. Email security@[domain] or
+2. Email **security@securityronin.com** or
 3. Use GitHub Security Advisories
+
+We take security seriously and will respond to legitimate security reports promptly.
 
 ---
 
@@ -455,11 +457,33 @@ Apache 2.0 - See [LICENSE](LICENSE)
 
 ## 🙏 Acknowledgments
 
-Built on excellent open-source tools:
-- [cargo-deny](https://github.com/EmbarkStudios/cargo-deny)
-- [cargo-audit](https://github.com/RustSec/rustsec)
-- [gitleaks](https://github.com/gitleaks/gitleaks) (inspiration)
-- [pinact](https://github.com/suzuki-shunsuke/pinact) (inspiration)
+This project stands on the shoulders of giants. We're grateful to the amazing open-source security community:
+
+### 🛠️ **Core Security Tools**
+- [**CodeQL**](https://github.com/github/codeql) - GitHub's semantic code analysis engine
+- [**Trivy**](https://github.com/aquasecurity/trivy) - Comprehensive vulnerability scanner by Aqua Security
+- [**cargo-deny**](https://github.com/EmbarkStudios/cargo-deny) - Rust dependency security by Embark Studios
+- [**cargo-audit**](https://github.com/RustSec/rustsec) - Rust security advisory database by RustSec
+- [**Dependabot**](https://github.com/dependabot) - GitHub's automated dependency updates
+
+### 💡 **Inspiration and Architecture**
+- [**gitleaks**](https://github.com/gitleaks/gitleaks) - Secret detection inspiration by Zachary Rice
+- [**pinact**](https://github.com/suzuki-shunsuke/pinact) - GitHub Actions pinning inspiration by Shunsuke Suzuki
+- [**OpenSSF Scorecard**](https://github.com/ossf/scorecard) - Supply chain security methodology
+- [**SLSA Framework**](https://slsa.dev/) - Supply-chain security framework
+
+### 🌐 **Language Ecosystem Tools**
+- **Rust**: [clippy](https://github.com/rust-lang/rust-clippy), [rustfmt](https://github.com/rust-lang/rustfmt), [cargo-geiger](https://github.com/geiger-rs/cargo-geiger)
+- **Node.js**: [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [npm audit](https://docs.npmjs.com/cli/v8/commands/npm-audit)
+- **Python**: [safety](https://github.com/pyupio/safety), [bandit](https://github.com/PyCQA/bandit), [black](https://github.com/psf/black)
+- **Go**: [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck), [golangci-lint](https://golangci-lint.run/)
+
+### 🏗️ **Infrastructure and CI/CD**
+- [**GitHub Actions**](https://github.com/features/actions) - CI/CD platform and security workflows
+- [**ShellCheck**](https://github.com/koalaman/shellcheck) - Shell script analysis by Vidar Holen
+- [**shfmt**](https://github.com/mvdan/sh) - Shell formatting by Daniel Martí
+
+**Special thanks to all maintainers and contributors who make secure software development possible. 🙌**
 
 ---
 
@@ -483,6 +507,8 @@ A: Always verify the SHA256 checksum. The installer is also open source for full
 
 **Albert Hui** <albert@securityronin.com>
 *Security Ronin*
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/alberthui) [![Website](https://img.shields.io/badge/Website-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white)](https://www.securityronin.com/)
 
 ---
 
