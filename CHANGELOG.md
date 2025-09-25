@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.8] - 2025-09-25
+
+### 🔧 CI Infrastructure & Version Management Fix Release
+
+**Critical CI Fixes** - Resolved all CI failures and improved version management process with comprehensive tooling enhancements.
+
+### Fixed
+- **🔧 Version Synchronization Issues** - Fixed version-sync.sh regex patterns for cross-platform BSD/macOS compatibility
+- **📋 README Version Badge** - Corrected version badge display from v0.4.5 to proper v0.4.8
+- **🔗 Broken Documentation Links** - Fixed internal references from REPO_SECURITY.md to repo-security.md
+- **📦 Installer Version Mismatch** - Updated installer SCRIPT_VERSION and GitHub URLs consistency
+- **🌐 GitHub URL Corrections** - Fixed all remaining 4n6h4x0r references to correct h4x0r username
+
+### Enhanced
+- **📖 Version Management Documentation** - Added mandatory version-sync.sh usage guidelines to design principles
+- **🔄 Cross-Platform Compatibility** - Updated sed regex patterns to work on both GNU and BSD systems
+- **⚙️ CI Validation Process** - All documentation validation now passes consistently
+
+### Technical Details
+- Fixed sed regex patterns from `[0-9]\+` to `[0-9][0-9]*` for better compatibility
+- Updated installer version references and URLs throughout the codebase
+- Added comprehensive version bumping guidelines emphasizing tool usage
+- Resolved lychee link checker failures in documentation workflow
+
+This release ensures all CI workflows pass and establishes proper version management practices for future releases.
+
 ## [0.4.7] - 2025-09-25
 
 ### 🚀 Minor Release Update
