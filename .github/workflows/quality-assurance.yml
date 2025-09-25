@@ -308,6 +308,30 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
 
+  secret-scanning:
+    name: Comprehensive Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0  # Scan entire repository history
+
+      - name: Run Gitleaks Action
+        uses: gitleaks/gitleaks-action@cb7149b9e61c3d6896c4bc2616d4c9e86ee2d0c2 # v2.3.6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Local Gitleakslite for Comparison
+        run: |
+          set -euo pipefail
+          if [[ -x "./.security-controls/bin/gitleakslite" ]]; then
+            echo "🔍 Running local gitleakslite for validation..."
+            ./.security-controls/bin/gitleakslite detect --no-banner --redact || true
+          else
+            echo "⚠️ Local gitleakslite not found, skipping comparison"
+          fi
+
   documentation-validation:
     name: Documentation Validation
     runs-on: ubuntu-latest
@@ -342,3 +366,295 @@ jobs:
           else
             echo "⚠️ Security control sync script not found, skipping"
           fi
+
+  security-audit:
+    name: Security Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Install cargo-deny
+        run: |
+          set -euo pipefail
+          # Install cargo-deny for comprehensive dependency auditing
+          cargo install --locked cargo-deny
+
+      - name: Run cargo-deny security audit
+        run: |
+          set -euo pipefail
+
+          # Create minimal deny.toml if it doesn't exist
+          if [[ ! -f "deny.toml" ]]; then
+            echo "Creating minimal deny.toml for security audit..."
+            cat > deny.toml << 'EOF'
+          [graph]
+          targets = []
+
+          [advisories]
+          vulnerability = "deny"
+          unmaintained = "warn"
+          yanked = "warn"
+          notice = "warn"
+
+          [licenses]
+          unlicensed = "deny"
+          allow = ["Apache-2.0", "MIT", "BSD-3-Clause", "ISC", "Unicode-DFS-2016"]
+          deny = ["GPL-2.0", "GPL-3.0", "AGPL-1.0", "AGPL-3.0"]
+
+          [bans]
+          multiple-versions = "warn"
+          wildcards = "warn"
+          deny = []
+
+          [sources]
+          unknown-registry = "warn"
+          unknown-git = "warn"
+          EOF
+          fi
+
+          # Run comprehensive security audit
+          echo "🔍 Running cargo-deny security audit..."
+          cargo deny check advisories
+
+      - name: Run dependency analysis
+        run: |
+          set -euo pipefail
+
+          echo "📊 Analyzing dependency licenses..."
+          cargo deny check licenses || true
+
+          echo "📊 Checking for banned dependencies..."
+          cargo deny check bans || true
+
+          echo "📊 Validating dependency sources..."
+          cargo deny check sources || true
+
+      - name: Upload security audit results
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        if: always()
+        with:
+          name: security-audit-report
+          path: |
+            deny.toml
+            Cargo.lock
+
+  supply-chain-security:
+    name: Supply Chain Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Validate GitHub Actions pinning
+        run: |
+          set -euo pipefail
+
+          echo "🔍 Validating GitHub Actions SHA pinning..."
+
+          # Use our own pinactlite tool if available
+          if [[ -x "./.security-controls/bin/pinactlite" ]]; then
+            ./.security-controls/bin/pinactlite pincheck --dir .github/workflows
+          else
+            echo "⚠️ Local pinactlite not found, performing manual checks..."
+
+            # Manual validation of workflow pinning
+            unpinned_actions=$(find .github/workflows -name "*.yml" -exec grep -l "@[a-zA-Z]" {} \; | wc -l | tr -d ' ')
+
+            if [[ $unpinned_actions -gt 0 ]]; then
+              echo "❌ Found potentially unpinned actions"
+              find .github/workflows -name "*.yml" -exec grep -H "@[a-zA-Z]" {} \; || true
+              exit 1
+            else
+              echo "✅ All actions appear to be SHA-pinned"
+            fi
+          fi
+
+      - name: Analyze dependency chain integrity
+        run: |
+          set -euo pipefail
+
+          echo "🔍 Analyzing supply chain integrity..."
+
+          # Check for lock files presence
+          if [[ -f "Cargo.lock" ]]; then
+            echo "✅ Cargo.lock found - dependencies are locked"
+          else
+            echo "⚠️ No Cargo.lock found - dependencies may be unstable"
+          fi
+
+          if [[ -f "package-lock.json" ]]; then
+            echo "✅ package-lock.json found - Node.js dependencies are locked"
+          fi
+
+          if [[ -f "yarn.lock" ]]; then
+            echo "✅ yarn.lock found - Yarn dependencies are locked"
+          fi
+
+          if [[ -f "requirements.txt" ]] || [[ -f "Pipfile.lock" ]]; then
+            echo "✅ Python dependency locks found"
+          fi
+
+          # Check for dependency confusion risks
+          if [[ -f "package.json" ]]; then
+            echo "🔍 Checking for potential dependency confusion..."
+            if grep -q '"name":.*"@' package.json; then
+              echo "✅ Scoped packages detected - reduced dependency confusion risk"
+            fi
+          fi
+
+      - name: Validate repository security settings
+        run: |
+          set -euo pipefail
+
+          echo "🔍 Validating repository security posture..."
+
+          # Check for security-focused configurations
+          security_configs=0
+
+          if [[ -f ".github/dependabot.yml" ]]; then
+            echo "✅ Dependabot configuration found"
+            ((security_configs++))
+          fi
+
+          if [[ -f ".github/workflows/codeql.yml" ]]; then
+            echo "✅ CodeQL workflow found"
+            ((security_configs++))
+          fi
+
+          if [[ -f "deny.toml" ]]; then
+            echo "✅ Cargo deny configuration found"
+            ((security_configs++))
+          fi
+
+          if [[ -f ".security-controls/config.env" ]]; then
+            echo "✅ Security controls configuration found"
+            ((security_configs++))
+          fi
+
+          echo "📊 Security configurations found: $security_configs"
+
+          if [[ $security_configs -lt 2 ]]; then
+            echo "⚠️ Consider adding more security configurations"
+          else
+            echo "✅ Good security configuration coverage"
+          fi
+
+  license-compliance:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Validate repository license
+        run: |
+          set -euo pipefail
+
+          echo "🔍 Validating repository licensing..."
+
+          if [[ -f "LICENSE" ]]; then
+            echo "✅ LICENSE file found"
+
+            # Check license type
+            if grep -q "Apache License" LICENSE; then
+              echo "✅ Apache 2.0 license detected"
+            elif grep -q "MIT License" LICENSE; then
+              echo "✅ MIT license detected"
+            elif grep -q "BSD" LICENSE; then
+              echo "✅ BSD license detected"
+            else
+              echo "⚠️ Custom or unrecognized license"
+              head -5 LICENSE
+            fi
+
+            # Check for proper attribution
+            if grep -q "Copyright" LICENSE; then
+              echo "✅ Copyright notice found"
+            else
+              echo "⚠️ No copyright notice found"
+            fi
+
+          else
+            echo "❌ No LICENSE file found"
+            exit 1
+          fi
+
+      - name: Check source file license headers
+        run: |
+          set -euo pipefail
+
+          echo "🔍 Checking source file license compliance..."
+
+          # Check shell scripts for license headers
+          shell_scripts=$(find . -name "*.sh" -not -path "./.git/*" | head -10)
+
+          if [[ -n "$shell_scripts" ]]; then
+            echo "📋 Checking shell scripts for license headers..."
+
+            missing_headers=0
+            while IFS= read -r script; do
+              if [[ -n "$script" ]]; then
+                if ! head -20 "$script" | grep -q -i "license\|copyright"; then
+                  echo "⚠️ $script: No license header found"
+                  ((missing_headers++))
+                fi
+              fi
+            done <<< "$shell_scripts"
+
+            if [[ $missing_headers -gt 0 ]]; then
+              echo "⚠️ $missing_headers files missing license headers"
+            else
+              echo "✅ License headers compliance check passed"
+            fi
+          fi
+
+      - name: Generate license compliance report
+        run: |
+          set -euo pipefail
+
+          echo "📊 Generating license compliance report..."
+
+          # Create compliance report
+          echo "# License Compliance Report" > license-compliance-report.md
+          echo "" >> license-compliance-report.md
+          echo "## Repository License" >> license-compliance-report.md
+
+          # Check for LICENSE file
+          if [[ -f "LICENSE" ]]; then
+            echo "- Status: ✅ Present" >> license-compliance-report.md
+            echo "- License: $(head -1 LICENSE 2>/dev/null)" >> license-compliance-report.md
+          else
+            echo "- Status: ❌ Missing" >> license-compliance-report.md
+            echo "- License: Not found" >> license-compliance-report.md
+          fi
+
+          echo "" >> license-compliance-report.md
+          echo "## Language Ecosystems Detected" >> license-compliance-report.md
+
+          # Check for various language files
+          [[ -f "Cargo.toml" ]] && echo "- Rust: ✅" >> license-compliance-report.md || echo "- Rust: ❌" >> license-compliance-report.md
+          [[ -f "package.json" ]] && echo "- Node.js: ✅" >> license-compliance-report.md || echo "- Node.js: ❌" >> license-compliance-report.md
+          [[ -f "requirements.txt" ]] && echo "- Python: ✅" >> license-compliance-report.md || echo "- Python: ❌" >> license-compliance-report.md
+
+          echo "" >> license-compliance-report.md
+          echo "## Recommendations" >> license-compliance-report.md
+          echo "1. Add license headers to source files" >> license-compliance-report.md
+          echo "2. Run cargo-deny license checks for Rust dependencies" >> license-compliance-report.md
+          echo "3. Consider automated license compliance tooling" >> license-compliance-report.md
+
+          echo "✅ License compliance report generated"
+
+      - name: Upload license compliance report
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        if: always()
+        with:
+          name: license-compliance-report
+          path: license-compliance-report.md

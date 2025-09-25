@@ -164,11 +164,21 @@ repos:
 Six specialized workflows for continuous validation:
 
 #### 1. `quality-assurance.yml`
-- **Purpose**: Comprehensive quality and security validation
-- **Tools**: ShellCheck, shfmt, pinactlite, Trivy vulnerability scanner, documentation validation scripts
-- **Checks**: Format, linting, tests, security scans, dependency analysis, vulnerability detection, documentation consistency
-- **Security**: Trivy SARIF upload to GitHub Security tab (complementing CodeQL)
-- **Features**: Combined workflow for efficient CI pipeline
+- **Purpose**: Comprehensive quality and security validation with complete dogfooding plus compliance
+- **Tools**: ShellCheck, shfmt, pinactlite, Trivy vulnerability scanner, gitleaks, cargo-deny, documentation validation scripts
+- **Jobs**:
+  - Helper tools E2E testing
+  - Installer self-testing
+  - SHA pinning validation
+  - Shell script linting
+  - Trivy vulnerability scanning
+  - **NEW**: Comprehensive secret scanning (full history + GitHub integration)
+  - **NEW**: Security dependency audit (cargo-deny)
+  - **NEW**: Supply chain security analysis
+  - **NEW**: License compliance checking
+  - Documentation validation
+- **Security**: SARIF uploads to GitHub Security tab, comprehensive reporting
+- **Dogfooding Plus**: Now implements ALL security controls that installer provides to users
 
 #### 2. `docs.yml`
 - **Purpose**: Documentation site generation and deployment

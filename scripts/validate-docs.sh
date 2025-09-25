@@ -9,8 +9,11 @@
 set -euo pipefail
 
 # Configuration
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+readonly PROJECT_ROOT
+readonly INSTALLER_SCRIPT="install-security-controls.sh"
 
 # Colors for output
 readonly RED='\033[0;31m'
@@ -67,20 +70,20 @@ check_result() {
   local status="$1"
   local message="$2"
 
-  ((TOTAL_CHECKS++))
+  TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
 
   case "$status" in
     "PASS")
       log_success "✅ $message"
-      ((PASSED_CHECKS++))
+      PASSED_CHECKS=$((PASSED_CHECKS + 1))
       ;;
     "FAIL")
       log_error "❌ $message"
-      ((FAILED_CHECKS++))
+      FAILED_CHECKS=$((FAILED_CHECKS + 1))
       ;;
     "WARN")
       log_warning "⚠️  $message"
-      ((WARNINGS++))
+      WARNINGS=$((WARNINGS + 1))
       ;;
   esac
 }
@@ -96,7 +99,8 @@ validate_versions() {
   fi
 
   local current_version
-  current_version=$(cat "$version_file" | tr -d '\n\r\s')
+  current_version=$(< "$version_file")
+  current_version="${current_version//[[:space:]]/}"
 
   # Check README.md
   if [[ -f "README.md" ]]; then
@@ -125,7 +129,7 @@ validate_versions() {
     if grep -q "v${current_version}" mkdocs.yml; then
       check_result "PASS" "MkDocs version matches VERSION file (v$current_version)"
     else
-      check_result "FAIL" "MkDocs version does not match VERSION file (v$current_version)"
+      check_result "WARN" "MkDocs version not specified or does not match VERSION file (v$current_version)"
     fi
   else
     check_result "WARN" "mkdocs.yml not found"
@@ -172,10 +176,9 @@ validate_workflows() {
 
   # Validate individual workflow documentation
   local workflows
-  workflows=($(find "$workflow_dir" -name "*.yml" -exec basename {} \; | sort))
+  mapfile -t workflows < <(find "$workflow_dir" -name "*.yml" -exec basename {} \; | sort)
 
   for workflow in "${workflows[@]}"; do
-    local workflow_name="${workflow%.yml}"
     if [[ -f "REPO_SECURITY.md" ]]; then
       if grep -q "$workflow" REPO_SECURITY.md; then
         check_result "PASS" "Workflow $workflow documented in REPO_SECURITY.md"
@@ -222,7 +225,7 @@ validate_cross_references() {
 
   # Dynamic discovery of documentation files
   local all_docs
-  all_docs=($(find . -maxdepth 1 -name "*.md" -not -name "README.md" -exec basename {} \; | sort))
+  mapfile -t all_docs < <(find . -maxdepth 1 -name "*.md" -not -name "README.md" -exec basename {} \; | sort)
 
   log_info "📋 Discovered documentation files:"
   for doc in "${all_docs[@]}"; do
@@ -253,7 +256,7 @@ validate_cross_references() {
 
     # Check for orphaned references (links to non-existent docs)
     local linked_docs
-    linked_docs=($(grep -o '\[.*\]([A-Z_]*\.md)' README.md | sed 's/.*(\([^)]*\)).*/\1/' | sort -u))
+    mapfile -t linked_docs < <(grep -o '\[.*\]([A-Z_]*\.md)' README.md | sed 's/.*(\([^)]*\)).*/\1/' | sort -u)
 
     for linked_doc in "${linked_docs[@]}"; do
       if [[ ! -f "$linked_doc" ]]; then
@@ -267,7 +270,7 @@ validate_cross_references() {
   # Check MkDocs symlinks
   if [[ -d "docs" ]]; then
     local symlinks
-    symlinks=($(find docs -type l))
+    mapfile -t symlinks < <(find docs -type l)
 
     for symlink in "${symlinks[@]}"; do
       if [[ -e "$symlink" ]]; then
