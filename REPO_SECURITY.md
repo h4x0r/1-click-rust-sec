@@ -179,9 +179,14 @@ Four specialized workflows for continuous validation:
 - **Languages**: Shell scripts and documentation
 
 #### 4. `sync-pinactlite.yml`
-- **Purpose**: Ensures tool version consistency
+- **Purpose**: Ensures pinactlite tool version consistency
 - **Checks**: Script synchronization between installer and repo
 - **Tools**: pinactlite tool maintenance and updates
+
+#### 5. `sync-gitleakslite.yml`
+- **Purpose**: Ensures gitleakslite tool version consistency
+- **Checks**: Script synchronization between installer and repo
+- **Tools**: gitleakslite tool maintenance and updates
 
 ### Layer 4: Repository Configuration
 
