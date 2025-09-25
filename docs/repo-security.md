@@ -357,7 +357,7 @@ act -j <job-name>  # Using act for local workflow testing
 
 4. **Release**:
    - Tag with version
-   - Sign tag (GPG/Sigstore)
+   - Sign tag (Sigstore/gitsign)
    - Create GitHub release
    - Update checksums in release
 
@@ -367,7 +367,7 @@ act -j <job-name>  # Using act for local workflow testing
 Repository Security Chain:
 
 ┌─────────────────┐
-│ Signed Commits  │ (Sigstore/GPG)
+│ Signed Commits  │ (Sigstore/gitsign)
 └────────┬────────┘
          │
 ┌────────▼────────┐

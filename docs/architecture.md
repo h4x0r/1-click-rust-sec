@@ -113,7 +113,7 @@ These controls work across all supported languages:
 - **Git Hooks Infrastructure** - Pre-push hook framework
 - **GitHub Security Features** - Dependabot, branch protection, secret scanning
 - **CI/CD Pipeline Structure** - Workflow generation, job orchestration
-- **Cryptographic Verification** - SHA256 checksums, GPG signatures
+- **Cryptographic Verification** - SHA256 checksums, Sigstore/gitsign signatures
 - **Commit Signing** - Sigstore/gitsign integration for all projects
 
 ---
