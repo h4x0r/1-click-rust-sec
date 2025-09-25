@@ -2,6 +2,9 @@
 # validate-docs.sh - Cross-reference consistency validation
 # Part of 1-Click GitHub Security Documentation Synchronization Framework
 #
+# Copyright 2025 Albert Hui <albert@securityronin.com>
+# Licensed under the Apache License, Version 2.0
+#
 # Usage: ./scripts/validate-docs.sh
 #
 # Ensures consistency across all documentation sources

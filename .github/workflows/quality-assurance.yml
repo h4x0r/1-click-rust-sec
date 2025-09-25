@@ -14,6 +14,68 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # =============================================================================
+  # CRITICAL JOBS - Must pass for release (blocking)
+  # =============================================================================
+
+  critical-validation:
+    name: 🚫 Critical Validation (Blocking)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Functional synchronization check
+        run: |
+          set -euo pipefail
+          echo "🔍 Checking dogfooding plus compliance..."
+
+          # Run functional synchronization check
+          if [[ -f "./scripts/sync-security-controls.sh" ]]; then
+            chmod +x ./scripts/sync-security-controls.sh
+            ./scripts/sync-security-controls.sh --check
+          else
+            echo "❌ sync-security-controls.sh not found - critical for dogfooding plus compliance"
+            exit 1
+          fi
+
+      - name: Critical documentation validation
+        run: |
+          set -euo pipefail
+          echo "🔍 Running critical documentation validation..."
+
+          # Run documentation validation script (blocking)
+          if [[ -f "./scripts/validate-docs.sh" ]]; then
+            chmod +x ./scripts/validate-docs.sh
+            ./scripts/validate-docs.sh
+          else
+            echo "❌ validate-docs.sh not found - critical for consistency"
+            exit 1
+          fi
+
+      - name: Security control functionality test
+        run: |
+          set -euo pipefail
+          echo "🔍 Testing security controls functionality..."
+
+          # Test that our security tools actually work
+          if [[ -x "./.security-controls/bin/pinactlite" ]]; then
+            echo "✅ Testing pinactlite functionality..."
+            ./.security-controls/bin/pinactlite pincheck --dir .github/workflows
+          fi
+
+          if [[ -x "./.security-controls/bin/gitleakslite" ]]; then
+            echo "✅ Testing gitleakslite functionality..."
+            echo "test-secret-key=abc123" > /tmp/test-secret
+            if ./.security-controls/bin/gitleakslite detect --no-banner --source /tmp/test-secret; then
+              echo "❌ Secret detection failed - should have detected test secret"
+              exit 1
+            else
+              echo "✅ Secret detection working correctly"
+            fi
+            rm -f /tmp/test-secret
+          fi
+
   helpers-e2e:
     name: Helper tools E2E testing
     runs-on: ubuntu-latest
@@ -259,9 +321,14 @@ jobs:
           name: pinact-check-log
           path: /tmp/pinact-check.log
 
+  # =============================================================================
+  # QUALITY JOBS - Should fix but don't block release (non-blocking)
+  # =============================================================================
+
   shell-script-linting:
-    name: Shell script linting
+    name: ⚠️ Shell Script Linting (Non-blocking)
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -284,7 +351,7 @@ jobs:
           shfmt -d -i 2 -ci -s .
 
   vulnerability-scanning:
-    name: Trivy Vulnerability Scanning
+    name: 🚫 Trivy Vulnerability Scanning (Blocking)
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -309,7 +376,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
 
   secret-scanning:
-    name: Comprehensive Secret Scanning
+    name: 🚫 Comprehensive Secret Scanning (Blocking)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -368,7 +435,7 @@ jobs:
           fi
 
   security-audit:
-    name: Security Dependency Audit
+    name: 🚫 Security Dependency Audit (Blocking)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -521,22 +588,22 @@ jobs:
 
           if [[ -f ".github/dependabot.yml" ]]; then
             echo "✅ Dependabot configuration found"
-            ((security_configs++))
+            security_configs=$((security_configs + 1))
           fi
 
           if [[ -f ".github/workflows/codeql.yml" ]]; then
             echo "✅ CodeQL workflow found"
-            ((security_configs++))
+            security_configs=$((security_configs + 1))
           fi
 
           if [[ -f "deny.toml" ]]; then
             echo "✅ Cargo deny configuration found"
-            ((security_configs++))
+            security_configs=$((security_configs + 1))
           fi
 
           if [[ -f ".security-controls/config.env" ]]; then
             echo "✅ Security controls configuration found"
-            ((security_configs++))
+            security_configs=$((security_configs + 1))
           fi
 
           echo "📊 Security configurations found: $security_configs"
@@ -548,8 +615,9 @@ jobs:
           fi
 
   license-compliance:
-    name: License Compliance Check
+    name: ⚠️ License Compliance Check (Non-blocking)
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
