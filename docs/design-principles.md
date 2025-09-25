@@ -578,4 +578,4 @@ Our design philosophy represents formal architectural decisions that guide all d
 
 *Last Updated: January 2025*
 *Version: 1.1.0*
-*Maintainers: @4n6h4x0r and community contributors*
+*Maintainers: @h4x0r and community contributors*

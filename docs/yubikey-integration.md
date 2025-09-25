@@ -91,8 +91,8 @@ Signed Commit + Rekor Transparency Log
 ### **1-Command Setup**
 ```bash
 # Download the YubiKey toggle script
-curl -O https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh
-curl -O https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh.sha256
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh
+curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh.sha256
 
 # Verify integrity
 sha256sum -c yubikey-gitsign-toggle.sh.sha256

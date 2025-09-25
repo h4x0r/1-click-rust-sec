@@ -68,13 +68,13 @@ The 1-Click GitHub Security project requires synchronization across multiple dim
 ### 3. Tool Synchronization
 
 **pinactlite Sync**
-- Upstream: `github.com/4n6h4x0r/pinact-lite`
+- Upstream: `github.com/h4x0r/pinact-lite`
 - Local: `.security-controls/bin/pinactlite`
 - Installer embedding: Embedded as base64 in installer script
 - Sync frequency: Manual, triggered by upstream releases
 
 **gitleakslite Sync**
-- Upstream: `github.com/4n6h4x0r/gitleaks-lite`
+- Upstream: `github.com/h4x0r/gitleaks-lite`
 - Local: `.security-controls/bin/gitleakslite`
 - Installer embedding: Embedded as base64 in installer script
 - Sync frequency: Manual, triggered by upstream releases
@@ -169,7 +169,7 @@ The 1-Click GitHub Security project requires synchronization across multiple dim
 VERSION="0.4.2" (in VERSION file)
 
 # Automated propagation to:
-- README.md: [![Version](https://img.shields.io/badge/Version-v0.4.2-purple.svg)]
+- README.md: [![Version](https://img.shields.io/badge/Version-v0.4.5-purple.svg)]
 - install-security-controls.sh: readonly SCRIPT_VERSION="0.4.2"
 - CHANGELOG.md: ## [0.4.2] - YYYY-MM-DD
 ```
@@ -215,8 +215,8 @@ INSTALLER_CONTROLS=$(install-security-controls.sh | extract_template_controls)
 ### Tool Synchronization
 ```bash
 # Tool version alignment
-PINACTLITE_VERSION=$(get_latest_release "4n6h4x0r/pinact-lite")
-GITLEAKSLITE_VERSION=$(get_latest_release "4n6h4x0r/gitleaks-lite")
+PINACTLITE_VERSION=$(get_latest_release "h4x0r/pinact-lite")
+GITLEAKSLITE_VERSION=$(get_latest_release "h4x0r/gitleaks-lite")
 
 # Synchronization targets:
 - .security-controls/bin/pinactlite (repository)

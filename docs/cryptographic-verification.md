@@ -261,8 +261,8 @@ fi
 
 **Step 1: Download with checksums**
 ```bash
-curl -O https://github.com/4n6h4x0r/1-click-github-sec/releases/download/v0.4.2/install-security-controls.sh
-curl -O https://github.com/4n6h4x0r/1-click-github-sec/releases/download/v0.4.2/checksums.txt
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.5/install-security-controls.sh
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.5/checksums.txt
 ```
 
 **Step 2: Verify file integrity**
@@ -274,11 +274,11 @@ sha256sum -c checksums.txt --ignore-missing
 **Step 3: Verify cryptographic signatures**
 ```bash
 # Clone repository to verify signatures
-git clone https://github.com/4n6h4x0r/1-click-github-sec.git
+git clone https://github.com/h4x0r/1-click-github-sec.git
 cd 1-click-github-sec
 
 # Verify the release tag signature
-git tag -v v0.4.2
+git tag -v v0.4.5
 
 # Expected output:
 # gitsign: Good signature from [albert@securityronin.com]
@@ -289,13 +289,13 @@ git tag -v v0.4.2
 **Step 4: Verify against transparency log**
 ```bash
 # Optional: Direct Rekor verification
-rekor-cli search --email albert@securityronin.com | grep -C2 "$(git rev-parse v0.4.2)"
+rekor-cli search --email albert@securityronin.com | grep -C2 "$(git rev-parse v0.4.5)"
 ```
 
 ### Verification Checklist
 
 - [ ] **File checksum verified** (`sha256sum -c checksums.txt`)
-- [ ] **Tag signature verified** (`git tag -v v0.4.2`)
+- [ ] **Tag signature verified** (`git tag -v v0.4.5`)
 - [ ] **Rekor entry confirmed** (shows "Validated Rekor entry: true")
 - [ ] **Identity matches expected maintainer** (albert@securityronin.com)
 - [ ] **Timestamp reasonable** (not from suspicious time)
@@ -334,7 +334,7 @@ def verify_release(tag_name, expected_email):
     return {"verified": False, "reason": "No matching entry found"}
 
 # Usage
-result = verify_release("v0.4.2", "albert@securityronin.com")
+result = verify_release("v0.4.5", "albert@securityronin.com")
 print(f"Verification result: {result}")
 ```
 

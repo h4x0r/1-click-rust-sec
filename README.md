@@ -14,7 +14,7 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 [![GitHub Security](https://img.shields.io/badge/GitHub%20Security-6%20Features-blue.svg)](https://h4x0r.github.io/1-click-github-sec/)
 [![Performance](https://img.shields.io/badge/Pre--Push-%3C60s-orange.svg)](https://h4x0r.github.io/1-click-github-sec/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.4.2-purple.svg)](https://github.com/4n6h4x0r/1-click-github-sec/releases)
+[![Version](https://img.shields.io/badge/Version-v0.4.5-purple.svg)](https://github.com/h4x0r/1-click-github-sec/releases)
 
 ---
 
@@ -24,10 +24,10 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 
 ```bash
 # Download installer
-curl -O https://github.com/4n6h4x0r/1-click-github-sec/releases/download/v0.4.2/install-security-controls.sh
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.5/install-security-controls.sh
 
 # Verify (recommended)
-curl -O https://github.com/4n6h4x0r/1-click-github-sec/releases/download/v0.4.2/checksums.txt
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.5/checksums.txt
 sha256sum -c checksums.txt --ignore-missing
 
 # Install
@@ -78,7 +78,7 @@ chmod +x install-security-controls.sh
 
 ### 🔧 Power Users
 - **[Security Architecture](https://h4x0r.github.io/1-click-github-sec/architecture/)** - How everything works
-- **[Cryptographic Verification](https://h4x0r.github.io/1-click-github-sec/cryptographic-verification/)** - Signing & transparency
+- **[Cryptographic Verification](https://h4x0r.github.io/1-click-github-sec/cryptographic-verification)** - Signing & transparency
 - **[YubiKey Integration](https://h4x0r.github.io/1-click-github-sec/yubikey/)** - Hardware-backed signing
 
 ### 👥 Contributors
@@ -94,7 +94,7 @@ chmod +x install-security-controls.sh
 
 ```bash
 # Verify release authenticity
-git tag -v v0.4.2
+git tag -v v0.4.5
 
 # Expected output:
 # gitsign: Good signature from [albert@securityronin.com]
