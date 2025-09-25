@@ -96,13 +96,13 @@ validate_versions() {
   log_info "🔍 Validating version consistency..."
 
   local version_file="VERSION"
-  if [[ ! -f "$version_file" ]]; then
+  if [[ ! -f $version_file ]]; then
     check_result "FAIL" "VERSION file not found"
     return
   fi
 
   local current_version
-  current_version=$(< "$version_file")
+  current_version=$(<"$version_file")
   current_version="${current_version//[[:space:]]/}"
 
   # Check README.md
@@ -155,7 +155,7 @@ validate_workflows() {
   log_info "🔍 Validating workflow documentation..."
 
   local workflow_dir=".github/workflows"
-  if [[ ! -d "$workflow_dir" ]]; then
+  if [[ ! -d $workflow_dir ]]; then
     check_result "WARN" "Workflows directory not found"
     return
   fi
@@ -200,7 +200,7 @@ validate_control_claims() {
   local readme_claim=""
   if [[ -f "README.md" ]]; then
     readme_claim=$(grep -o "Installer%20Provides-[0-9]\+%2B%20Controls" README.md | head -1 | grep -o "[0-9]\+" 2>/dev/null || echo "")
-    if [[ -n "$readme_claim" ]]; then
+    if [[ -n $readme_claim ]]; then
       check_result "PASS" "README.md security control claim found (${readme_claim}+)"
     else
       check_result "WARN" "README.md security control claim not found or unreadable"
@@ -239,7 +239,7 @@ validate_cross_references() {
   if [[ -f "README.md" ]]; then
     for doc_file in "${all_docs[@]}"; do
       if grep -q "$doc_file" README.md; then
-        if [[ -f "$doc_file" ]]; then
+        if [[ -f $doc_file ]]; then
           check_result "PASS" "Cross-reference to $doc_file exists and file found"
         else
           check_result "FAIL" "Cross-reference to $doc_file found but file missing"
@@ -247,7 +247,7 @@ validate_cross_references() {
       else
         # Only warn for important docs, not all docs
         case "$doc_file" in
-          CONTRIBUTING.md|REPO_SECURITY.md|SECURITY_CONTROLS_*.md|CHANGELOG.md)
+          CONTRIBUTING.md | REPO_SECURITY.md | SECURITY_CONTROLS_*.md | CHANGELOG.md)
             check_result "WARN" "No cross-reference to $doc_file found in README.md"
             ;;
           *)
@@ -262,7 +262,7 @@ validate_cross_references() {
     mapfile -t linked_docs < <(grep -o '\[.*\]([A-Z_]*\.md)' README.md | sed 's/.*(\([^)]*\)).*/\1/' | sort -u)
 
     for linked_doc in "${linked_docs[@]}"; do
-      if [[ ! -f "$linked_doc" ]]; then
+      if [[ ! -f $linked_doc ]]; then
         check_result "FAIL" "README.md links to non-existent file: $linked_doc"
       else
         check_result "PASS" "README.md link verified: $linked_doc"
@@ -276,7 +276,7 @@ validate_cross_references() {
     mapfile -t symlinks < <(find docs -type l)
 
     for symlink in "${symlinks[@]}"; do
-      if [[ -e "$symlink" ]]; then
+      if [[ -e $symlink ]]; then
         check_result "PASS" "Symlink $symlink points to existing file"
       else
         check_result "FAIL" "Symlink $symlink is broken"
@@ -289,7 +289,7 @@ validate_cross_references() {
 validate_embedded_docs() {
   log_info "🔍 Validating embedded documentation..."
 
-  if [[ ! -f "$INSTALLER_SCRIPT" ]]; then
+  if [[ ! -f $INSTALLER_SCRIPT ]]; then
     check_result "WARN" "$INSTALLER_SCRIPT not found, skipping embedded doc validation"
     return
   fi
@@ -310,7 +310,7 @@ validate_embedded_docs() {
       check_result "PASS" "Found embedded content: $pattern"
     else
       case "$pattern" in
-        "YubiKey + Sigstore Integration Guide"|"# Security Controls")
+        "YubiKey + Sigstore Integration Guide" | "# Security Controls")
           check_result "WARN" "Missing embedded content: $pattern"
           ;;
         *)
@@ -384,7 +384,7 @@ main() {
   cd "$PROJECT_ROOT"
 
   case "${1:-}" in
-    --help|-h)
+    --help | -h)
       show_usage
       exit 0
       ;;

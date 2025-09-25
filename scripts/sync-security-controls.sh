@@ -106,7 +106,7 @@ sync_result() {
 extract_installer_jobs() {
   local installer="$PROJECT_ROOT/$INSTALLER_SCRIPT"
 
-  if [[ ! -f "$installer" ]]; then
+  if [[ ! -f $installer ]]; then
     log_error "Installer script not found: $installer"
     return 1
   fi
@@ -120,7 +120,7 @@ extract_installer_jobs() {
   echo "📋 Installer Template Jobs:"
   echo "$jobs" | while IFS=: read -r line_num job_def; do
     local job_name="${job_def// /}"
-    job_name="${job_name/:}"
+    job_name="${job_name/:/}"
     echo "  • Line $line_num: $job_name"
   done
   echo
@@ -131,7 +131,7 @@ check_repo_workflows() {
   log_info "Analyzing current repository workflows..."
 
   local workflows_dir="$PROJECT_ROOT/$WORKFLOWS_DIR"
-  if [[ ! -d "$workflows_dir" ]]; then
+  if [[ ! -d $workflows_dir ]]; then
     log_error "Workflows directory not found: $workflows_dir"
     return 1
   fi
@@ -217,7 +217,7 @@ check_repo_only_controls() {
 sync_missing_controls() {
   local sync_mode="${1:-false}"
 
-  if [[ "$sync_mode" != "true" ]]; then
+  if [[ $sync_mode != "true" ]]; then
     log_info "🔍 Running in CHECK mode - no changes will be made"
     log_info "Use --sync to apply missing controls"
     return 0
@@ -241,7 +241,7 @@ sync_missing_controls() {
 add_security_audit_job() {
   local qa_workflow="$PROJECT_ROOT/$WORKFLOWS_DIR/quality-assurance.yml"
 
-  if [[ ! -f "$qa_workflow" ]]; then
+  if [[ ! -f $qa_workflow ]]; then
     log_error "quality-assurance.yml not found"
     return 1
   fi
@@ -250,7 +250,7 @@ add_security_audit_job() {
   local job_template
   job_template=$(extract_job_template_from_installer "security-audit")
 
-  if [[ -n "$job_template" ]]; then
+  if [[ -n $job_template ]]; then
     log_success "Extracted security-audit job template from installer"
     # Note: In real implementation, would insert this into the workflow
     log_info "Would add security-audit job to quality-assurance.yml"
@@ -276,7 +276,7 @@ extract_job_template_from_installer() {
   local start_line
   start_line=$(grep -n "^  ${job_name}:" "$installer" | head -1 | cut -d: -f1)
 
-  if [[ -n "$start_line" ]]; then
+  if [[ -n $start_line ]]; then
     echo "Found $job_name at line $start_line"
     # In real implementation, would extract the complete job YAML
     return 0
@@ -322,14 +322,14 @@ main() {
   local sync_mode="false"
 
   case "${1:-}" in
-    --help|-h)
+    --help | -h)
       show_usage
       exit 0
       ;;
     --sync)
       sync_mode="true"
       ;;
-    --check|"")
+    --check | "")
       sync_mode="false"
       ;;
     *)
@@ -341,7 +341,7 @@ main() {
 
   echo "🔄 1-Click GitHub Security Control Synchronization"
   echo "================================================="
-  if [[ "$sync_mode" == "true" ]]; then
+  if [[ $sync_mode == "true" ]]; then
     echo "🔧 SYNC MODE - Will apply missing controls"
   else
     echo "🔍 CHECK MODE - Analysis only"

@@ -68,7 +68,7 @@ count_prepush_controls() {
   local installer="$PROJECT_ROOT/$INSTALLER_SCRIPT"
   # Removed unused local variable
 
-  if [[ ! -f "$installer" ]]; then
+  if [[ ! -f $installer ]]; then
     log_error "Installer script not found: $installer"
     return 1
   fi
@@ -235,17 +235,17 @@ check_marketing_claims() {
   echo "  💬 Installer help: ${help_claim}+ checks"
 
   # Check for discrepancies
-  if [[ -n "$readme_claim" && $actual_total -lt $readme_claim ]]; then
+  if [[ -n $readme_claim && $actual_total -lt $readme_claim ]]; then
     log_warning "⚠️  Actual count ($actual_total) is below README claim (${readme_claim}+)"
     echo "    Action needed: Update README badge or add more controls"
-  elif [[ -n "$readme_claim" && $actual_total -ge $readme_claim ]]; then
+  elif [[ -n $readme_claim && $actual_total -ge $readme_claim ]]; then
     log_success "✅ README claim verified: $actual_total ≥ ${readme_claim}+"
   fi
 
-  if [[ -n "$help_claim" && $actual_total -lt $help_claim ]]; then
+  if [[ -n $help_claim && $actual_total -lt $help_claim ]]; then
     log_warning "⚠️  Actual count ($actual_total) is below help claim (${help_claim}+)"
     echo "    Action needed: Update installer help or add more controls"
-  elif [[ -n "$help_claim" && $actual_total -ge $help_claim ]]; then
+  elif [[ -n $help_claim && $actual_total -ge $help_claim ]]; then
     log_success "✅ Installer help claim verified: $actual_total ≥ ${help_claim}+"
   fi
 }
@@ -255,7 +255,7 @@ main() {
   cd "$PROJECT_ROOT"
 
   case "${1:-}" in
-    --help|-h)
+    --help | -h)
       show_usage
       exit 0
       ;;
@@ -308,7 +308,7 @@ main() {
   echo
   log_success "🎯 Security control audit complete!"
 
-  if [[ "$detailed" == true ]]; then
+  if [[ $detailed == true ]]; then
     echo
     echo "💡 For detailed implementation analysis:"
     echo "   grep -n 'print_status.*❌\\|⚠️' $INSTALLER_SCRIPT"

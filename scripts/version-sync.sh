@@ -67,7 +67,7 @@ EOF
 
 # Get current version from VERSION file
 get_current_version() {
-  if [[ -f "$VERSION_FILE" ]]; then
+  if [[ -f $VERSION_FILE ]]; then
     cat "$VERSION_FILE" | tr -d '\n\r\s'
   else
     log_error "VERSION file not found!"
@@ -78,7 +78,7 @@ get_current_version() {
 # Update version in VERSION file
 set_version() {
   local new_version="$1"
-  echo "$new_version" > "$VERSION_FILE"
+  echo "$new_version" >"$VERSION_FILE"
   log_success "Updated VERSION file: $new_version"
 }
 
@@ -87,7 +87,7 @@ update_readme_version() {
   local version="$1"
   local readme="README.md"
 
-  if [[ ! -f "$readme" ]]; then
+  if [[ ! -f $readme ]]; then
     log_warning "README.md not found, skipping"
     return
   fi
@@ -103,7 +103,7 @@ update_installer_version() {
   local version="$1"
   local installer="install-security-controls.sh"
 
-  if [[ ! -f "$installer" ]]; then
+  if [[ ! -f $installer ]]; then
     log_warning "install-security-controls.sh not found, skipping"
     return
   fi
@@ -119,7 +119,7 @@ update_mkdocs_version() {
   local version="$1"
   local mkdocs="mkdocs.yml"
 
-  if [[ ! -f "$mkdocs" ]]; then
+  if [[ ! -f $mkdocs ]]; then
     log_warning "mkdocs.yml not found, skipping"
     return
   fi
@@ -135,7 +135,7 @@ check_changelog_version() {
   local version="$1"
   local changelog="CHANGELOG.md"
 
-  if [[ ! -f "$changelog" ]]; then
+  if [[ ! -f $changelog ]]; then
     log_warning "CHANGELOG.md not found, skipping check"
     return 0
   fi
@@ -235,7 +235,7 @@ main() {
   cd "$PROJECT_ROOT"
 
   case "${1:-}" in
-    --help|-h)
+    --help | -h)
       show_usage
       exit 0
       ;;
@@ -249,7 +249,7 @@ main() {
       exit 1
       ;;
     *)
-      if [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         sync_all_versions "$1"
       else
         log_error "Invalid version format: $1"
