@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.6] - 2025-09-25
+
+### 🔗 Documentation Links Fix Release
+
+**Critical URL Corrections** - Fixed broken documentation links in v0.4.5 release caused by incorrect GitHub username references.
+
+### Fixed
+- **🌐 GitHub Username Corrections** - Updated all references from incorrect `4n6h4x0r` to correct `h4x0r` username across all documentation
+- **📋 Version References** - Updated all download links and examples to use v0.4.6
+- **🔗 Documentation URLs** - Fixed cryptographic verification guide and all documentation site links
+- **💬 GitHub Integration** - Changed discussions reference to issues (discussions not enabled on repository)
+- **📁 URL Path Consistency** - Removed trailing slashes from documentation paths for consistent navigation
+
+### Technical Details
+- Fixed lychee link checker failures (26 errors → 0 errors)
+- Corrected all GitHub Pages URLs to use h4x0r.github.io domain
+- Updated maintainer references in design principles documentation
+- Synchronized all version examples across documentation ecosystem
+
+This patch release ensures all documentation links work correctly for users accessing the comprehensive guides.
+
 ## [0.4.5] - 2025-09-25
 
 ### 📖 Documentation Synchronization & Comprehensive Enhancement Release
