@@ -100,7 +100,7 @@ detect_project_languages() {
 | **Linting** | clippy | eslint | pylint/flake8 | golint | spotbugs | - |
 | **Testing** | cargo test | npm test | pytest | go test | mvn test | - |
 | **License Check** | cargo-deny | license-checker | pip-licenses | go-licenses | license-maven | - |
-| **SAST** | cargo-geiger | semgrep | bandit | gosec | spotbugs | semgrep |
+| **SAST** | CodeQL + cargo-geiger | CodeQL | CodeQL + bandit | CodeQL + gosec | CodeQL + spotbugs | CodeQL |
 | **Supply Chain** | cargo-auditable | npm audit | pip-audit | go mod | dependency-check | - |
 
 ### Universal Security Controls
@@ -108,6 +108,7 @@ detect_project_languages() {
 These controls work across all supported languages:
 
 - **Secret Detection** - gitleaks patterns detect secrets in any codebase
+- **SAST Analysis** - CodeQL security scanning for all supported languages
 - **SHA Pinning Validation** - GitHub Actions pinning is universal
 - **Git Hooks Infrastructure** - Pre-push hook framework
 - **GitHub Security Features** - Dependabot, branch protection, secret scanning
@@ -348,6 +349,60 @@ description = "Custom API Key Pattern"
 regex = '''(?i)(?:api_key|apikey)\s*[:=]\s*["']?([a-zA-Z0-9]{32,})["']?'''
 tags = ["api", "key"]
 ```
+
+### SAST Analysis (Universal + Language-Specific)
+
+**Primary Tool**: CodeQL (GitHub's semantic code analysis engine)
+**Coverage**: JavaScript, TypeScript, Python, Java, C#, Go, Ruby, C/C++
+**Integration**: Automatic workflow generation + CI/CD integration
+
+#### 🔍 CodeQL Implementation
+
+**Workflow Generation**: The installer creates `.github/workflows/codeql.yml`:
+
+```yaml
+name: "Code Scanning - CodeQL"
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  schedule:
+    - cron: '17 18 * * 1'  # Weekly scans
+
+jobs:
+  analyze:
+    name: Analyze Code
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        language: ['javascript-typescript', 'python', 'java', 'go']  # Auto-detected
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        queries: +security-and-quality
+    - uses: github/codeql-action/analyze@v3
+```
+
+**Security Benefits:**
+- **Semantic Analysis**: Understands code flow and data dependencies
+- **Zero-Config**: Works out-of-the-box for supported languages
+- **GitHub Integration**: Results appear in Security tab
+- **Continuous Monitoring**: Scans on every push and PR
+- **Supply Chain Aware**: Analyzes third-party dependencies
+
+#### 🎯 Language-Specific SAST Enhancement
+
+CodeQL is enhanced with language-specific static analysis tools:
+
+- **Rust**: cargo-geiger (unsafe code detection)
+- **Python**: bandit (Python-specific security patterns)
+- **Go**: gosec (Go security analyzer)
+- **Java**: spotbugs (Java bug pattern detection)
+- **Generic**: semgrep (custom rule patterns)
 
 ### Dependency Scanning (Language-Specific)
 
