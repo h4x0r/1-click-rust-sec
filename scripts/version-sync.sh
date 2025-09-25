@@ -11,8 +11,10 @@ set -euo pipefail
 
 # Configuration
 readonly VERSION_FILE="VERSION"
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+readonly PROJECT_ROOT
 
 # Colors for output
 readonly RED='\033[0;31m'

@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-09-25
+
+### 🔧 CI Pipeline & Quality Assurance Fix Release
+
+**Critical Infrastructure Fixes** - Resolved all CI pipeline failures and improved workflow reliability.
+
+### Fixed
+- **🔧 ShellCheck Warnings** - Fixed readonly variable declaration patterns in all shell scripts
+- **⚙️ Functional Synchronization Check** - Corrected sync-security-controls.sh script execution issues
+- **📄 Documentation Version Consistency** - Synchronized all version references to maintain accuracy
+- **🔒 Gitleaks Action Reference** - Updated to latest v2.3.9 with correct commit SHA
+- **🛡️ Cargo-deny Security Audit** - Added intelligent skipping when no Rust dependencies exist
+- **⚠️ Deprecated GitHub Actions** - Replaced deprecated actions-rs/toolchain with dtolnay/rust-toolchain
+
+### Improved
+- **📊 CI Pipeline Reliability** - All quality assurance checks now pass consistently
+- **🚀 Release Process** - Enhanced automation and error handling in workflows
+- **🔍 Security Scanning** - More robust handling of multi-language project auditing
+
+### Technical Details
+- Updated gitleaks-action from cb7149b9 to ff98106e4c (v2.3.9)
+- Replaced deprecated actions-rs/toolchain with dtolnay/rust-toolchain
+- Enhanced cargo-deny workflow to handle empty Rust workspaces gracefully
+- Fixed shell script lint compliance across all maintenance scripts
+
 ## [0.4.0] - 2025-01-25
 
 ### 🔍 Documentation Accuracy & Truth Release

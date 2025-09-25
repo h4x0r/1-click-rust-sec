@@ -385,7 +385,7 @@ jobs:
           fetch-depth: 0  # Scan entire repository history
 
       - name: Run Gitleaks Action
-        uses: gitleaks/gitleaks-action@cb7149b9e61c3d6896c4bc2616d4c9e86ee2d0c2 # v2.3.6
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -442,11 +442,9 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # v1
         with:
-          profile: minimal
           toolchain: stable
-          override: true
 
       - name: Install cargo-deny
         run: |
@@ -487,9 +485,15 @@ jobs:
           EOF
           fi
 
-          # Run comprehensive security audit
-          echo "🔍 Running cargo-deny security audit..."
-          cargo deny check advisories
+          # Check if there are any Rust crates to audit
+          if [[ -f "Cargo.lock" ]] && [[ $(grep -c "^name = " Cargo.lock 2>/dev/null || echo "0") -gt 1 ]]; then
+            # Run comprehensive security audit
+            echo "🔍 Running cargo-deny security audit..."
+            cargo deny check advisories
+          else
+            echo "📝 No Rust dependencies found to audit (empty workspace or no Cargo.lock)"
+            echo "✅ Skipping cargo-deny audit - no security dependencies to check"
+          fi
 
       - name: Run dependency analysis
         run: |

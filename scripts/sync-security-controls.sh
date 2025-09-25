@@ -10,8 +10,15 @@
 set -euo pipefail
 
 # Configuration
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+# Handle both cases: run from project root or from scripts directory
+if [[ -f "$(dirname "${BASH_SOURCE[0]}")/../install-security-controls.sh" ]]; then
+  PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+else
+  PROJECT_ROOT="$(cd "$SCRIPT_DIR" && pwd)"
+fi
+readonly PROJECT_ROOT
 readonly INSTALLER_SCRIPT="install-security-controls.sh"
 readonly WORKFLOWS_DIR=".github/workflows"
 
@@ -77,20 +84,20 @@ sync_result() {
   local control="$2"
   local message="$3"
 
-  ((TOTAL_CONTROLS++))
+  TOTAL_CONTROLS=$((TOTAL_CONTROLS + 1))
 
   case "$status" in
     "SYNCED")
       log_success "✅ $control: $message"
-      ((SYNCED_CONTROLS++))
+      SYNCED_CONTROLS=$((SYNCED_CONTROLS + 1))
       ;;
     "MISSING")
       log_warning "❌ $control: $message"
-      ((MISSING_CONTROLS++))
+      MISSING_CONTROLS=$((MISSING_CONTROLS + 1))
       ;;
     "REPO_ONLY")
       log_info "🔵 $control: $message"
-      ((REPO_ONLY_CONTROLS++))
+      REPO_ONLY_CONTROLS=$((REPO_ONLY_CONTROLS + 1))
       ;;
   esac
 }

@@ -9,8 +9,10 @@
 set -euo pipefail
 
 # Configuration
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+readonly PROJECT_ROOT
 readonly INSTALLER_SCRIPT="install-security-controls.sh"
 
 # Colors for output
@@ -64,7 +66,7 @@ EOF
 # Count pre-push hook security checks
 count_prepush_controls() {
   local installer="$PROJECT_ROOT/$INSTALLER_SCRIPT"
-  local count=0
+  # Removed unused local variable
 
   if [[ ! -f "$installer" ]]; then
     log_error "Installer script not found: $installer"
