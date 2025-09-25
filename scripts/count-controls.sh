@@ -73,7 +73,7 @@ count_prepush_controls() {
     return 1
   fi
 
-  log_info "Analyzing pre-push hook security controls..."
+  log_info "Analyzing pre-push hook security controls..." >&2
 
   # Count pattern-based security checks
   # Look for distinct security validation patterns in the installer
@@ -114,60 +114,60 @@ count_prepush_controls() {
   # Calculate estimated total
   local estimated_total=$((security_checks + rust_tools + nodejs_tools + python_tools + go_tools + universal_controls))
 
-  echo "  📊 Pre-push Security Controls Analysis:"
-  echo "    • Distinct security checks: $security_checks"
-  echo "    • Critical blocking controls: $critical_controls"
-  echo "    • Warning controls: $warning_controls"
-  echo "    • Security phases: $security_phases"
-  echo "    • Rust security tools: $rust_tools"
-  echo "    • Node.js security tools: $nodejs_tools"
-  echo "    • Python security tools: $python_tools"
-  echo "    • Go security tools: $go_tools"
-  echo "    • Universal controls: $universal_controls"
-  echo "    📈 Estimated total pre-push controls: ~$estimated_total"
+  echo "  📊 Pre-push Security Controls Analysis:" >&2
+  echo "    • Distinct security checks: $security_checks" >&2
+  echo "    • Critical blocking controls: $critical_controls" >&2
+  echo "    • Warning controls: $warning_controls" >&2
+  echo "    • Security phases: $security_phases" >&2
+  echo "    • Rust security tools: $rust_tools" >&2
+  echo "    • Node.js security tools: $nodejs_tools" >&2
+  echo "    • Python security tools: $python_tools" >&2
+  echo "    • Go security tools: $go_tools" >&2
+  echo "    • Universal controls: $universal_controls" >&2
+  echo "    📈 Estimated total pre-push controls: ~$estimated_total" >&2
 
   echo "$estimated_total"
 }
 
 # Count helper tools
 count_helper_tools() {
-  log_info "Counting helper tools..."
+  log_info "Counting helper tools..." >&2
 
   local tools=0
 
   # Check for pinactlite references
   if grep -q "pinactlite" "$PROJECT_ROOT/$INSTALLER_SCRIPT"; then
     ((tools++))
-    echo "  ✅ pinactlite - GitHub Actions SHA pinning"
+    echo "  ✅ pinactlite - GitHub Actions SHA pinning" >&2
   fi
 
   # Check for gitleakslite references
   if grep -q "gitleakslite" "$PROJECT_ROOT/$INSTALLER_SCRIPT"; then
     ((tools++))
-    echo "  ✅ gitleakslite - Secret detection"
+    echo "  ✅ gitleakslite - Secret detection" >&2
   fi
 
-  echo "    📈 Helper tools total: $tools"
+  echo "    📈 Helper tools total: $tools" >&2
   echo "$tools"
 }
 
 # Count CI/CD workflow controls
 count_cicd_controls() {
-  log_info "Counting CI/CD workflow controls..."
+  log_info "Counting CI/CD workflow controls..." >&2
 
   local workflow_count
   workflow_count=$(find "$PROJECT_ROOT/.github/workflows" -name "*.yml" | wc -l | tr -d ' ')
 
-  echo "  📊 CI/CD Workflows:"
-  find "$PROJECT_ROOT/.github/workflows" -name "*.yml" -exec basename {} \; | sed 's/^/    • /'
-  echo "    📈 Workflow total: $workflow_count"
+  echo "  📊 CI/CD Workflows:" >&2
+  find "$PROJECT_ROOT/.github/workflows" -name "*.yml" -exec basename {} \; | sed 's/^/    • /' >&2
+  echo "    📈 Workflow total: $workflow_count" >&2
 
   echo "$workflow_count"
 }
 
 # Count GitHub security features
 count_github_features() {
-  log_info "Counting GitHub security features..."
+  log_info "Counting GitHub security features..." >&2
 
   local features=0
   local installer="$PROJECT_ROOT/$INSTALLER_SCRIPT"
@@ -175,35 +175,35 @@ count_github_features() {
   # Count GitHub security features mentioned in installer
   if grep -q "Dependabot.*vulnerability.*alerts" "$installer"; then
     ((features++))
-    echo "  ✅ Dependabot vulnerability alerts"
+    echo "  ✅ Dependabot vulnerability alerts" >&2
   fi
 
   if grep -q "Dependabot.*security.*fixes" "$installer"; then
     ((features++))
-    echo "  ✅ Dependabot automated security fixes"
+    echo "  ✅ Dependabot automated security fixes" >&2
   fi
 
   if grep -q "CodeQL" "$installer"; then
     ((features++))
-    echo "  ✅ CodeQL security scanning"
+    echo "  ✅ CodeQL security scanning" >&2
   fi
 
   if grep -q "Branch protection" "$installer"; then
     ((features++))
-    echo "  ✅ Branch protection rules"
+    echo "  ✅ Branch protection rules" >&2
   fi
 
   if grep -q "Secret.*scanning" "$installer"; then
     ((features++))
-    echo "  ✅ Secret scanning"
+    echo "  ✅ Secret scanning" >&2
   fi
 
   if grep -q "Push protection" "$installer"; then
     ((features++))
-    echo "  ✅ Secret push protection"
+    echo "  ✅ Secret push protection" >&2
   fi
 
-  echo "    📈 GitHub features total: $features"
+  echo "    📈 GitHub features total: $features" >&2
   echo "$features"
 }
 
@@ -216,7 +216,7 @@ check_marketing_claims() {
   # Check README.md badges
   local readme_claim=""
   if [[ -f "$PROJECT_ROOT/README.md" ]]; then
-    readme_claim=$(grep -o "Installer%20Provides-[0-9]\+%2B%20Controls" README.md | head -1 | grep -o "[0-9]\+" || echo "0")
+    readme_claim=$(grep -o "Installer%20Provides-[0-9]\+%2B%20Controls" "$PROJECT_ROOT/README.md" | head -1 | sed 's/Installer%20Provides-//' | sed 's/%2B%20Controls//' || echo "0")
     echo "  📄 README.md claims: ${readme_claim}+ controls"
   fi
 
