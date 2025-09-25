@@ -15,7 +15,7 @@
 
 ```bash
 # Download and run installer (that's it!)
-curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.5/install-security-controls.sh
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.8/install-security-controls.sh
 chmod +x install-security-controls.sh
 ./install-security-controls.sh
 ```
@@ -50,7 +50,7 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 |-------|-------|-------------------|
 | **[Security Architecture →](architecture/)** | Advanced | How everything works together |
 | **[Cryptographic Verification →](cryptographic-verification)** | Intermediate | Signed commits, releases & transparency |
-| **[YubiKey Integration →](yubikey/)** | Expert | Hardware-backed signing |
+| **[YubiKey Integration →](yubikey-integration/)** | Expert | Hardware-backed signing |
 
 ---
 

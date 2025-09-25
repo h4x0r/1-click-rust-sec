@@ -6,18 +6,12 @@ on:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
-      - 'SECURITY_CONTROLS_INSTALLATION.md'
-      - 'SECURITY_CONTROLS_ARCHITECTURE.md'
-      - 'YUBIKEY_SIGSTORE_GUIDE.md'
-      - 'docs/security/**'
+      - 'README.md'
   pull_request:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
-      - 'SECURITY_CONTROLS_INSTALLATION.md'
-      - 'SECURITY_CONTROLS_ARCHITECTURE.md'
-      - 'YUBIKEY_SIGSTORE_GUIDE.md'
-      - 'docs/security/**'
+      - 'README.md'
 
 permissions:
   contents: read
@@ -49,7 +43,7 @@ jobs:
         with:
           args: >-
             --config lychee.toml
-            docs/**/*.md README.md SECURITY_CONTROLS_INSTALLATION.md SECURITY_CONTROLS_ARCHITECTURE.md docs/security/*.md
+            docs/**/*.md README.md
 
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main'
