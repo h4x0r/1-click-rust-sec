@@ -146,7 +146,7 @@ GPG Root Key → Repository Signing → Release Signing → Component Verificati
 - **DRY (Don't Repeat Yourself)**: Extract common patterns into reusable functions/modules
 - **YAGNI (You Aren't Gonna Need It)**: Implement only what's needed now, avoid over-engineering
 - **KISS (Keep It Simple, Stupid)**: Choose simple solutions over complex ones when both work
-- **SINE (Single Instance, No Exceptions)**: One canonical way to do each thing
+- **SINE (Simple Is Not Easy)**: Simple solutions require more effort and thought than complex ones
 - **Single Responsibility**: Each function/module has one clear purpose
 - **No Special Cases**: Design general solutions rather than hardcoded exceptions
 - **Fail Fast**: Validate inputs early and provide clear error messages
