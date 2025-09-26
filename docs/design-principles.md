@@ -14,6 +14,7 @@
 ### 1. **Security Without Compromise**
 > "Security tools must be more secure than the problems they solve"
 
+- **Verification-First Principle**: As a security vendor, we MUST consistently promote secure practices - never show unverified downloads or execution
 - **Cryptographic Verification First**: Every installer, update, and component must be cryptographically verified
 - **No Pipe-to-Bash**: Force conscious verification before execution
 - **Supply Chain Paranoia**: Assume all external dependencies are compromised until proven otherwise
@@ -21,11 +22,19 @@
 - **Fail Secure**: When in doubt, block rather than allow
 
 **Implementation Guidelines:**
+- **Documentation Standards**: ALL documentation must "strongly recommend" checksum verification with emphatic security language
+- **No Insecure Examples**: Never show installation commands without corresponding checksum verification
+- **Consistency Requirement**: Installer help, embedded docs, and website must use identical verification language
 - SHA256 checksums for all downloadable components
 - Sigstore/gitsign signatures for all commits and releases (keyless cryptographic signing)
 - Signed commits for all repository changes with Rekor transparency log verification
 - Reproducible builds with deterministic outputs
 - Audit trails for all security decisions with public transparency
+
+**Verification-First Language Standard:**
+```bash
+# VERIFY checksum before execution (STRONGLY RECOMMENDED - critical security practice)
+```
 
 ### 2. **Developer Experience as Security Feature**
 > "Friction is the enemy of security adoption"
@@ -302,6 +311,21 @@ Sigstore Certificate Authority → GitHub OIDC Identity → gitsign Signing → 
    (Use bypass only for critical hotfixes)
 ```
 
+### Documentation Organization and User Journey
+- **Quickstart First**: Always put installation and quickstart guides at the top of documentation lists
+- **Cognitive Load Minimization**: Order content by user journey complexity (basic → intermediate → expert)
+- **Smooth Flow and Pacing**: Optimize information architecture for immediate action, then progressive learning
+- **User-Centric Navigation**: Structure all documentation around user intent, not system architecture
+
+**Implementation Standards:**
+- **New Users**: Quick Start → Installation Guide → Basic Configuration
+- **Power Users**: Architecture → Advanced Features → Customization
+- **Contributors**: Contributing Guide → Technical Details → Design Principles
+- **Navigation Order**: Get Started → Power Users → Development/Contributing
+- **Link Organization**: Essential actions before technical deep-dives
+
+**Rationale**: Users arrive with specific intents - most want to get started quickly. Bury advanced technical details below actionable guides to reduce abandonment and improve success rates.
+
 ---
 
 ## 🚀 Development Workflow
@@ -323,6 +347,50 @@ Sigstore Certificate Authority → GitHub OIDC Identity → gitsign Signing → 
 4. **Documentation**: Update architecture and usage documentation
 5. **Rollout**: Gradual deployment with monitoring
 
+### Task Prioritization: "Informed Frog Eating" Approach
+
+**Philosophy**: Optimize for both peak cognitive utilization and context building through strategic task sequencing.
+
+**Three-Phase Process:**
+
+**Phase 1: Rapid Reconnaissance (2-3 minutes)**
+- Quick scan of ALL tasks to identify true complexity and scope
+- Surface hidden dependencies, cascade effects, and blockers
+- Assess context switching costs and information requirements
+- Map relationships between tasks (which enable/block others)
+
+**Phase 2: Strategic Prioritization**
+- **Eat the Frog IF**: Clear scope + no dependencies + truly blocking other work
+- **Build Context IF**: Multiple simple tasks create foundational understanding for complex work
+- **Parallel Process IF**: Can batch related tasks efficiently with shared context
+- **Defer Complex IF**: Insufficient information or context requires preliminary work
+
+**Phase 3: Adaptive Execution**
+- Monitor for emerging blockers and complexity escalation
+- Switch to frog-eating mode when blockers become apparent
+- Continue context-building on simple tasks when they inform complex work
+- Batch context-heavy operations (file reads, system analysis)
+
+**Decision Matrix:**
+```
+High Impact + High Complexity + Clear Scope = EAT THE FROG 🐸
+High Impact + Low Complexity = BUILD CONTEXT FIRST ⚡
+Low Impact + High Complexity = DEFER OR ELIMINATE ⏸️
+Multiple Related Tasks = BATCH PROCESS 📦
+```
+
+**Applied Examples:**
+- **Frog**: Establishing core security principles (affects all documentation)
+- **Context**: Fixing typos across multiple files (builds codebase understanding)
+- **Batch**: Reading multiple config files for comprehensive understanding
+- **Defer**: Complex refactoring when requirements are still unclear
+
+**Anti-Patterns to Avoid:**
+- ❌ Starting complex work without understanding full scope
+- ❌ Building context through work that will be invalidated by harder tasks
+- ❌ Context switching between unrelated complex problems
+- ❌ Avoiding hard but critical decisions that block progress
+
 ### File Management and Impact Analysis
 
 **Critical Rule**: File renames, moves, and deletions require comprehensive impact analysis across the entire codebase.
@@ -338,10 +406,16 @@ Sigstore Certificate Authority → GitHub OIDC Identity → gitsign Signing → 
 **Required Process for File Changes:**
 1. **Pre-Change Analysis**: Search globally for ALL references to the file(s)
    ```bash
-   # Search for any references to files being changed
-   git grep -n "old-filename.md"
+   # Search git-tracked files for references (most important)
+   git grep -n "old-filename\.md"
    git grep -n "OLD_FILENAME"
    git grep -n "old_filename"
+
+   # Also search filesystem for broader analysis (optional)
+   rg "old-filename\.md"  # includes untracked files, may find additional references
+
+   # Find actual files being renamed/moved
+   fd "old-filename" || find . -name "*old-filename*" -type f
    ```
 
 2. **Multi-Dimensional Update**: Update ALL discovered references simultaneously:
@@ -375,9 +449,11 @@ Sigstore Certificate Authority → GitHub OIDC Identity → gitsign Signing → 
 
 **Lesson**: File structural changes are **multi-dimensional operations** that require systematic impact analysis across all project components. The synchronization complexity described in `docs/repo-and-installer-sync-strategy.md` applies to file management operations as well.
 
-### Documentation Link Format Standards
+### Documentation Link Format Standards (GitHub + MkDocs)
 
 **Critical Rule**: Understand how different tools interpret documentation links and use appropriate formats for each context.
+
+**Context**: These standards are optimized for GitHub repositories with MkDocs documentation sites and lychee link validation.
 
 **Problem**: Documentation systems use different link formatting conventions, leading to validation failures when formats are mixed incorrectly:
 
@@ -451,6 +527,98 @@ lychee docs/**/*.md README.md --config lychee.toml
 ```
 
 **Lesson**: Documentation link formats must be **context-appropriate** and **tool-compatible**. Different tools have different expectations, and mixing formats without understanding the interpretation differences causes validation failures. Always test links with both rendering and validation tools.
+
+**Scope Limitation**: These guidelines are specific to GitHub + MkDocs + lychee workflows. Other documentation ecosystems (GitLab + Hugo, Bitbucket + Jekyll, etc.) may have different link format requirements.
+
+### Preferred Development Tools
+
+**Critical Rule**: Use the fastest, most reliable tools available for common operations.
+
+**Modern Development Tools** (use when available, with fallbacks):
+
+**Search and File Operations**:
+- **git grep** - Search git-tracked files (repository scope, most accurate for version control)
+- **ripgrep (`rg`)** - Search filesystem (broader scope, 10-100x faster than grep, respects .gitignore)
+- **fd (`fd`)** - Find files (faster than find, simpler syntax, respects .gitignore)
+- **/bin/ls** - Use full path to bypass slow aliases (developers often alias ls to colorized versions)
+
+**Package Managers** (by ecosystem):
+- **pnpm** over npm - Faster installs, disk space efficient, strict dependency resolution
+- **bun** - Ultra-fast JavaScript runtime and package manager
+- **uv** over pip - Extremely fast Python package manager (10-100x faster)
+
+**Developer Experience**:
+- **zoxide (`z`)** - Smart cd that learns your patterns
+- **fzf** - Fuzzy finder for files, history, processes
+- **delta** - Better git diff with syntax highlighting
+- **dust (`dust`)** - Disk usage analyzer (better than du)
+- **procs** - Modern ps with tree view and search
+- **sd** - Intuitive sed alternative for find-and-replace
+- **tokei** - Fast code statistics (lines of code, languages)
+
+**Tool Selection by Use Case**:
+```bash
+# Search git-tracked files (most common for repository analysis)
+git grep "pattern"                    # searches git index
+git grep -n "pattern"                 # with line numbers
+
+# Search all files (broader analysis, includes untracked)
+rg "pattern"                          # fast filesystem search
+rg "pattern" --type py                # specific file types
+rg "pattern" -A 3 -B 3               # with context
+
+# Find files (locate files by name/pattern)
+fd "filename"                         # fast file finding
+fd -e py                              # by extension
+fd -t f "pattern"                     # files only
+
+# List files (bypass slow aliases)
+/bin/ls -la                           # use full path to bypass colorized aliases
+command ls -la                        # alternative: use command builtin
+\\ls -la                              # alternative: escape alias with backslash
+
+# Package management (JavaScript)
+pnpm install                          # faster, more efficient
+bun install                           # ultra-fast alternative
+npm install                           # fallback
+
+# Package management (Python)
+uv pip install package                # extremely fast pip replacement
+pip install package                   # fallback
+
+# Find-and-replace
+sd "old" "new" file                   # intuitive sed alternative
+sed 's/old/new/g' file               # fallback
+
+# Tool availability checks
+command -v pnpm >/dev/null && pnpm install || npm install
+command -v uv >/dev/null && uv pip install package || pip install package
+
+# Fast ls (bypass aliases)
+/bin/ls -la                           # always use native ls for performance
+```
+
+**Why These Tools Matter**:
+- **Performance**: 10-100x speed improvement for large codebases and operations
+- **Ergonomics**: Better defaults, cleaner output, more intuitive syntax
+- **Git Integration**: Automatically respects .gitignore, shows git status, integrates with workflows
+- **Developer Experience**: Syntax highlighting, fuzzy finding, intelligent suggestions
+- **Modern Standards**: Becoming standard in modern development environments
+- **Disk Efficiency**: Tools like pnpm save significant disk space and bandwidth
+
+**Installation Check**:
+```bash
+# Core modern tools check
+echo "Checking modern development tools..."
+command -v rg && echo "✅ ripgrep" || echo "❌ ripgrep (install: brew install ripgrep)"
+command -v fd && echo "✅ fd" || echo "❌ fd (install: brew install fd)"
+command -v pnpm && echo "✅ pnpm" || echo "❌ pnpm (install: npm install -g pnpm)"
+command -v uv && echo "✅ uv" || echo "❌ uv (install: pip install uv)"
+test -x /bin/ls && echo "✅ native ls available" || echo "❌ /bin/ls not found"
+
+# Alternative: one-liner check
+(command -v rg && command -v fd) >/dev/null && echo "✅ Core modern tools available" || echo "⚠️ Consider installing modern CLI tools for better performance"
+```
 
 ### Preserving Single-Script Architecture
 

@@ -509,6 +509,7 @@ This patch release ensures all documentation links work correctly for users acce
 # Quick install with verification
 curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/install-security-controls.sh
 curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/install-security-controls.sh.sha256
+# VERIFY checksum before execution (STRONGLY RECOMMENDED - critical security practice)
 sha256sum -c install-security-controls.sh.sha256
 chmod +x install-security-controls.sh
 ./install-security-controls.sh

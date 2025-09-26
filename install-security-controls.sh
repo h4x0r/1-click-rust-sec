@@ -33,7 +33,7 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m' # No Color
 
 # Configuration
-readonly SCRIPT_VERSION="0.4.12"
+readonly SCRIPT_VERSION="0.4.13"
 # shellcheck disable=SC2034 # Placeholder for future use
 readonly REQUIRED_TOOLS_FILE="security-tools-requirements.txt"
 # shellcheck disable=SC2034 # Placeholder for future use
@@ -600,6 +600,18 @@ OPTIONS:
                             (auto-detects if not specified - supports polyglot repos)
     --hooks-path            Install hooks using git core.hooksPath (\".githooks\") and chain safely
     --no-github-security    Skip GitHub repository security features (enabled by default)
+
+INSTALLATION:
+    # Download installer and checksum
+    curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v${SCRIPT_VERSION}/install-security-controls.sh
+    curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v${SCRIPT_VERSION}/checksums.txt
+
+    # VERIFY checksum before execution (STRONGLY RECOMMENDED - critical security practice)
+    sha256sum -c checksums.txt --ignore-missing
+
+    # Run installer (only after successful verification)
+    chmod +x install-security-controls.sh
+    ./install-security-controls.sh
 
 UPGRADE COMMANDS:
     --version               Show version and check for updates
@@ -5024,7 +5036,7 @@ Signed Commit + Rekor Transparency Log
 curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh
 curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh.sha256
 
-# Verify integrity
+# VERIFY checksum before execution (STRONGLY RECOMMENDED - critical security practice)
 sha256sum -c yubikey-gitsign-toggle.sh.sha256
 
 # Run interactive setup

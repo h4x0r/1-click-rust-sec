@@ -14,7 +14,7 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 [![GitHub Security](https://img.shields.io/badge/GitHub%20Security-6%20Features-blue.svg)](https://h4x0r.github.io/1-click-github-sec/)
 [![Performance](https://img.shields.io/badge/Pre--Push-%3C60s-orange.svg)](https://h4x0r.github.io/1-click-github-sec/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.4.12-purple.svg)](https://github.com/h4x0r/1-click-github-sec/releases)
+[![Version](https://img.shields.io/badge/Version-v0.4.13-purple.svg)](https://github.com/h4x0r/1-click-github-sec/releases)
 
 ---
 
@@ -23,11 +23,11 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 **Install security controls in your project:**
 
 ```bash
-# Download installer
-curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.5/install-security-controls.sh
+# Download installer and checksum
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.12/install-security-controls.sh
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.12/checksums.txt
 
-# Verify (recommended)
-curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.5/checksums.txt
+# VERIFY checksum before execution (STRONGLY RECOMMENDED - critical security practice)
 sha256sum -c checksums.txt --ignore-missing
 
 # Install
@@ -73,8 +73,8 @@ chmod +x install-security-controls.sh
 **👉 [Visit Documentation Site](https://h4x0r.github.io/1-click-github-sec/) 👈**
 
 ### 🚀 New Users
-- **[Installation Guide](https://h4x0r.github.io/1-click-github-sec/installation)** - Detailed setup instructions
 - **[Quick Start](https://h4x0r.github.io/1-click-github-sec/)** - Get running in 5 minutes
+- **[Installation Guide](https://h4x0r.github.io/1-click-github-sec/installation)** - Detailed setup instructions
 
 ### 🔧 Power Users
 - **[Security Architecture](https://h4x0r.github.io/1-click-github-sec/architecture)** - How everything works
@@ -112,10 +112,10 @@ This repository demonstrates "dogfooding plus" - it uses enhanced security contr
 
 | Feature | What Installer Gives You | What This Repository Has |
 |---------|-------------------------|--------------------------|
-| **Pre-push Controls** | 35+ security checks | 35+ security checks |
-| **CI/CD Workflows** | Optional installation | 6 specialized workflows |
+| **Pre-push Controls** | 24 universal security checks | 24 security checks + 5 development-specific |
+| **CI/CD Workflows** | Optional installation | 6 specialized development workflows |
 | **GitHub Security** | Automated setup | Enhanced with custom policies |
-| **Documentation** | Installation guides | Complete documentation site |
+| **Documentation** | Installation guides | Complete documentation site + sync validation |
 | **Cryptographic Signing** | Optional setup | All commits & releases signed |
 
 **Bottom line:** We use an enhanced version of what we provide to others, proving it works in production.

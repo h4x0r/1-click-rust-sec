@@ -14,8 +14,14 @@
 **Deploy Security Controls to Any Project in One Command**
 
 ```bash
-# Download and run installer (that's it!)
-curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.8/install-security-controls.sh
+# Download installer and checksum
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.12/install-security-controls.sh
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.12/checksums.txt
+
+# VERIFY checksum before execution (STRONGLY RECOMMENDED - critical security practice)
+sha256sum -c checksums.txt --ignore-missing
+
+# Run installer
 chmod +x install-security-controls.sh
 ./install-security-controls.sh
 ```
