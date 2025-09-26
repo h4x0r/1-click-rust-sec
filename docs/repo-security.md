@@ -347,7 +347,7 @@ act -j <job-name>  # Using act for local workflow testing
 
 2. **Version update**:
    ```bash
-   ./scripts/bump-version.sh X.Y.Z
+   ./scripts/version-sync.sh X.Y.Z
    ```
 
 3. **Testing**:

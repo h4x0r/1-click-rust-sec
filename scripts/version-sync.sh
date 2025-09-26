@@ -57,11 +57,12 @@ DESCRIPTION:
     Single Source of Truth (SSOT). Maintains consistency across:
 
     - VERSION file (authoritative source)
-    - README.md badges
+    - README.md badges and examples
     - install-security-controls.sh script version
     - CHANGELOG.md version headers
     - mkdocs.yml site info
-    - All other version references
+    - Git tag verification examples
+    - Download URL examples
 
 OPTIONS:
     VERSION         Set new version (updates VERSION file and propagates)
@@ -96,7 +97,7 @@ set_version() {
   log_success "Updated VERSION file: $new_version"
 }
 
-# Update README.md version badge
+# Update README.md version badge and examples
 update_readme_version() {
   local version="$1"
   local readme="README.md"
@@ -108,8 +109,15 @@ update_readme_version() {
 
   # Update version badge
   sed -i.bak "s/Version-v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/Version-v${version}/g" "$readme"
-  rm -f "${readme}.bak"
-  log_success "Updated README.md version badge: v$version"
+
+  # Update git tag verification example
+  sed -i.bak2 "s/git tag -v v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/git tag -v v${version}/g" "$readme"
+
+  # Update download examples in Quick Start section
+  sed -i.bak3 "s|download/v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/|download/v${version}/|g" "$readme"
+
+  rm -f "${readme}.bak" "${readme}.bak2" "${readme}.bak3"
+  log_success "Updated README.md version badge and examples: v$version"
 }
 
 # Update installer script version
@@ -175,12 +183,33 @@ check_version_consistency() {
 
   # Check README.md
   if [[ -f "README.md" ]]; then
+    local readme_issues=0
+
+    # Check version badge
     if grep -q "Version-v${current_version}" README.md; then
       log_success "✅ README.md version badge: v$current_version"
     else
       log_error "❌ README.md version badge mismatch"
-      ((issues++))
+      ((readme_issues++))
     fi
+
+    # Check git tag example
+    if grep -q "git tag -v v${current_version}" README.md; then
+      log_success "✅ README.md git tag example: v$current_version"
+    else
+      log_error "❌ README.md git tag example mismatch"
+      ((readme_issues++))
+    fi
+
+    # Check download URLs
+    if grep -q "download/v${current_version}/" README.md; then
+      log_success "✅ README.md download URLs: v$current_version"
+    else
+      log_error "❌ README.md download URLs mismatch"
+      ((readme_issues++))
+    fi
+
+    ((issues += readme_issues))
   fi
 
   # Check installer script

@@ -14,7 +14,7 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 [![GitHub Security](https://img.shields.io/badge/GitHub%20Security-6%20Features-blue.svg)](https://h4x0r.github.io/1-click-github-sec/)
 [![Performance](https://img.shields.io/badge/Pre--Push-%3C60s-orange.svg)](https://h4x0r.github.io/1-click-github-sec/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.4.13-purple.svg)](https://github.com/h4x0r/1-click-github-sec/releases)
+[![Version](https://img.shields.io/badge/Version-v0.4.14-purple.svg)](https://github.com/h4x0r/1-click-github-sec/releases)
 
 ---
 
@@ -24,8 +24,8 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 
 ```bash
 # Download installer and checksum
-curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.12/install-security-controls.sh
-curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.12/checksums.txt
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.14/install-security-controls.sh
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.4.14/checksums.txt
 
 # VERIFY checksum before execution (STRONGLY RECOMMENDED - critical security practice)
 sha256sum -c checksums.txt --ignore-missing
@@ -94,7 +94,7 @@ chmod +x install-security-controls.sh
 
 ```bash
 # Verify release authenticity
-git tag -v v0.4.5
+git tag -v v0.4.14
 
 # Expected output:
 # gitsign: Good signature from [albert@securityronin.com]
@@ -115,7 +115,7 @@ This repository demonstrates "dogfooding plus" - it uses enhanced security contr
 | **Pre-push Controls** | 24 universal security checks | 24 security checks + 5 development-specific |
 | **CI/CD Workflows** | Optional installation | 6 specialized development workflows |
 | **GitHub Security** | Automated setup | Enhanced with custom policies |
-| **Documentation** | Installation guides | Complete documentation site + sync validation |
+| **Documentation** | Installation guides | Complete documentation site + development controls documentation |
 | **Cryptographic Signing** | Optional setup | All commits & releases signed |
 
 **Bottom line:** We use an enhanced version of what we provide to others, proving it works in production.
