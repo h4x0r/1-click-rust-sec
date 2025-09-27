@@ -325,6 +325,20 @@ Sigstore Certificate Authority → GitHub OIDC Identity → gitsign Signing → 
 
 **Rationale**: Users arrive with specific intents - most want to get started quickly. Bury advanced technical details below actionable guides to reduce abandonment and improve success rates.
 
+### Visual Priority and Reading Patterns
+- **Left-to-Right Priority**: Place highest priority information in leftmost columns (users read left→right, top→bottom)
+- **Scannable Priority**: Use visual indicators (emojis, colors, typography) in the leftmost position for instant priority recognition
+- **Table Design**: Priority column should be first column, followed by identification, then details
+- **Executive Readability**: Senior management should see critical vs. non-critical items within first 2 seconds of scanning
+
+**Examples:**
+```markdown
+✅ Good: | 🚨 CRITICAL | V1 | Identity Spoofing | ...
+❌ Bad:  | V1 | Identity Spoofing | ... | 🚨 CRITICAL
+```
+
+**Rationale**: Human reading patterns follow F-pattern (focus on left edge), so priority indicators must be positioned where attention naturally falls first.
+
 ---
 
 ## 🚀 Development Workflow
