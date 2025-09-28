@@ -326,7 +326,7 @@ jobs:
   # =============================================================================
 
   shell-script-linting:
-    name: ⚠️ Shell Script Linting (Non-blocking)
+    name: ⚠️ Shell Script Linting (Redundant - Pre-push covers this)
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -338,15 +338,19 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y shellcheck shfmt
 
-      - name: ShellCheck
+      - name: ShellCheck (Redundant check - blocked in pre-push)
         run: |
           set -euo pipefail
+          echo "📝 Note: This check is BLOCKING in pre-push hook (fail fast design)"
+          echo "📝 CI check is redundant validation only"
           # Fail on warnings and errors
           find . -type f -name "*.sh" -not -path "./.git/*" -print0 | xargs -0 -r shellcheck -S warning
 
-      - name: shfmt (diff-only)
+      - name: shfmt (Redundant check - blocked in pre-push)
         run: |
           set -euo pipefail
+          echo "📝 Note: This check is BLOCKING in pre-push hook (fail fast design)"
+          echo "📝 CI check is redundant validation only"
           # Check formatting with 2-space indent, simplify, and case indent
           shfmt -d -i 2 -ci -s .
 
@@ -619,14 +623,14 @@ jobs:
           fi
 
   license-compliance:
-    name: ⚠️ License Compliance Check (Non-blocking)
+    name: ⚠️ License Compliance Check (Redundant - Pre-push covers this)
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - name: Validate repository license
+      - name: Validate repository license (Redundant check - blocked in pre-push)
         run: |
           set -euo pipefail
 
