@@ -153,4 +153,4 @@ Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for detai
 
 ---
 
-**🛡️ Secure by default. Simple by design. Verified by cryptography.**test change
+**🛡️ Secure by default. Simple by design. Verified by cryptography.**
