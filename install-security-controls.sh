@@ -1136,17 +1136,27 @@ install_nodejs_security_tools() {
 install_python_security_tools() {
   print_status $BLUE "🐍 Installing Python security tools..."
 
-  # Check if pip is available
-  if ! command -v pip &>/dev/null && ! command -v pip3 &>/dev/null; then
-    print_status $YELLOW "⚠️ pip not found - skipping Python tool installation"
+  # Check for Python package managers (UX-first: fastest first)
+  local pip_cmd=""
+
+  # Prefer fastest modern tools first, fallback to standard
+  if command -v uv &>/dev/null; then
+    pip_cmd="uv pip"
+    print_status $GREEN "🚀 Using uv (ultra-fast Python package manager)"
+  elif command -v pip3 &>/dev/null; then
+    pip_cmd="pip3"
+    print_status $BLUE "📦 Using pip3"
+  elif command -v pip &>/dev/null; then
+    pip_cmd="pip"
+    print_status $BLUE "📦 Using pip"
+  else
+    print_status $YELLOW "⚠️ No Python package manager found - skipping Python tool installation"
     print_status $BLUE "   Install Python from https://python.org/ or:"
     print_status $BLUE "   • macOS: brew install python3"
     print_status $BLUE "   • Ubuntu: sudo apt install python3-pip"
+    print_status $BLUE "   • For ultra-fast installs: pip install uv"
     return 0
   fi
-
-  local pip_cmd="pip"
-  command -v pip3 &>/dev/null && pip_cmd="pip3"
 
   # Core security tools for Python projects
   local python_security_tools=(

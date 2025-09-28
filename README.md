@@ -36,6 +36,21 @@ chmod +x install-security-controls.sh
 ./install-security-controls.sh
 ```
 
+**Python projects:** Activate your environment first for optimal tool installation:
+```bash
+# conda/miniconda
+conda activate myproject
+
+# pyenv/asdf/mise
+pyenv local 3.11.0  # or: mise use python@3.11
+
+# virtual environment
+source venv/bin/activate
+
+# Then run installer
+./install-security-controls.sh
+```
+
 **That's it!** Your project now has comprehensive security controls.
 
 ---

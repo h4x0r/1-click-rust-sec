@@ -457,8 +457,32 @@ rm -rf docs/security/  # If docs were installed
 5. **Language-specific optimizations**:
    - **Rust**: Run `cargo build --release` before pushing
    - **Node.js**: Use `npm ci` for faster installs
-   - **Python**: Use virtual environments
+   - **Python**: Use virtual environments and activate before installation
    - **Go**: Keep module cache warm
+
+### Python Environment Best Practices
+
+**Activate your preferred Python environment before running the installer:**
+
+```bash
+# Example with conda
+conda activate myproject
+./install-security-controls.sh
+
+# Example with pyenv
+pyenv local 3.11.0
+./install-security-controls.sh
+
+# Example with mise/asdf
+mise use python@3.11
+./install-security-controls.sh
+
+# Example with virtual environment
+source venv/bin/activate  # or: .venv/bin/activate
+./install-security-controls.sh
+```
+
+The installer will detect and use your active environment's Python and install security tools accordingly. For fastest performance, install `uv` first: `pip install uv`
 
 ---
 
