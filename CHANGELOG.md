@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.5] - 2025-09-28
+
+### 🚫 Zero-Compromise Security Release
+
+**CRITICAL SECURITY ENHANCEMENT** - All security scanning jobs now blocking for releases, implementing zero-compromise security posture.
+
+### Security Enhancements
+- **🚫 CodeQL SAST Analysis**: Now blocking (was analysis-only) - Application security vulnerabilities block releases
+- **🚫 Supply Chain Security**: Now blocking (was analysis-only) - SHA pinning violations and dependency integrity issues block releases
+- **🛡️ Complete Protection**: Zero-day protection through comprehensive static analysis
+- **🔒 Consistent Security**: Same rigor applied to all security categories (known CVEs, application flaws, supply chain risks)
+
+### Architecture Impact
+- **Zero Security Gaps**: All major threat vectors now have blocking validation
+- **Defense in Depth**: Comprehensive security gate with parallel validation
+- **Enhanced Release Process**: Quality Assurance + ALL security scanning must pass
+- **Supply Chain Attack Prevention**: Blocks malicious package substitution and SolarWinds-style attacks
+
+### Philosophy
+- **Zero-Compromise Security**: Block ALL critical security risks regardless of source
+- **Application Security Parity**: Code vulnerabilities treated with same severity as known CVEs
+- **Supply Chain Paranoia**: Assume all external dependencies are compromised until proven otherwise
+- **Fail-Secure Design**: When in doubt, block rather than allow
+
+### Breaking Changes
+- **CodeQL failures now block releases** - Application security issues must be resolved
+- **Supply chain issues now block releases** - SHA pinning and dependency integrity required
+- **Longer CI times possible** - CodeQL analysis can take 5-10+ minutes
+
+### Migration Guide
+- **Existing projects**: May experience initial release blocks due to CodeQL findings
+- **Recommended approach**: Review and address CodeQL security findings before release
+- **Emergency bypass**: Use `--no-verify` git push flag only for critical hotfixes
+
+---
+
 ## [0.6.3] - 2025-09-28
 
 ### 🔄 Unified Security Workflow Release
