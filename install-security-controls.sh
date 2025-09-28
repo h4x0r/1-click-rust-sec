@@ -308,8 +308,8 @@ INSTALL_HOOKS=true
 INSTALL_CI=true
 INSTALL_DOCS=true
 INSTALL_SIGNING=true
-SIGNING_METHOD="gitsign"  # Default to secure gitsign, --signing=gpg for GitHub badges
-YUBIKEY_MODE=false  # Default to software auth, --yubikey for hardware auth
+SIGNING_METHOD="gitsign" # Default to secure gitsign, --signing=gpg for GitHub badges
+YUBIKEY_MODE=false       # Default to software auth, --yubikey for hardware auth
 USE_HOOKS_PATH=false
 INSTALL_GITHUB_SECURITY=true
 
@@ -1337,7 +1337,7 @@ install_dual_signing_hook() {
   local hook_script=".git/hooks/post-commit"
 
   # Create post-commit hook for automatic dual signing
-  cat > "$hook_script" << 'EOF'
+  cat >"$hook_script" <<'EOF'
 #!/bin/bash
 # Automatic True Dual Signature Hook
 # Adds Sigstore signature to GPG-signed commits
@@ -1422,7 +1422,7 @@ upload_gpg_key_to_github() {
   local signing_key
   signing_key=$(git config --global user.signingkey 2>/dev/null || git config user.signingkey 2>/dev/null || echo "")
 
-  if [[ -z "$signing_key" ]]; then
+  if [[ -z $signing_key ]]; then
     print_status $YELLOW "⚠️ No GPG signing key configured - generating one..."
 
     # Get user email for GPG key generation
@@ -1431,7 +1431,7 @@ upload_gpg_key_to_github() {
     local user_name
     user_name=$(git config --global user.name 2>/dev/null || git config user.name 2>/dev/null)
 
-    if [[ -z "$user_email" || -z "$user_name" ]]; then
+    if [[ -z $user_email || -z $user_name ]]; then
       print_status $YELLOW "⚠️ Git user.email or user.name not configured"
       print_status $BLUE "   Run: git config --global user.email 'your-email@example.com'"
       print_status $BLUE "   Run: git config --global user.name 'Your Name'"
@@ -1443,7 +1443,8 @@ upload_gpg_key_to_github() {
     print_status $BLUE "   Generating GPG key for $user_name <$user_email>..."
 
     local gpg_config
-    gpg_config=$(cat <<EOF
+    gpg_config=$(
+      cat <<EOF
 %echo Generating GPG key for Git signing
 Key-Type: RSA
 Key-Length: 4096
@@ -1456,13 +1457,13 @@ Expire-Date: 2y
 %commit
 %echo Done
 EOF
-)
+    )
 
     if echo "$gpg_config" | gpg --batch --generate-key 2>/dev/null; then
       # Get the newly generated key ID
       signing_key=$(gpg --list-secret-keys --keyid-format LONG "$user_email" 2>/dev/null | grep "sec" | sed 's/.*\/\([A-F0-9]*\).*/\1/' | head -1)
 
-      if [[ -n "$signing_key" ]]; then
+      if [[ -n $signing_key ]]; then
         # Configure Git to use the new key
         git config --global user.signingkey "$signing_key"
         print_status $GREEN "✅ Generated and configured GPG key: $signing_key"
@@ -1666,7 +1667,7 @@ configure_gitsign_manual_auth() {
   esac
 
   # Test configuration and provide guidance based on signing method
-  if [[ "$SIGNING_METHOD" == "gitsign" ]]; then
+  if [[ $SIGNING_METHOD == "gitsign" ]]; then
     if command -v gitsign &>/dev/null; then
       print_status $BLUE "🧪 Testing gitsign configuration..."
       if git config --global --get commit.gpgsign >/dev/null 2>&1; then
@@ -1689,7 +1690,7 @@ configure_gitsign_manual_auth() {
         print_status $YELLOW "⚠️ Gitsign configuration may need verification"
       fi
     fi
-  elif [[ "$SIGNING_METHOD" == "gpg" ]]; then
+  elif [[ $SIGNING_METHOD == "gpg" ]]; then
     print_status $BLUE "🧪 Testing GPG configuration..."
     if git config --global --get commit.gpgsign >/dev/null 2>&1; then
       print_status $GREEN "✅ GPG signing configured"
@@ -5401,7 +5402,6 @@ ARCH_EOF
     print_status $GREEN "✅ Architecture documentation installed: $arch_file"
   fi
 
-
 }
 
 # Install default config/state files
@@ -5910,8 +5910,7 @@ parse_arguments() {
       --signing=*)
         SIGNING_METHOD="${1#--signing=}"
         case "$SIGNING_METHOD" in
-          gitsign|gpg)
-            ;;
+          gitsign | gpg) ;;
           *)
             print_status $RED "❌ Invalid signing method: $SIGNING_METHOD"
             echo "   Valid options: gitsign (default, secure), gpg (GitHub badges)"
@@ -5974,11 +5973,11 @@ detect_signing_mode() {
   local gpg_format="${gpg_format_global:-${gpg_format_local:-openpgp}}"
   local gpg_program="${gpg_program_global:-${gpg_program_local:-}}"
 
-  if [[ "$commit_signing" != "true" ]]; then
+  if [[ $commit_signing != "true" ]]; then
     echo "none"
-  elif [[ "$gpg_format" == "x509" ]] && [[ "$gpg_program" == "gitsign" ]]; then
+  elif [[ $gpg_format == "x509" ]] && [[ $gpg_program == "gitsign" ]]; then
     echo "gitsign"
-  elif [[ "$gpg_format" == "openpgp" ]]; then
+  elif [[ $gpg_format == "openpgp" ]]; then
     echo "gpg"
   else
     echo "unknown"
@@ -5996,7 +5995,7 @@ check_yubikey_mode() {
 
   local oidc_issuer="${oidc_issuer_global:-$oidc_issuer_local}"
 
-  if [[ "$oidc_issuer" == "https://token.actions.githubusercontent.com" ]]; then
+  if [[ $oidc_issuer == "https://token.actions.githubusercontent.com" ]]; then
     echo "true"
   else
     echo "false"
@@ -6019,7 +6018,7 @@ show_signing_status() {
       print_status $GREEN "✅ gitsign signing is ENABLED"
       local yubikey_mode
       yubikey_mode=$(check_yubikey_mode)
-      if [[ "$yubikey_mode" == "true" ]]; then
+      if [[ $yubikey_mode == "true" ]]; then
         print_status $GREEN "🔑 Mode: gitsign + YubiKey (maximum security)"
         print_status $BLUE "   • Short-lived certificates with hardware authentication"
       else
@@ -6059,10 +6058,10 @@ test_signing_configuration() {
       print_status $BLUE "   Run installer first: $0"
       exit 1
       ;;
-    "gitsign"|"gpg")
+    "gitsign" | "gpg")
       # Create a test commit to verify signing
       local test_file="signing-test-$(date +%s).txt"
-      echo "Signing test - $(date)" > "$test_file"
+      echo "Signing test - $(date)" >"$test_file"
 
       print_status $BLUE "🧪 Creating test commit..."
       if git add "$test_file" && git commit -m "Test signing configuration
@@ -6072,7 +6071,7 @@ Created by: Security Controls Installer v$SCRIPT_VERSION"; then
 
         # Verify signature
         print_status $BLUE "🔍 Verifying signature..."
-        if [[ "$signing_mode" == "gitsign" ]]; then
+        if [[ $signing_mode == "gitsign" ]]; then
           if git log --show-signature -1 2>&1 | grep -q "gitsign: Good signature"; then
             print_status $GREEN "✅ gitsign signature verified!"
           else
@@ -6199,7 +6198,7 @@ switch_to_gitsign_mode() {
   git config --global gitsign.connectorID 'https://github.com/login/oauth'
 
   # Restore YubiKey setting
-  if [[ "$yubikey_mode" == "true" ]]; then
+  if [[ $yubikey_mode == "true" ]]; then
     git config --global gitsign.oidc-issuer 'https://token.actions.githubusercontent.com'
     print_status $GREEN "✅ Switched to gitsign + YubiKey mode!"
   else
@@ -6248,7 +6247,7 @@ switch_to_gpg_mode() {
   local signing_key
   signing_key=$(git config --global --get user.signingkey 2>/dev/null || echo "")
 
-  if [[ -z "$signing_key" ]]; then
+  if [[ -z $signing_key ]]; then
     print_status $YELLOW "⚠️  No GPG signing key configured"
     print_status $BLUE "   Configure a signing key:"
     echo "   1. Generate key: gpg --full-generate-key"
@@ -6295,7 +6294,7 @@ main() {
   execute_upgrade_commands
 
   # Handle signing mode commands (these exit before normal installation)
-  if [[ -n "$COMMAND_MODE" ]]; then
+  if [[ -n $COMMAND_MODE ]]; then
     case "$COMMAND_MODE" in
       "status")
         show_signing_status
