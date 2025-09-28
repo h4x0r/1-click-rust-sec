@@ -161,49 +161,42 @@ repos:
 
 ### Layer 3: CI/CD Workflows (GitHub Actions)
 
-Six specialized workflows for continuous validation:
+Four specialized workflows for continuous validation:
 
 #### 1. `quality-assurance.yml`
-- **Purpose**: Comprehensive quality and security validation with complete dogfooding plus compliance
-- **Tools**: ShellCheck, shfmt, pinactlite, Trivy vulnerability scanner, gitleaks, cargo-deny, documentation validation scripts
+- **Purpose**: Comprehensive quality and functional validation with dogfooding plus compliance
+- **Tools**: pinactlite, documentation validation scripts, functional synchronization
 - **Jobs**:
+  - Critical validation (dogfooding plus compliance)
   - Helper tools E2E testing
   - Installer self-testing
   - SHA pinning validation
-  - Shell script linting
-  - Trivy vulnerability scanning
-  - **NEW**: Comprehensive secret scanning (full history + GitHub integration)
-  - **NEW**: Security dependency audit (cargo-deny)
-  - **NEW**: Supply chain security analysis
-  - **NEW**: License compliance checking
   - Documentation validation
-- **Security**: SARIF uploads to GitHub Security tab, comprehensive reporting
-- **Dogfooding Plus**: Now implements ALL security controls that installer provides to users
+- **Security**: Validates repository implements ALL security controls from installer templates
+- **Dogfooding Plus**: Ensures we use everything we provide to users
 
-#### 2. `docs.yml`
+#### 2. `security-scan.yml`
+- **Purpose**: Unified security scanning and threat detection
+- **Tools**: CodeQL, Trivy, gitleaks, cargo-deny
+- **Jobs**:
+  - **SAST Analysis**: CodeQL static code analysis for JavaScript/TypeScript
+  - **Vulnerability Scanning**: Trivy filesystem vulnerability detection (blocking)
+  - **Secret Detection**: Comprehensive gitleaks scanning with full repository history (blocking)
+  - **Dependency Security**: cargo-deny security audit with license compliance (blocking)
+  - **Supply Chain Security**: GitHub Actions pinning analysis and dependency integrity
+- **Security**: SARIF uploads to GitHub Security tab, comprehensive threat coverage
+- **Architecture**: Parallel execution for optimal CI performance
+
+#### 3. `docs.yml`
 - **Purpose**: Documentation site generation and deployment
-- **Tools**: MkDocs with Material theme
+- **Tools**: MkDocs with Material theme, lychee link validation
 - **Output**: GitHub Pages site deployment
 - **Triggers**: Push to main, PR validation
+- **Validation**: Cross-reference consistency, link checking
 
-#### 3. `codeql.yml`
-- **Purpose**: Code scanning for security vulnerabilities
-- **Tools**: GitHub CodeQL analysis
-- **Schedule**: Weekly scans + PR analysis
-- **Languages**: Shell scripts and documentation
-
-#### 4. `sync-pinactlite.yml`
-- **Purpose**: Ensures pinactlite tool version consistency
-- **Checks**: Script synchronization between installer and repo
-- **Tools**: pinactlite tool maintenance and updates
-
-#### 5. `sync-gitleakslite.yml`
-- **Purpose**: Ensures gitleakslite tool version consistency
-- **Checks**: Script synchronization between installer and repo
-- **Tools**: gitleakslite tool maintenance and updates
-
-#### 6. `release.yml`
+#### 4. `release.yml`
 - **Purpose**: Automated release process with security validation
+- **Dependencies**: Waits for Quality Assurance + Security Scanning workflows
 - **Checks**: Version consistency, changelog updates, artifact generation
 - **Security**: Cryptographic signing, checksum generation, supply chain protection
 - **Artifacts**: Installer scripts, checksums, release notes with security focus

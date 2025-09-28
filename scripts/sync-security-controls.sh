@@ -192,8 +192,12 @@ check_security_job() {
       ;;
 
     "codeql")
-      if [[ -f "$PROJECT_ROOT/$WORKFLOWS_DIR/codeql.yml" ]]; then
-        sync_result "SYNCED" "$job_type" "$description - Dedicated workflow exists"
+      if [[ -f "$PROJECT_ROOT/$WORKFLOWS_DIR/codeql.yml" ]] || grep -q "codeql-analysis\|CodeQL" "$PROJECT_ROOT/$WORKFLOWS_DIR"/*.yml 2>/dev/null; then
+        if [[ -f "$PROJECT_ROOT/$WORKFLOWS_DIR/codeql.yml" ]]; then
+          sync_result "SYNCED" "$job_type" "$description - Dedicated workflow exists"
+        else
+          sync_result "SYNCED" "$job_type" "$description - Integrated in security-scan.yml"
+        fi
       else
         sync_result "MISSING" "$job_type" "$description - Missing CodeQL workflow"
       fi

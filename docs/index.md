@@ -8,8 +8,7 @@
 
 [![Documentation](https://github.com/h4x0r/1-click-github-sec/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/docs.yml)
 [![Quality Assurance](https://github.com/h4x0r/1-click-github-sec/actions/workflows/quality-assurance.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/quality-assurance.yml)
-[![CodeQL](https://github.com/h4x0r/1-click-github-sec/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/codeql.yml)
-[![Pinactlite Sync](https://github.com/h4x0r/1-click-github-sec/actions/workflows/sync-pinactlite.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/sync-pinactlite.yml)
+[![Security Scanning](https://github.com/h4x0r/1-click-github-sec/actions/workflows/security-scan.yml/badge.svg?branch=main)](https://github.com/h4x0r/1-click-github-sec/actions/workflows/security-scan.yml)
 
 **Deploy Security Controls to Any Project in One Command**
 

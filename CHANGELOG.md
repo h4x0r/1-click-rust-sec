@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.3] - 2025-09-28
+
+### 🔄 Unified Security Workflow Release
+
+**MAJOR IMPROVEMENT** - Consolidated all security scanning into a unified workflow for better CI performance and clearer separation of concerns.
+
+### Added
+- **🛡️ Unified Security Scanning**: Created comprehensive `security-scan.yml` workflow combining all security scanning
+- **🎯 SAST Integration**: Consolidated CodeQL + Trivy vulnerability scanning with parallel execution
+- **🔒 Comprehensive Secret Detection**: Full repository history scanning with gitleaks (blocking)
+- **📊 Enhanced Dependency Security**: cargo-deny security audit with license compliance (blocking)
+- **⛓️ Supply Chain Security**: GitHub Actions pinning analysis and dependency integrity checks
+
+### Changed
+- **🔄 Workflow Consolidation**: Merged `codeql.yml` and `trivy-security.yml` into unified `security-scan.yml`
+- **⚡ CI Performance**: Improved parallelization and resource utilization across security jobs
+- **🎯 Separation of Concerns**: Quality Assurance (validation/testing) vs Security Scanning (threat detection)
+- **🚀 Release Dependencies**: Streamlined to Quality Assurance + Security Scanning workflows
+- **📋 ShellCheck Optimization**: Moved to pre-push only (fail-fast design principle)
+
+### Removed
+- **🗑️ Redundant Workflows**: Deleted separate `codeql.yml` and `trivy-security.yml` files
+- **🗑️ Binary Sync Workflows**: Consolidated `sync-gitleakslite.yml` and `sync-pinactlite.yml` into pre-push validation
+- **🗑️ Duplicate Shell Validation**: Removed redundant shellcheck from CI (now pre-push only)
+
+### Security
+- **✅ Maintained Blocking Controls**: All critical security checks still block releases
+- **✅ Enhanced Coverage**: Improved SAST + secrets + dependencies + supply chain in unified workflow
+- **✅ Fail-Fast Design**: Optimized shellcheck to pre-push for immediate developer feedback
+- **✅ Cryptographic Verification**: Maintained signed commits and releases
+
+### Performance
+- **⚡ 4 Workflows**: Reduced from 6 to 4 specialized workflows
+- **⚡ Parallel Security Scanning**: Multiple security jobs run concurrently in security-scan.yml
+- **⚡ Resource Optimization**: Better CI resource allocation and utilization
+
+### Architecture
+- **🏗️ Clear Separation**: Quality Assurance focuses on validation, Security Scanning focuses on threat detection
+- **🏗️ Dogfooding Plus**: Repository uses enhanced version of controls provided to users
+- **🏗️ Defense in Depth**: Multiple overlapping security controls with parallel execution
+
+---
+
 ## [0.5.2] - 2025-09-28
 
 ### 🔧 GPG Key Logic Enhancement Release

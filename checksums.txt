@@ -1,6 +1,0 @@
-# 1-Click GitHub Security v0.3.9 - Release Checksums
-# Verify with: sha256sum -c checksums.txt
-
-5cd2bec735573f7a9f1ad8d825fc37759aafb62f6c9002ddd836c14cd3858a98  install-security-controls.sh
-f2d27e3e27adb53d5045bc35cdcfb6eca888b10ed00997eaa2f8585d1799ceb2  uninstall-security-controls.sh
-4aed1df5ec1c8301db9eef89703f31e319b76bac7b0f1d17a923675e1f711c6b  yubikey-gitsign-toggle.sh
