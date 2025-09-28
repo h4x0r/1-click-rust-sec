@@ -31,10 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **🗑️ Duplicate Shell Validation**: Removed redundant shellcheck from CI (now pre-push only)
 
 ### Security
-- **✅ Maintained Blocking Controls**: All critical security checks still block releases
+- **🚫 Zero-Compromise Security**: ALL security scanning jobs now blocking (CodeQL, Trivy, secrets, dependencies, supply chain)
 - **✅ Enhanced Coverage**: Improved SAST + secrets + dependencies + supply chain in unified workflow
 - **✅ Fail-Fast Design**: Optimized shellcheck to pre-push for immediate developer feedback
 - **✅ Cryptographic Verification**: Maintained signed commits and releases
+- **🛡️ Complete Protection**: Application vulnerabilities (CodeQL) and supply chain risks now block releases
 
 ### Performance
 - **⚡ 4 Workflows**: Reduced from 6 to 4 specialized workflows

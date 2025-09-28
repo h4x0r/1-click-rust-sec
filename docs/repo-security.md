@@ -179,13 +179,13 @@ Four specialized workflows for continuous validation:
 - **Purpose**: Unified security scanning and threat detection
 - **Tools**: CodeQL, Trivy, gitleaks, cargo-deny
 - **Jobs**:
-  - **SAST Analysis**: CodeQL static code analysis for JavaScript/TypeScript
+  - **SAST Analysis**: CodeQL static code analysis for JavaScript/TypeScript (blocking)
   - **Vulnerability Scanning**: Trivy filesystem vulnerability detection (blocking)
   - **Secret Detection**: Comprehensive gitleaks scanning with full repository history (blocking)
   - **Dependency Security**: cargo-deny security audit with license compliance (blocking)
-  - **Supply Chain Security**: GitHub Actions pinning analysis and dependency integrity
-- **Security**: SARIF uploads to GitHub Security tab, comprehensive threat coverage
-- **Architecture**: Parallel execution for optimal CI performance
+  - **Supply Chain Security**: GitHub Actions pinning analysis and dependency integrity (blocking)
+- **Security**: SARIF uploads to GitHub Security tab, comprehensive threat coverage, ALL BLOCKING
+- **Architecture**: Parallel execution with zero-compromise security posture
 
 #### 3. `docs.yml`
 - **Purpose**: Documentation site generation and deployment

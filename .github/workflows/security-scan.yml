@@ -23,7 +23,7 @@ jobs:
   # =============================================================================
 
   codeql-analysis:
-    name: 🔍 CodeQL SAST Analysis
+    name: 🚫 CodeQL SAST Analysis (Blocking)
     runs-on: ubuntu-latest
     timeout-minutes: 360
 
@@ -182,7 +182,7 @@ jobs:
   # =============================================================================
 
   supply-chain-security:
-    name: Supply Chain Security Analysis
+    name: 🚫 Supply Chain Security Analysis (Blocking)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
