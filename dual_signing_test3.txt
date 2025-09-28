@@ -1,0 +1,8 @@
+# True Dual Signing - Fixed Implementation
+
+Third test with corrected gitsign syntax:
+- GPG signature (primary) ✅  
+- Gitsign signature (secondary) - testing fixed hook
+- Both signatures provide security benefits
+
+This should work correctly now.
