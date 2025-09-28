@@ -324,12 +324,6 @@ SHOW_VERSION=false
 
 # Signing mode command flags
 COMMAND_MODE=""
-STATUS_MODE=false
-TEST_MODE=false
-ENABLE_YUBIKEY_MODE=false
-DISABLE_YUBIKEY_MODE=false
-SWITCH_TO_GITSIGN_MODE=false
-SWITCH_TO_GPG_MODE=false
 # Function to print colored output
 print_status() {
   local color=$1
@@ -5822,32 +5816,26 @@ parse_arguments() {
       # Signing mode commands
       status)
         COMMAND_MODE="status"
-        STATUS_MODE=true
         shift
         ;;
       test)
         COMMAND_MODE="test"
-        TEST_MODE=true
         shift
         ;;
       enable-yubikey)
         COMMAND_MODE="enable-yubikey"
-        ENABLE_YUBIKEY_MODE=true
         shift
         ;;
       disable-yubikey)
         COMMAND_MODE="disable-yubikey"
-        DISABLE_YUBIKEY_MODE=true
         shift
         ;;
       switch-to-gitsign)
         COMMAND_MODE="switch-to-gitsign"
-        SWITCH_TO_GITSIGN_MODE=true
         shift
         ;;
       switch-to-gpg)
         COMMAND_MODE="switch-to-gpg"
-        SWITCH_TO_GPG_MODE=true
         shift
         ;;
       -h | --help)
@@ -6060,7 +6048,8 @@ test_signing_configuration() {
       ;;
     "gitsign" | "gpg")
       # Create a test commit to verify signing
-      local test_file="signing-test-$(date +%s).txt"
+      local test_file
+      test_file="signing-test-$(date +%s).txt"
       echo "Signing test - $(date)" >"$test_file"
 
       print_status $BLUE "🧪 Creating test commit..."
