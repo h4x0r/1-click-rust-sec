@@ -1,0 +1,6 @@
+# Test dual signing setup
+
+This is a test commit to verify dual signing (GPG + gitsign) is working.
+
+- GPG signature for GitHub verification ✅
+- gitsign signature for Sigstore transparency log ✅
