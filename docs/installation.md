@@ -350,13 +350,103 @@ Add patterns to `.security-controls/secret-allowlist.txt`:
 test-api-key-[a-z0-9]+
 ```
 
-### 4. Configure Commit Signing (Optional)
+### 4. Configure Commit Signing (4 Modes Available)
+
+The installer supports **4 signing modes** combining two signing methods with two authentication types:
+
+#### 🔑 Signing Mode Overview
+
+**Mode 1: gitsign + software** (default - high security):
+- **Short-lived certificates**: 5-10 minute validity
+- **Browser authentication**: Standard OAuth flow
+- **Transparency logging**: All signatures in Rekor
+- **Zero key management**: No long-lived keys
+
+**Mode 2: gitsign + YubiKey** (maximum security):
+- **Short-lived certificates**: 5-10 minute validity
+- **Hardware authentication**: YubiKey touch required
+- **Phishing resistance**: FIDO2/WebAuthn security
+- **Maximum security**: Hardware root of trust
+
+**Mode 3: GPG + software** (GitHub badges):
+- **Traditional GPG**: Long-lived keys (2-year expiration)
+- **GitHub verification**: "Verified" badges on commits
+- **Software keys**: Standard GPG key management
+- **Manual management**: Key rotation required
+
+**Mode 4: GPG + YubiKey** (hardware + badges):
+- **Traditional GPG**: Long-lived keys on hardware
+- **GitHub verification**: "Verified" badges on commits
+- **Hardware keys**: Private keys on YubiKey
+- **Touch requirement**: Physical presence for signing
+
+#### Installation Options
 ```bash
-# For Sigstore/gitsign
-git config --global gpg.x509.program gitsign
-git config --global gpg.format x509
-git config --global commit.gpgsign true
+# Mode 1: gitsign + software (default - high security)
+./install-security-controls.sh
+
+# Mode 2: gitsign + YubiKey (maximum security)
+./install-security-controls.sh --yubikey
+
+# Mode 3: GPG + software (GitHub badges)
+./install-security-controls.sh --signing=gpg
+
+# Mode 4: GPG + YubiKey (hardware + badges)
+./install-security-controls.sh --signing=gpg --yubikey
 ```
+
+#### Mode Switching After Installation
+```bash
+# Check current signing mode
+./install-security-controls.sh status
+
+# Switch signing methods (preserves YubiKey setting)
+./install-security-controls.sh switch-to-gitsign
+./install-security-controls.sh switch-to-gpg
+
+# Enable/disable YubiKey for current method
+./install-security-controls.sh enable-yubikey
+./install-security-controls.sh disable-yubikey
+
+# Test current configuration
+./install-security-controls.sh test
+```
+
+#### Security Comparison
+| Mode | Security Level | Key Management | GitHub Badges | Hardware Required |
+|------|----------------|----------------|---------------|-------------------|
+| gitsign + software | High | None | No | No |
+| gitsign + YubiKey | Maximum | None | No | Yes |
+| GPG + software | Basic | Manual | Yes | No |
+| GPG + YubiKey | High | Manual | Yes | Yes |
+
+#### Prerequisites for Hardware Modes
+- **YubiKey 5 series** with FIDO2 support
+- **GitHub account** with YubiKey registered as security key
+
+#### Daily Development Workflow (YubiKey Modes)
+1. **Regular Development**: Code, stage changes normally
+2. **Commit**: Run `git commit -m "Your commit message"`
+3. **Browser Opens**: gitsign/GPG opens browser for authentication
+4. **YubiKey Touch**: Touch YubiKey when prompted
+5. **Automatic Signing**: Certificate/key signs commit
+6. **Browser Closes**: Authentication complete
+
+#### Verification
+```bash
+# Verify your signed commits
+git log --show-signature
+
+# Check specific commit
+git log --show-signature -1 HEAD
+
+# Example output (gitsign):
+# gitsign: Good signature from [your-github-email]
+# gitsign: Certificate was issued by Fulcio
+# gitsign: Certificate identity: https://github.com/your-username
+```
+
+**Recommendation**: Use **Mode 2** (gitsign + YubiKey) for maximum security, or **Mode 1** (gitsign + software) for high security without hardware requirements.
 
 ---
 

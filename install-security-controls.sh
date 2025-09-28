@@ -33,7 +33,7 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m' # No Color
 
 # Configuration
-readonly SCRIPT_VERSION="0.5.2"
+readonly SCRIPT_VERSION="0.6.0"
 # shellcheck disable=SC2034 # Placeholder for future use
 readonly REQUIRED_TOOLS_FILE="security-tools-requirements.txt"
 # shellcheck disable=SC2034 # Placeholder for future use
@@ -308,6 +308,8 @@ INSTALL_HOOKS=true
 INSTALL_CI=true
 INSTALL_DOCS=true
 INSTALL_SIGNING=true
+SIGNING_METHOD="gitsign"  # Default to secure gitsign, --signing=gpg for GitHub badges
+YUBIKEY_MODE=false  # Default to software auth, --yubikey for hardware auth
 USE_HOOKS_PATH=false
 INSTALL_GITHUB_SECURITY=true
 
@@ -319,6 +321,15 @@ BACKUP_MODE=false
 # shellcheck disable=SC2034 # Reserved flag
 RESTORE_MODE=false
 SHOW_VERSION=false
+
+# Signing mode command flags
+COMMAND_MODE=""
+STATUS_MODE=false
+TEST_MODE=false
+ENABLE_YUBIKEY_MODE=false
+DISABLE_YUBIKEY_MODE=false
+SWITCH_TO_GITSIGN_MODE=false
+SWITCH_TO_GPG_MODE=false
 # Function to print colored output
 print_status() {
   local color=$1
@@ -594,7 +605,13 @@ OPTIONS:
     --no-hooks              Skip Git hooks installation
     --no-ci                 Skip CI workflow installation  
     --no-docs               Skip documentation installation
-    --no-signing            Skip gitsign installation and configuration
+    --no-signing            Skip cryptographic signing installation and configuration
+    --signing=METHOD        Choose signing method: 'gitsign' (default, secure) or 'gpg' (GitHub badges)
+                            gitsign: Short-lived certificates, automatic rotation, keyless (secure)
+                            gpg: Long-lived keys, manual management, GitHub verified badges (weaker)
+    --yubikey               Enable YubiKey hardware authentication (works with both gitsign and GPG)
+                            gitsign+yubikey: Maximum security (hardware auth + short-lived certs)
+                            gpg+yubikey: Hardware-backed signing (hardware keys + GitHub badges)
     --language=LANG         Specify project language(s): rust, nodejs, python, go, generic
                             Supports multiple: --language=rust,nodejs,python
                             (auto-detects if not specified - supports polyglot repos)
@@ -619,9 +636,38 @@ UPGRADE COMMANDS:
     --upgrade               Upgrade to latest version with backup
     --backup                Create backup of current installation
     --changelog             Show changelog and release notes
+
+SIGNING MODE COMMANDS:
+    status                  Show current signing configuration and YubiKey status
+    test                    Test current signing configuration (creates test commit)
+    enable-yubikey          Enable YubiKey requirement for current signing method
+    disable-yubikey         Disable YubiKey requirement (switch to software auth)
+    switch-to-gitsign       Switch to gitsign signing (short-lived certificates)
+    switch-to-gpg           Switch to GPG signing (GitHub verified badges)
 EXAMPLES:
     # Full installation with all security features (recommended)
     $0
+
+    # 4 SIGNING MODES:
+    # Mode 1: gitsign + software (default - high security)
+    $0
+
+    # Mode 2: gitsign + YubiKey (maximum security)
+    $0 --yubikey
+
+    # Mode 3: GPG + software (GitHub badges, basic security)
+    $0 --signing=gpg
+
+    # Mode 4: GPG + YubiKey (GitHub badges, hardware security)
+    $0 --signing=gpg --yubikey
+
+    # Switch modes after installation:
+    $0 status                    # Check current mode
+    $0 enable-yubikey           # Add YubiKey to current method
+    $0 disable-yubikey          # Remove YubiKey requirement
+    $0 switch-to-gitsign        # Switch to gitsign (maintains YubiKey setting)
+    $0 switch-to-gpg            # Switch to GPG (maintains YubiKey setting)
+    $0 test                     # Test current signing setup
 
     # Preview changes without installing
     $0 --dry-run
@@ -701,13 +747,13 @@ SECURITY CONTROLS INSTALLED:
     ❌ Advanced Security (GitHub Enterprise only)
 
     Cryptographic Signing & Verification:
-    🔑 True dual signature system (GPG + Sigstore)
-    🔑 GPG signatures for GitHub 'Verified' badges
-    🔑 Sigstore signatures for transparency logging
-    🔑 Automatic dual signing on every commit
+    🔑 Secure gitsign signing (default: short-lived certificates)
+    🔑 Keyless signing with automatic rotation
     🔑 Certificate transparency via Rekor ledger
+    🔑 No long-term key management required
+    🔑 Superior security vs traditional GPG
+    🔑 Optional: GPG signing for GitHub 'Verified' badges (--signing=gpg)
     🔑 Public auditability of all signatures
-    🔑 No GPG key management required
     🔑 Enhanced supply chain security
 
 CRYPTOGRAPHIC VERIFICATION:
@@ -1482,27 +1528,44 @@ EOF
   fi
 }
 
-# Configure gitsign for manual authentication with URL/code fallback
-configure_gitsign_manual_auth() {
-  print_status $YELLOW "🔧 Configuring gitsign for manual authentication..."
+# Configure gitsign-only signing (secure, short-lived certificates)
+configure_gitsign_only() {
+  if [[ $YUBIKEY_MODE == true ]]; then
+    print_status $BLUE "🔐 Configuring secure gitsign + YubiKey signing..."
+  else
+    print_status $BLUE "🔐 Configuring secure gitsign signing..."
+  fi
 
   if [[ $DRY_RUN == true ]]; then
-    print_status $BLUE "   [DRY RUN] Would configure gitsign settings"
+    if [[ $YUBIKEY_MODE == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would configure gitsign + YubiKey signing"
+    else
+      print_status $BLUE "   [DRY RUN] Would configure gitsign-only signing"
+    fi
     return 0
   fi
 
-  # Configure true dual signing (GPG + Sigstore)
-  print_status $BLUE "🔐 Configuring true dual signature system..."
-
-  # Set up GPG as primary signing method
+  # Configure gitsign as the signing method
   try_execute "git config --global commit.gpgsign true" "" "⚠️ Failed to enable commit signing"
   try_execute "git config --global tag.gpgsign true" "" "⚠️ Failed to enable tag signing"
-  try_execute "git config --global gpg.format openpgp" "" "⚠️ Failed to set GPG format"
+  try_execute "git config --global gpg.format x509" "" "⚠️ Failed to set gitsign format"
+  try_execute "git config --global gpg.x509.program gitsign" "" "⚠️ Failed to set gitsign program"
 
   # Configure Sigstore endpoints
   try_execute "git config --global gitsign.fulcio-url 'https://fulcio.sigstore.dev'" "" "⚠️ Failed to set Fulcio URL"
   try_execute "git config --global gitsign.rekor-url 'https://rekor.sigstore.dev'" "" "⚠️ Failed to set Rekor URL"
-  try_execute "git config --global gitsign.oidc-issuer 'https://oauth2.sigstore.dev/auth'" "" "⚠️ Failed to set OIDC issuer"
+
+  # Configure OIDC issuer based on YubiKey mode
+  if [[ $YUBIKEY_MODE == true ]]; then
+    # YubiKey mode: use GitHub Actions issuer for hardware-backed auth
+    try_execute "git config --global gitsign.oidc-issuer 'https://token.actions.githubusercontent.com'" "" "⚠️ Failed to set YubiKey OIDC issuer"
+    print_status $BLUE "   • 🔑 YubiKey hardware authentication enabled"
+  else
+    # Software mode: use regular OAuth issuer
+    try_execute "git config --global gitsign.oidc-issuer 'https://oauth2.sigstore.dev/auth'" "" "⚠️ Failed to set OIDC issuer"
+    print_status $BLUE "   • 💻 Browser-based authentication enabled"
+  fi
+
   try_execute "git config --global gitsign.oidc-client-id 'sigstore'" "" "⚠️ Failed to set OIDC client ID"
 
   # Configure balanced authentication behavior (security + usability)
@@ -1510,39 +1573,128 @@ configure_gitsign_manual_auth() {
   try_execute "git config --global gitsign.autocloseTimeout 20" "" "⚠️ Failed to set timeout"
   try_execute "git config --global gitsign.connectorID 'https://github.com/login/oauth'" "" "⚠️ Failed to set connector ID"
 
-  # Install automatic dual signing hook
-  install_dual_signing_hook
+  if [[ $YUBIKEY_MODE == true ]]; then
+    print_status $GREEN "✅ Secure gitsign + YubiKey signing configured"
+    print_status $BLUE "   • 🏆 Maximum security: Short-lived certs + hardware auth"
+    print_status $BLUE "   • 🔑 YubiKey required for each signing operation"
+    print_status $BLUE "   • 📋 Transparency logging via Rekor"
+    print_status $BLUE "   • 📝 Note: GitHub shows as 'Unverified' (limitation on GitHub's side)"
+    print_status $YELLOW "   • 💡 Ensure your YubiKey is registered with GitHub"
+  else
+    print_status $GREEN "✅ Secure gitsign signing configured"
+    print_status $BLUE "   • 🔒 Short-lived certificates (automatic rotation)"
+    print_status $BLUE "   • 🔄 Keyless signing with transparency logging"
+    print_status $BLUE "   • 🏆 Superior security vs traditional GPG"
+    print_status $BLUE "   • 📝 Note: GitHub shows as 'Unverified' (limitation on GitHub's side)"
+    print_status $YELLOW "   • 💡 Add --yubikey for maximum security"
+  fi
+}
+
+# Configure GPG signing (weaker, for GitHub verification badges)
+configure_gpg_signing() {
+  if [[ $YUBIKEY_MODE == true ]]; then
+    print_status $YELLOW "🔧 Configuring GPG + YubiKey signing for GitHub verification..."
+  else
+    print_status $YELLOW "🔧 Configuring GPG signing for GitHub verification..."
+  fi
+
+  if [[ $DRY_RUN == true ]]; then
+    if [[ $YUBIKEY_MODE == true ]]; then
+      print_status $BLUE "   [DRY RUN] Would configure GPG + YubiKey signing"
+    else
+      print_status $BLUE "   [DRY RUN] Would configure GPG signing"
+    fi
+    return 0
+  fi
+
+  if [[ $YUBIKEY_MODE == true ]]; then
+    print_status $BLUE "⚖️  GPG + YubiKey: Hardware keys with GitHub badges"
+    print_status $BLUE "   • YubiKey provides hardware-backed signing"
+    print_status $BLUE "   • GitHub 'Verified' badges supported"
+    print_status $BLUE "   • Manual YubiKey setup required (see below)"
+  else
+    print_status $YELLOW "⚠️  WARNING: GPG uses long-lived keys (weaker security)"
+    print_status $BLUE "   • Choose this only if you need GitHub 'Verified' badges"
+    print_status $BLUE "   • For better security, use default gitsign option"
+  fi
+
+  # Set up GPG as signing method
+  try_execute "git config --global commit.gpgsign true" "" "⚠️ Failed to enable commit signing"
+  try_execute "git config --global tag.gpgsign true" "" "⚠️ Failed to enable tag signing"
+  try_execute "git config --global gpg.format openpgp" "" "⚠️ Failed to set GPG format"
 
   # Auto-upload GPG key to GitHub for verification badges
   upload_gpg_key_to_github
 
-  print_status $GREEN "✅ True dual signature system configured"
-  print_status $BLUE "   • GPG signatures for GitHub 'Verified' badges"
-  print_status $BLUE "   • Sigstore signatures for transparency logging"
-  print_status $BLUE "   • Automatic dual signing on every commit"
-  print_status $BLUE "   • Browser auto-closes after 20 seconds"
+  if [[ $YUBIKEY_MODE == true ]]; then
+    print_status $GREEN "✅ GPG + YubiKey signing configured"
+    print_status $BLUE "   • Hardware-backed signing enabled"
+    print_status $BLUE "   • GitHub 'Verified' badges enabled"
+    print_status $BLUE "   • YubiKey touch required for signing"
+    echo
+    print_status $YELLOW "🔧 YubiKey Setup Required:"
+    echo "   1. Configure YubiKey touch policy:"
+    echo "      ykman openpgp keys set-touch sig on"
+    echo "   2. Generate or import GPG key on YubiKey"
+    echo "   3. Verify key: gpg --card-status"
+    echo "   4. Configure Git: git config --global user.signingkey YOUR_KEY_ID"
+    echo
+    print_status $BLUE "💡 After setup, test with: $0 test"
+  else
+    print_status $GREEN "✅ GPG signing configured"
+    print_status $BLUE "   • Long-lived keys (2-year expiration)"
+    print_status $BLUE "   • Manual key management required"
+    print_status $BLUE "   • GitHub 'Verified' badges enabled"
+    print_status $YELLOW "   • Consider gitsign for better security"
+    print_status $YELLOW "   • For hardware security: $0 enable-yubikey"
+  fi
+}
 
-  # Test gitsign configuration and provide troubleshooting guidance
-  if command -v gitsign &>/dev/null; then
-    print_status $BLUE "🧪 Testing gitsign configuration..."
+# Legacy function name for backward compatibility
+configure_gitsign_manual_auth() {
+  case "$SIGNING_METHOD" in
+    gitsign)
+      configure_gitsign_only
+      ;;
+    gpg)
+      configure_gpg_signing
+      ;;
+    *)
+      print_status $RED "❌ Unknown signing method: $SIGNING_METHOD"
+      exit 1
+      ;;
+  esac
+
+  # Test configuration and provide guidance based on signing method
+  if [[ "$SIGNING_METHOD" == "gitsign" ]]; then
+    if command -v gitsign &>/dev/null; then
+      print_status $BLUE "🧪 Testing gitsign configuration..."
+      if git config --global --get commit.gpgsign >/dev/null 2>&1; then
+        print_status $GREEN "✅ Gitsign ready for secure commit signing"
+        print_status $BLUE "   Next commit will be signed with short-lived certificates"
+        echo
+        print_status $YELLOW "💡 Authentication Behavior:"
+        echo "   When you make your first signed commit:"
+        echo "   1. Browser will open to GitHub OAuth page"
+        echo "   2. You have 20 seconds to complete authentication"
+        echo "   3. Browser closes automatically after auth or timeout"
+        echo "   4. If timeout occurs, git commit will fail - simply retry"
+        echo
+        print_status $YELLOW "🔧 Troubleshooting Authentication Failures:"
+        echo "   • Ensure you're logged into GitHub in your default browser"
+        echo "   • Check that pop-ups are not blocked for sigstore.dev"
+        echo "   • If repeated failures: git config --global gitsign.autocloseTimeout 60"
+        echo "   • For CI/CD environments: use GITHUB_TOKEN authentication"
+      else
+        print_status $YELLOW "⚠️ Gitsign configuration may need verification"
+      fi
+    fi
+  elif [[ "$SIGNING_METHOD" == "gpg" ]]; then
+    print_status $BLUE "🧪 Testing GPG configuration..."
     if git config --global --get commit.gpgsign >/dev/null 2>&1; then
-      print_status $GREEN "✅ Gitsign ready for commit signing"
-      print_status $BLUE "   Next commit will be signed with Sigstore"
-      echo
-      print_status $YELLOW "💡 Authentication Behavior:"
-      echo "   When you make your first signed commit:"
-      echo "   1. Browser will open to GitHub OAuth page"
-      echo "   2. You have 20 seconds to complete authentication"
-      echo "   3. Browser closes automatically after auth or timeout"
-      echo "   4. If timeout occurs, git commit will fail - simply retry"
-      echo
-      print_status $YELLOW "🔧 Troubleshooting Authentication Failures:"
-      echo "   • Ensure you're logged into GitHub in your default browser"
-      echo "   • Check that pop-ups are not blocked for sigstore.dev"
-      echo "   • If repeated failures: git config --global gitsign.autocloseTimeout 60"
-      echo "   • For CI/CD environments: use GITHUB_TOKEN authentication"
-    else
-      print_status $YELLOW "⚠️ Gitsign configuration may need verification"
+      print_status $GREEN "✅ GPG signing configured"
+      print_status $BLUE "   Your commits will show 'Verified' badges on GitHub"
+      print_status $YELLOW "   Remember: GPG keys have 2-year expiration"
     fi
   fi
 }
@@ -3277,6 +3429,101 @@ if [[ "$ENABLE_LARGE_FILE_CHECK" == "true" ]]; then
     else
         print_status $GREEN "✅ No large files detected"
     fi
+fi
+
+echo
+# Shell script quality checks
+print_status $YELLOW "🔍 Running shell script quality checks..."
+
+# ShellCheck validation (fail fast)
+if command -v shellcheck >/dev/null 2>&1; then
+    print_status $YELLOW "   📋 Running shellcheck (blocking)..."
+    SHELL_FILES=$(find . -type f -name "*.sh" -not -path "./.git/*" 2>/dev/null | head -20)
+    if [[ -n "$SHELL_FILES" ]]; then
+        # Use process substitution to avoid subshell variable scope issues
+        shellcheck_failed=0
+        while IFS= read -r script; do
+            if [[ -n "$script" ]]; then
+                if ! shellcheck -S warning "$script" >/dev/null 2>&1; then
+                    if [[ $shellcheck_failed -eq 0 ]]; then
+                        print_status $RED "❌ ShellCheck warnings/errors found:"
+                    fi
+                    echo "   • $script"
+                    shellcheck_failed=1
+                fi
+            fi
+        done <<< "$SHELL_FILES"
+
+        if [[ $shellcheck_failed -eq 1 ]]; then
+            print_status $RED "   Fix shellcheck issues before pushing"
+            print_status $BLUE "   Run: shellcheck your_script.sh"
+            FAILED=1
+        else
+            print_status $GREEN "   ✅ All shell scripts pass shellcheck"
+        fi
+    else
+        print_status $BLUE "   ℹ️  No shell scripts found to check"
+    fi
+else
+    print_status $YELLOW "   ⚠️  shellcheck not found - install for better shell script validation"
+    print_status $BLUE "   Install: brew install shellcheck (macOS) or apt install shellcheck (Ubuntu)"
+fi
+
+# Shell formatting check (shfmt)
+if command -v shfmt >/dev/null 2>&1; then
+    print_status $YELLOW "   🎨 Checking shell script formatting..."
+    if shfmt -d -i 2 -ci -s . >/dev/null 2>&1; then
+        print_status $GREEN "   ✅ Shell script formatting is correct"
+    else
+        print_status $RED "   ❌ Shell script formatting issues found"
+        print_status $BLUE "   Fix: shfmt -w -i 2 -ci -s ."
+        FAILED=1
+    fi
+else
+    print_status $YELLOW "   ⚠️  shfmt not found - install for shell script formatting validation"
+    print_status $BLUE "   Install: brew install shfmt (macOS) or apt install shfmt (Ubuntu)"
+fi
+
+echo
+# License header validation (fail fast)
+print_status $YELLOW "📄 Checking license compliance..."
+missing_license_headers=0
+
+# Check main shell scripts for license headers
+MAIN_SCRIPTS=$(find . -maxdepth 1 -name "*.sh" -type f 2>/dev/null)
+if [[ -n "$MAIN_SCRIPTS" ]]; then
+    print_status $YELLOW "   📋 Validating license headers in main scripts..."
+    while IFS= read -r script; do
+        if [[ -n "$script" ]]; then
+            # Check first 20 lines for license/copyright
+            if ! head -20 "$script" | grep -q -i "license\|copyright" 2>/dev/null; then
+                if [[ $missing_license_headers -eq 0 ]]; then
+                    print_status $RED "❌ Missing license headers:"
+                fi
+                echo "   • $script"
+                missing_license_headers=1
+            fi
+        fi
+    done <<< "$MAIN_SCRIPTS"
+
+    if [[ $missing_license_headers -eq 1 ]]; then
+        print_status $RED "   Add license headers to source files before pushing"
+        print_status $BLUE "   Include copyright notice and license reference"
+        FAILED=1
+    else
+        print_status $GREEN "   ✅ License headers present in main scripts"
+    fi
+else
+    print_status $BLUE "   ℹ️  No main shell scripts found to check"
+fi
+
+# Verify LICENSE file exists
+if [[ ! -f "LICENSE" ]]; then
+    print_status $RED "❌ No LICENSE file found in repository root"
+    print_status $BLUE "   Add a LICENSE file (Apache-2.0, MIT, etc.)"
+    FAILED=1
+else
+    print_status $GREEN "   ✅ LICENSE file present"
 fi
 
 echo
@@ -5154,444 +5401,7 @@ ARCH_EOF
     print_status $GREEN "✅ Architecture documentation installed: $arch_file"
   fi
 
-  # Install YubiKey + Sigstore guide
-  local yubi_file="$DOCS_DIR/yubikey-integration.md"
-  if [[ $DRY_RUN == true ]]; then
-    print_status $BLUE "[DRY RUN] Would install YubiKey guide to $yubi_file"
-  else
-    cat <<'YUBI_EOF' >"$yubi_file"
-# YubiKey + Sigstore Integration Guide
 
-## 🔑 Hardware-Backed Git Commit Signing
-
-This guide explains how to use YubiKey hardware security keys with Sigstore for keyless, short-lived credential Git commit signing.
-
----
-
-## 🎯 Overview
-
-### What is YubiKey + Sigstore Signing?
-
-**YubiKey + Sigstore** combines:
-- **Hardware Security**: Private keys never leave your YubiKey
-- **Keyless Signing**: No long-lived private keys to manage
-- **Short-lived Credentials**: Certificates valid for only 5-10 minutes
-- **Transparency**: All signatures logged publicly in Rekor
-- **OIDC Authentication**: Identity verified via GitHub/Google/etc.
-
-### Security Model
-
-```
-YubiKey (Hardware Root of Trust)
-    ↓
-GitHub OIDC (Identity Provider) 
-    ↓
-Fulcio CA (Short-lived Certificate Authority)
-    ↓
-gitsign (Git Signing Tool)
-    ↓
-Signed Commit + Rekor Transparency Log
-```
-
----
-
-## 🛡️ Security Benefits
-
-### **Hardware Security (YubiKey)**
-- **Tamper-resistant**: Hardware-based cryptographic operations
-- **Phishing-resistant**: FIDO2/WebAuthn prevents credential theft
-- **Physical presence**: Touch required for every signature
-- **Private keys never exposed**: Keys generated and stored in hardware
-
-### **Keyless Architecture (Sigstore)**
-- **No key management**: No long-lived private keys to rotate/backup
-- **Short-lived certificates**: 5-10 minute validity reduces exposure
-- **Identity-based**: Certificates tied to verified OIDC identity
-- **Transparency logging**: All signatures publicly auditable
-
-### **Combined Benefits**
-- **Non-repudiation**: Cryptographic proof of authorship
-- **Supply chain security**: Verify commit authenticity
-- **Compliance ready**: Meets enterprise security requirements
-- **Zero maintenance**: No key lifecycle management
-
----
-
-## 🏗️ Technical Architecture
-
-### OIDC Flow with YubiKey
-
-1. **Commit Attempt**: Developer runs `git commit`
-2. **gitsign Triggers**: Git calls gitsign for signing
-3. **OIDC Challenge**: gitsign opens browser for authentication (20-second timeout)
-4. **YubiKey Authentication**: GitHub requires YubiKey touch (if enabled)
-5. **Token Exchange**: Valid OIDC token received
-6. **Certificate Request**: gitsign requests cert from Fulcio
-7. **Short-lived Certificate**: Fulcio issues 5-10 minute certificate
-8. **Commit Signing**: Certificate signs commit
-9. **Transparency Log**: Signature recorded in Rekor
-10. **Browser Closes**: Browser window closes automatically
-
-### Key Components
-
-| Component | Purpose | Technology |
-|-----------|---------|------------|
-| **YubiKey** | Hardware root of trust | FIDO2/WebAuthn |
-| **GitHub** | OIDC identity provider | OAuth 2.0 + WebAuthn |
-| **Fulcio** | Certificate authority | X.509 certificates |
-| **gitsign** | Git signing integration | Sigstore client |
-| **Rekor** | Transparency log | Merkle tree logging |
-
----
-
-## 🚀 Quick Setup
-
-### **Prerequisites**
-- YubiKey 5 series with FIDO2 support
-- GitHub account with YubiKey registered as security key
-- Go installed (for gitsign installation)
-
-### **1-Command Setup**
-```bash
-# Download the YubiKey toggle script
-curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh
-curl -O https://raw.githubusercontent.com/h4x0r/1-click-github-sec/main/yubikey-gitsign-toggle.sh.sha256
-
-# VERIFY checksum before execution (STRONGLY RECOMMENDED - critical security practice)
-sha256sum -c yubikey-gitsign-toggle.sh.sha256
-
-# Run interactive setup
-chmod +x yubikey-gitsign-toggle.sh
-./yubikey-gitsign-toggle.sh setup
-```
-
-### **Manual Setup**
-```bash
-# Install gitsign
-go install github.com/sigstore/gitsign@latest
-
-# Configure Git for Sigstore
-git config --global gitsign.fulcio-url "https://fulcio.sigstore.dev"
-git config --global gitsign.rekor-url "https://rekor.sigstore.dev"
-git config --global gitsign.oidc-issuer "https://token.actions.githubusercontent.com"
-git config --global gitsign.oidc-client-id "sigstore"
-
-# Enable signing
-git config --global commit.gpgsign true
-git config --global tag.gpgsign true
-git config --global gpg.x509.program gitsign
-git config --global gpg.format x509
-```
-
----
-
-## 🔧 Configuration Details
-
-### Sigstore Endpoints
-
-| Endpoint | Purpose | URL |
-|----------|---------|-----|
-| **Fulcio** | Certificate Authority | `https://fulcio.sigstore.dev` |
-| **Rekor** | Transparency Log | `https://rekor.sigstore.dev` |
-| **OIDC Issuer** | GitHub Identity Provider | `https://token.actions.githubusercontent.com` |
-
-### Git Configuration
-
-```bash
-# Core signing configuration
-commit.gpgsign=true                    # Sign all commits
-tag.gpgsign=true                       # Sign all tags
-gpg.format=x509                        # Use X.509 certificates
-gpg.x509.program=gitsign               # Use gitsign as signing program
-
-# Sigstore-specific configuration
-gitsign.fulcio-url=https://fulcio.sigstore.dev
-gitsign.rekor-url=https://rekor.sigstore.dev
-gitsign.oidc-issuer=https://token.actions.githubusercontent.com
-gitsign.oidc-client-id=sigstore
-```
-
----
-
-## 🎮 Usage Workflow
-
-### **Daily Development**
-
-1. **Regular Development**: Code, stage changes normally
-2. **Commit**: Run `git commit -m "Your commit message"`
-3. **Browser Opens**: gitsign opens browser for GitHub OAuth (20-second timeout)
-4. **YubiKey Touch**: GitHub prompts for YubiKey authentication (if enabled)
-5. **Touch YubiKey**: Physical touch authenticates your identity
-6. **Automatic Signing**: gitsign receives certificate and signs commit
-7. **Browser Closes**: Browser window closes automatically after authentication
-8. **Transparency Logging**: Signature automatically logged to Rekor
-
-### **Verification**
-
-```bash
-# Verify your signed commits
-git log --show-signature
-
-# Check specific commit
-git log --show-signature -1 HEAD
-
-# Output example:
-# gitsign: Good signature from [your-github-email]
-# gitsign: Certificate was issued by Fulcio
-# gitsign: Certificate identity: https://github.com/your-username
-```
-
-### **Toggle On/Off**
-
-```bash
-# Check current status
-./yubikey-gitsign-toggle.sh status
-
-# Disable temporarily
-./yubikey-gitsign-toggle.sh disable
-
-# Re-enable
-./yubikey-gitsign-toggle.sh enable
-
-# Test signing
-./yubikey-gitsign-toggle.sh test
-```
-
-### **Authentication Behavior**
-
-**Normal Flow (within 20 seconds):**
-- Browser opens to GitHub OAuth
-- Complete authentication
-- Browser closes automatically
-- Commit succeeds with Sigstore signature
-
-**Timeout Scenario (after 20 seconds):**
-- Browser closes automatically
-- Authentication incomplete
-- Git commit fails with signing error
-- Simply retry: `git commit` again
-- Most users complete auth on second attempt
-
-**Troubleshooting:**
-- Ensure you're logged into GitHub in your browser
-- Disable pop-up blockers for sigstore.dev
-- For slow connections: `git config --global gitsign.autocloseTimeout 60`
-
----
-
-## 🔒 Security Considerations
-
-- Use multiple registered YubiKeys for redundancy
-- Keep your tooling up-to-date (gitsign, cosign)
-- Verify signatures and Rekor transparency log entries regularly
-
----
-
-## 🔬 Advanced Configuration
-
-### **Custom OIDC Provider**
-
-```bash
-# Use custom OIDC provider (e.g., Google)
-git config --global gitsign.oidc-issuer "https://accounts.google.com"
-git config --global gitsign.oidc-client-id "your-client-id"
-```
-
-### **Enterprise Fulcio Instance**
-
-```bash
-# Use private Fulcio instance
-git config --global gitsign.fulcio-url "https://fulcio.your-company.com"
-git config --global gitsign.rekor-url "https://rekor.your-company.com"
-```
-
-### **CI/CD Integration**
-
-- GitHub Actions provides OIDC tokens; gitsign can verify runner identity where applicable.
-
----
-
-## 🎯 Best Practices
-
-- Keep YubiKey connected during development to minimize prompts
-- Register backup YubiKeys
-- Treat --no-verify pushes as emergencies only
-
----
-
-## 🚨 Troubleshooting
-
-### **Common Issues**
-
-#### YubiKey Not Recognized
-```bash
-# Check YubiKey detection
-ykman list
-
-# If not found:
-# - Try different USB port
-# - Update YubiKey Manager: pip install --upgrade yubikey-manager
-# - Check if YubiKey is registered with GitHub
-```
-
-#### GitHub Authentication Fails
-```bash
-# Clear cached credentials
-gitsign initialize --oidc-issuer=https://token.actions.githubusercontent.com
-
-# Re-run with verbose output
-GITSIGN_LOG=debug git commit --amend --no-edit
-```
-
-#### Commit Signing Intermittently Fails
-```bash
-# Common causes and solutions:
-# 1. YubiKey timeout - touch YubiKey when prompted
-# 2. Browser session expired - clear browser cache
-# 3. Network issues - check internet connectivity
-# 4. YubiKey PIN locked - unlock with: ykman fido reset
-```
-
-#### Browser Opens But Authentication Fails
-```bash
-# Ensure GitHub account has verified email
-# Check if corporate firewall blocks token.actions.githubusercontent.com
-# Try different browser or incognito mode
-```
-
-### **Verification Issues**
-
-#### "no signature found"
-```bash
-# Check if commit was actually signed
-git log --show-signature -1
-
-# If no signature, ensure gitsign is configured:
-git config --get commit.gpgsign  # should be "true"
-git config --get gpg.format      # should be "x509"
-git config --get gpg.x509.program # should be "gitsign"
-```
-
-#### "certificate verification failed"
-```bash
-# Certificate may have expired (10 min lifetime)
-# Re-sign the commit:
-git commit --amend --no-edit
-
-# Check Rekor entry:
-rekor-cli search --email your-email@github.com
-```
-
-### **Performance Issues**
-
-#### Slow Signing Process
-```bash
-# YubiKey Series 5.4+ recommended for fastest performance
-# Ensure latest YubiKey firmware:
-ykman info
-
-# Close unnecessary browser tabs to reduce memory usage
-# Consider using YubiKey 5C Nano for permanent insertion
-```
-
-### **Advanced Troubleshooting**
-
-#### Enable Debug Logging
-```bash
-# Set debug environment variables
-export GITSIGN_LOG=debug
-export SIGSTORE_LOG_LEVEL=debug
-
-# Run git commit and capture logs
-git commit -m "debug test" 2>&1 | tee gitsign-debug.log
-```
-
-#### Check Certificate Details
-```bash
-# Examine certificate in transparency log
-gitsign verify HEAD --certificate-oidc-issuer=https://token.actions.githubusercontent.com
-
-# Manual Rekor verification
-rekor-cli get --uuid $(rekor-cli search --email your-email@example.com | head -1)
-```
-
-## 📊 Comparison with Other Signing Methods
-
-### **vs Traditional GPG**
-
-| Aspect | Traditional GPG | YubiKey + Sigstore |
-|--------|----------------|-------------------|
-| **Key Management** | Complex (backup, expiry, revocation) | None (keyless) |
-| **Hardware Security** | Optional (can use YubiKey) | Required (YubiKey mandatory) |
-| **Certificate Lifetime** | Years (until manually revoked) | Minutes (automatic expiry) |
-| **Identity Verification** | Web of trust / manual | OIDC provider verified |
-| **Transparency** | None | Public Rekor log |
-| **Phishing Resistance** | No (password-based) | Yes (FIDO2/WebAuthn) |
-| **Setup Complexity** | High | Medium |
-| **Enterprise Support** | Good | Excellent |
-
-### **vs SSH Signing**
-
-| Aspect | SSH Signing | YubiKey + Sigstore |
-|--------|-------------|-------------------|
-| **Hardware Support** | Yes (SSH keys on YubiKey) | Yes (YubiKey required) |
-| **Identity Verification** | Manual key distribution | OIDC provider verified |
-| **Certificate Transparency** | None | Public Rekor log |
-| **Automatic Expiry** | No (manual rotation) | Yes (10 minutes) |
-| **GitHub Integration** | Native support | Native support |
-| **Enterprise PKI** | Possible | Built-in |
-
-### **vs Keyless Sigstore (no YubiKey)**
-
-| Aspect | Keyless Sigstore | YubiKey + Sigstore |
-|--------|------------------|-------------------|
-| **Hardware Security** | No (software only) | Yes (YubiKey required) |
-| **Phishing Resistance** | Limited | Excellent (FIDO2) |
-| **Setup Complexity** | Low | Medium |
-| **Security Level** | Good | Excellent |
-| **Compliance** | Basic | Enhanced |
-
-### **Recommendation Matrix**
-
-| Use Case | Recommended Method | Rationale |
-|----------|-------------------|-----------|
-| **Personal Projects** | Keyless Sigstore | Simple setup, good security |
-| **Professional Development** | YubiKey + Sigstore | Enhanced security, compliance ready |
-| **Enterprise/Regulated** | YubiKey + Sigstore | Maximum security, audit trail |
-| **Open Source Maintainer** | YubiKey + Sigstore | Trust building, supply chain security |
-
-## 📈 Adoption Strategy
-
-### **Individual Developer**
-1. **Personal Projects**: Start with personal repositories
-2. **Learn the Flow**: Get comfortable with YubiKey + browser flow
-3. **Test Thoroughly**: Verify signatures are working correctly
-4. **Professional Usage**: Apply to work projects once confident
-
-### **Team/Organization**
-1. **Pilot Program**: Select early adopters for initial testing
-2. **Infrastructure**: Ensure all developers have YubiKey 5 series
-3. **Training**: Conduct setup sessions and troubleshooting workshops
-4. **Policy**: Establish guidelines for when signing is required
-5. **Monitoring**: Track adoption metrics and support requests
-
-### **Enterprise**
-1. **Security Review**: Validate Sigstore against enterprise policies
-2. **Infrastructure**: Consider private Fulcio/Rekor instances
-3. **Integration**: Connect with existing identity providers
-4. **Compliance**: Map to regulatory requirements (SOX, etc.)
-5. **Rollout**: Phased deployment with success metrics
-
-## 🔗 Resources
-
-- Sigstore Documentation: https://docs.sigstore.dev/
-- gitsign: https://github.com/sigstore/gitsign
-- YubiKey Manager: https://developers.yubico.com/yubikey-manager/
-- Rekor: https://github.com/sigstore/rekor
-
-YUBI_EOF
-    print_status $GREEN "✅ YubiKey guide installed: $yubi_file"
-  fi
 }
 
 # Install default config/state files
@@ -5975,7 +5785,7 @@ show_summary() {
   if [[ $INSTALL_DOCS == true ]]; then
     print_status $BLUE "📚 Documentation:"
     print_status $GREEN "   ✅ Installed to $DOCS_DIR/"
-    print_status $BLUE "   📖 Includes: architecture.md, yubikey-integration.md"
+    print_status $BLUE "   📖 Includes: architecture.md (with integrated 4-mode signing guide)"
   fi
 
   if [[ $INSTALL_GITHUB_SECURITY == true ]]; then
@@ -6009,6 +5819,37 @@ show_summary() {
 parse_arguments() {
   while [[ $# -gt 0 ]]; do
     case $1 in
+      # Signing mode commands
+      status)
+        COMMAND_MODE="status"
+        STATUS_MODE=true
+        shift
+        ;;
+      test)
+        COMMAND_MODE="test"
+        TEST_MODE=true
+        shift
+        ;;
+      enable-yubikey)
+        COMMAND_MODE="enable-yubikey"
+        ENABLE_YUBIKEY_MODE=true
+        shift
+        ;;
+      disable-yubikey)
+        COMMAND_MODE="disable-yubikey"
+        DISABLE_YUBIKEY_MODE=true
+        shift
+        ;;
+      switch-to-gitsign)
+        COMMAND_MODE="switch-to-gitsign"
+        SWITCH_TO_GITSIGN_MODE=true
+        shift
+        ;;
+      switch-to-gpg)
+        COMMAND_MODE="switch-to-gpg"
+        SWITCH_TO_GPG_MODE=true
+        shift
+        ;;
       -h | --help)
         show_help
         exit 0
@@ -6066,6 +5907,23 @@ parse_arguments() {
         INSTALL_SIGNING=false
         shift
         ;;
+      --signing=*)
+        SIGNING_METHOD="${1#--signing=}"
+        case "$SIGNING_METHOD" in
+          gitsign|gpg)
+            ;;
+          *)
+            print_status $RED "❌ Invalid signing method: $SIGNING_METHOD"
+            echo "   Valid options: gitsign (default, secure), gpg (GitHub badges)"
+            exit 1
+            ;;
+        esac
+        shift
+        ;;
+      --yubikey)
+        YUBIKEY_MODE=true
+        shift
+        ;;
       --check-update)
         CHECK_UPDATE=true
         shift
@@ -6085,6 +5943,321 @@ parse_arguments() {
         ;;
     esac
   done
+}
+
+# =============================================================================
+# YUBIKEY SIGNING MODE MANAGEMENT FUNCTIONS
+# =============================================================================
+
+# Detect current signing mode
+detect_signing_mode() {
+  # Check both global and local config, with global taking precedence
+  local commit_signing_global
+  local commit_signing_local
+  local gpg_format_global
+  local gpg_format_local
+  local gpg_program_global
+  local gpg_program_local
+
+  # Check global config first
+  commit_signing_global=$(git config --global --get commit.gpgsign 2>/dev/null || echo "")
+  gpg_format_global=$(git config --global --get gpg.format 2>/dev/null || echo "")
+  gpg_program_global=$(git config --global --get gpg.x509.program 2>/dev/null || echo "")
+
+  # Check local config as fallback
+  commit_signing_local=$(git config --get commit.gpgsign 2>/dev/null || echo "")
+  gpg_format_local=$(git config --get gpg.format 2>/dev/null || echo "")
+  gpg_program_local=$(git config --get gpg.x509.program 2>/dev/null || echo "")
+
+  # Use global config if available, otherwise local, otherwise defaults
+  local commit_signing="${commit_signing_global:-${commit_signing_local:-false}}"
+  local gpg_format="${gpg_format_global:-${gpg_format_local:-openpgp}}"
+  local gpg_program="${gpg_program_global:-${gpg_program_local:-}}"
+
+  if [[ "$commit_signing" != "true" ]]; then
+    echo "none"
+  elif [[ "$gpg_format" == "x509" ]] && [[ "$gpg_program" == "gitsign" ]]; then
+    echo "gitsign"
+  elif [[ "$gpg_format" == "openpgp" ]]; then
+    echo "gpg"
+  else
+    echo "unknown"
+  fi
+}
+
+# Check if YubiKey mode is enabled
+check_yubikey_mode() {
+  # Check global config first, then local
+  local oidc_issuer_global
+  local oidc_issuer_local
+
+  oidc_issuer_global=$(git config --global --get gitsign.oidc-issuer 2>/dev/null || echo "")
+  oidc_issuer_local=$(git config --get gitsign.oidc-issuer 2>/dev/null || echo "")
+
+  local oidc_issuer="${oidc_issuer_global:-$oidc_issuer_local}"
+
+  if [[ "$oidc_issuer" == "https://token.actions.githubusercontent.com" ]]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+# Show current signing status
+show_signing_status() {
+  print_header "Current Signing Configuration"
+
+  local signing_mode
+  signing_mode=$(detect_signing_mode)
+
+  case "$signing_mode" in
+    "none")
+      print_status $RED "❌ Git commit signing is DISABLED"
+      print_status $BLUE "   Run installer to enable: $0"
+      ;;
+    "gitsign")
+      print_status $GREEN "✅ gitsign signing is ENABLED"
+      local yubikey_mode
+      yubikey_mode=$(check_yubikey_mode)
+      if [[ "$yubikey_mode" == "true" ]]; then
+        print_status $GREEN "🔑 Mode: gitsign + YubiKey (maximum security)"
+        print_status $BLUE "   • Short-lived certificates with hardware authentication"
+      else
+        print_status $GREEN "💻 Mode: gitsign + software (high security)"
+        print_status $BLUE "   • Short-lived certificates with browser authentication"
+      fi
+      ;;
+    "gpg")
+      print_status $GREEN "✅ GPG signing is ENABLED"
+      print_status $BLUE "💻 Mode: GPG + software (GitHub badges)"
+      print_status $BLUE "   • Traditional GPG signing with GitHub verification"
+      ;;
+    "unknown")
+      print_status $YELLOW "⚠️  Unknown signing configuration detected"
+      ;;
+  esac
+
+  echo
+  print_status $BLUE "📋 Available commands:"
+  echo "   $0 test                     # Test current configuration"
+  echo "   $0 enable-yubikey          # Enable YubiKey requirement"
+  echo "   $0 disable-yubikey         # Disable YubiKey requirement"
+  echo "   $0 switch-to-gitsign       # Switch to gitsign mode"
+  echo "   $0 switch-to-gpg           # Switch to GPG mode"
+}
+
+# Test current signing configuration
+test_signing_configuration() {
+  print_header "Testing Current Signing Configuration"
+
+  local signing_mode
+  signing_mode=$(detect_signing_mode)
+
+  case "$signing_mode" in
+    "none")
+      print_status $RED "❌ Signing is not configured"
+      print_status $BLUE "   Run installer first: $0"
+      exit 1
+      ;;
+    "gitsign"|"gpg")
+      # Create a test commit to verify signing
+      local test_file="signing-test-$(date +%s).txt"
+      echo "Signing test - $(date)" > "$test_file"
+
+      print_status $BLUE "🧪 Creating test commit..."
+      if git add "$test_file" && git commit -m "Test signing configuration
+
+Created by: Security Controls Installer v$SCRIPT_VERSION"; then
+        print_status $GREEN "✅ Test commit created successfully!"
+
+        # Verify signature
+        print_status $BLUE "🔍 Verifying signature..."
+        if [[ "$signing_mode" == "gitsign" ]]; then
+          if git log --show-signature -1 2>&1 | grep -q "gitsign: Good signature"; then
+            print_status $GREEN "✅ gitsign signature verified!"
+          else
+            print_status $YELLOW "⚠️  gitsign signature verification unclear"
+          fi
+        else
+          if git log --show-signature -1 2>&1 | grep -q "Good signature"; then
+            print_status $GREEN "✅ GPG signature verified!"
+          else
+            print_status $YELLOW "⚠️  GPG signature verification unclear"
+          fi
+        fi
+
+        # Clean up
+        rm -f "$test_file"
+        print_status $GREEN "🎉 Signing test completed!"
+      else
+        rm -f "$test_file"
+        print_status $RED "❌ Test commit failed"
+        exit 1
+      fi
+      ;;
+    *)
+      print_status $RED "❌ Unknown signing mode: $signing_mode"
+      exit 1
+      ;;
+  esac
+}
+
+# Enable YubiKey mode for current signing method
+enable_yubikey_mode() {
+  print_header "Enabling YubiKey Mode"
+
+  local signing_mode
+  signing_mode=$(detect_signing_mode)
+
+  case "$signing_mode" in
+    "none")
+      print_status $RED "❌ Signing must be configured first"
+      print_status $BLUE "   Run installer: $0"
+      exit 1
+      ;;
+    "gitsign")
+      print_status $BLUE "🔐 Enabling YubiKey mode for gitsign..."
+      git config --global gitsign.oidc-issuer 'https://token.actions.githubusercontent.com'
+      print_status $GREEN "✅ YubiKey mode enabled for gitsign!"
+      print_status $BLUE "   • gitsign will now require YubiKey authentication"
+      ;;
+    "gpg")
+      print_status $BLUE "🔐 Enabling YubiKey mode for GPG..."
+      print_status $YELLOW "💡 GPG YubiKey setup requires manual configuration:"
+      echo "   1. Configure YubiKey for GPG: ykman openpgp keys set-touch sig on"
+      echo "   2. Import/generate GPG key on YubiKey"
+      echo "   3. Configure git: git config --global user.signingkey YOUR_KEY_ID"
+      print_status $GREEN "✅ YubiKey mode instructions provided for GPG!"
+      ;;
+    *)
+      print_status $RED "❌ Unknown signing mode: $signing_mode"
+      exit 1
+      ;;
+  esac
+}
+
+# Disable YubiKey mode for current signing method
+disable_yubikey_mode() {
+  print_header "Disabling YubiKey Mode"
+
+  local signing_mode
+  signing_mode=$(detect_signing_mode)
+
+  case "$signing_mode" in
+    "none")
+      print_status $RED "❌ Signing is not configured"
+      exit 1
+      ;;
+    "gitsign")
+      print_status $BLUE "🔓 Disabling YubiKey mode for gitsign..."
+      git config --global gitsign.oidc-issuer 'https://oauth2.sigstore.dev/auth'
+      print_status $GREEN "✅ YubiKey mode disabled for gitsign!"
+      print_status $BLUE "   • gitsign will use browser authentication"
+      ;;
+    "gpg")
+      print_status $BLUE "🔓 Disabling YubiKey mode for GPG..."
+      print_status $YELLOW "💡 To disable GPG YubiKey touch requirement:"
+      echo "   ykman openpgp keys set-touch sig off"
+      print_status $GREEN "✅ YubiKey mode instructions provided for GPG!"
+      ;;
+    *)
+      print_status $RED "❌ Unknown signing mode: $signing_mode"
+      exit 1
+      ;;
+  esac
+}
+
+# Switch to gitsign signing mode
+switch_to_gitsign_mode() {
+  print_header "Switching to gitsign Signing Mode"
+
+  # Check if gitsign is available
+  if ! command -v gitsign &>/dev/null; then
+    print_status $RED "❌ gitsign is not installed"
+    print_status $BLUE "   Install gitsign first or run full installer: $0"
+    exit 1
+  fi
+
+  # Remember current YubiKey setting
+  local yubikey_mode
+  yubikey_mode=$(check_yubikey_mode)
+
+  print_status $BLUE "🔐 Configuring gitsign signing..."
+
+  # Configure gitsign
+  git config --global commit.gpgsign true
+  git config --global tag.gpgsign true
+  git config --global gpg.format x509
+  git config --global gpg.x509.program gitsign
+
+  # Configure Sigstore endpoints
+  git config --global gitsign.fulcio-url 'https://fulcio.sigstore.dev'
+  git config --global gitsign.rekor-url 'https://rekor.sigstore.dev'
+  git config --global gitsign.oidc-client-id 'sigstore'
+  git config --global gitsign.autoclose true
+  git config --global gitsign.autocloseTimeout 20
+  git config --global gitsign.connectorID 'https://github.com/login/oauth'
+
+  # Restore YubiKey setting
+  if [[ "$yubikey_mode" == "true" ]]; then
+    git config --global gitsign.oidc-issuer 'https://token.actions.githubusercontent.com'
+    print_status $GREEN "✅ Switched to gitsign + YubiKey mode!"
+  else
+    git config --global gitsign.oidc-issuer 'https://oauth2.sigstore.dev/auth'
+    print_status $GREEN "✅ Switched to gitsign + software mode!"
+  fi
+
+  print_status $BLUE "   • Short-lived certificates enabled"
+  print_status $BLUE "   • Automatic certificate rotation"
+  print_status $BLUE "   • Transparency logging via Rekor"
+}
+
+# Switch to GPG signing mode
+switch_to_gpg_mode() {
+  print_header "Switching to GPG Signing Mode"
+
+  # Check if GPG is available
+  if ! command -v gpg &>/dev/null; then
+    print_status $RED "❌ GPG is not installed"
+    print_status $BLUE "   Install GPG first: brew install gnupg (macOS) or apt install gnupg (Ubuntu)"
+    exit 1
+  fi
+
+  print_status $BLUE "🔐 Configuring GPG signing..."
+
+  # Configure GPG
+  git config --global commit.gpgsign true
+  git config --global tag.gpgsign true
+  git config --global gpg.format openpgp
+
+  # Remove gitsign-specific settings
+  git config --global --unset gpg.x509.program || true
+  git config --global --unset gitsign.fulcio-url || true
+  git config --global --unset gitsign.rekor-url || true
+  git config --global --unset gitsign.oidc-issuer || true
+  git config --global --unset gitsign.oidc-client-id || true
+  git config --global --unset gitsign.autoclose || true
+  git config --global --unset gitsign.autocloseTimeout || true
+  git config --global --unset gitsign.connectorID || true
+
+  print_status $GREEN "✅ Switched to GPG signing mode!"
+  print_status $BLUE "   • Traditional GPG signing enabled"
+  print_status $BLUE "   • GitHub verification badges supported"
+
+  # Check if signing key is configured
+  local signing_key
+  signing_key=$(git config --global --get user.signingkey 2>/dev/null || echo "")
+
+  if [[ -z "$signing_key" ]]; then
+    print_status $YELLOW "⚠️  No GPG signing key configured"
+    print_status $BLUE "   Configure a signing key:"
+    echo "   1. Generate key: gpg --full-generate-key"
+    echo "   2. List keys: gpg --list-secret-keys --keyid-format=long"
+    echo "   3. Configure git: git config --global user.signingkey YOUR_KEY_ID"
+    echo "   4. Upload public key to GitHub for verification"
+  else
+    print_status $GREEN "✅ GPG signing key already configured: $signing_key"
+  fi
 }
 
 # Main execution
@@ -6120,6 +6293,40 @@ main() {
 
   # Execute upgrade commands (these exit before normal installation)
   execute_upgrade_commands
+
+  # Handle signing mode commands (these exit before normal installation)
+  if [[ -n "$COMMAND_MODE" ]]; then
+    case "$COMMAND_MODE" in
+      "status")
+        show_signing_status
+        exit 0
+        ;;
+      "test")
+        test_signing_configuration
+        exit 0
+        ;;
+      "enable-yubikey")
+        enable_yubikey_mode
+        exit 0
+        ;;
+      "disable-yubikey")
+        disable_yubikey_mode
+        exit 0
+        ;;
+      "switch-to-gitsign")
+        switch_to_gitsign_mode
+        exit 0
+        ;;
+      "switch-to-gpg")
+        switch_to_gpg_mode
+        exit 0
+        ;;
+      *)
+        print_status $RED "❌ Unknown command: $COMMAND_MODE"
+        exit 1
+        ;;
+    esac
+  fi
 
   # Core setup with enhanced error handling
   safe_execute "check_git_repo" \

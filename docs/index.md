@@ -56,7 +56,7 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 |-------|-------|-------------------|
 | **[Security Architecture →](architecture.md)** | Advanced | How everything works together |
 | **[Cryptographic Verification →](cryptographic-verification.md)** | Intermediate | Signed commits, releases & transparency |
-| **[YubiKey Integration →](yubikey-integration.md)** | Expert | Hardware-backed signing |
+| **[4-Mode Signing →](installation.md#4-configure-commit-signing-4-modes-available)** | Expert | Complete signing configuration |
 
 ---
 

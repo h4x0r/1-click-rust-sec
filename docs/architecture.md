@@ -629,6 +629,54 @@ graph LR
 
 ---
 
+## 🔐 Cryptographic Signing Architecture
+
+### 4-Mode Signing Implementation
+
+The system supports **4 signing modes** combining two signing methods with two authentication types:
+
+| Mode | Method | Authentication | Security Level | Key Management | GitHub Badges |
+|------|--------|----------------|----------------|----------------|---------------|
+| **1** | gitsign | Software | High | None | No |
+| **2** | gitsign | YubiKey | Maximum | None | No |
+| **3** | GPG | Software | Basic | Manual | Yes |
+| **4** | GPG | YubiKey | High | Manual | Yes |
+
+### Technical Implementation
+
+**gitsign (Modes 1 & 2)**:
+- Short-lived certificates (5-10 minutes)
+- Sigstore transparency via Rekor logging
+- OIDC-based identity verification
+- Zero key management overhead
+- Automatic certificate rotation
+
+**GPG (Modes 3 & 4)**:
+- Traditional cryptographic signatures
+- GitHub "Verified" badge support
+- 2-year key expiration (configurable)
+- Manual key lifecycle management
+- Legacy tooling compatibility
+
+**YubiKey Enhancement (Modes 2 & 4)**:
+- Hardware-backed authentication
+- FIDO2/WebAuthn security protocols
+- Physical presence requirement
+- Phishing-resistant authentication
+- Hardware root of trust
+
+### Installation Architecture
+
+```bash
+# Unified installer handles all modes
+./install-security-controls.sh [--signing=METHOD] [--yubikey]
+
+# Runtime mode switching without reinstallation
+./install-security-controls.sh status|switch-to-gitsign|switch-to-gpg|enable-yubikey|disable-yubikey|test
+```
+
+---
+
 ## 📊 Performance Characteristics
 
 ### Pre-Push Hook Timing Analysis
