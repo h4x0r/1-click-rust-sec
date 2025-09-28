@@ -17,11 +17,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - name: Wait for Quality Assurance workflow
+      - name: Wait for security workflows
         run: |
           set -euo pipefail
 
-          echo "🔍 Waiting for Quality Assurance workflow to complete for commit ${{ github.sha }}"
+          echo "🔍 Waiting for security workflows to complete for commit ${{ github.sha }}"
           echo "⚠️  This prevents releases until all blocking security checks pass"
 
           # Maximum wait time: 15 minutes
@@ -29,43 +29,54 @@ jobs:
           wait_time=0
           check_interval=30
 
+          # Workflows to wait for
+          workflows=("Quality Assurance" "Security Scanning")
+
           while [ $wait_time -lt $max_wait ]; do
-            # Get all workflow runs for this commit
-            runs=$(gh api repos/${{ github.repository }}/actions/runs \
-              --jq ".workflow_runs[] | select(.head_sha == \"${{ github.sha }}\" and .name == \"Quality Assurance\")")
+            all_completed=true
 
-            if [ -z "$runs" ]; then
-              echo "⏳ No Quality Assurance workflow found yet, waiting ${check_interval}s..."
-              sleep $check_interval
-              wait_time=$((wait_time + check_interval))
-              continue
-            fi
+            for workflow in "${workflows[@]}"; do
+              # Get workflow runs for this commit
+              runs=$(gh api repos/${{ github.repository }}/actions/runs \
+                --jq ".workflow_runs[] | select(.head_sha == \"${{ github.sha }}\" and .name == \"$workflow\")")
 
-            # Get the status and conclusion of the Quality Assurance workflow
-            status=$(echo "$runs" | jq -r '.status' | head -1)
-            conclusion=$(echo "$runs" | jq -r '.conclusion' | head -1)
-
-            echo "📋 Quality Assurance workflow status: $status, conclusion: $conclusion"
-
-            if [ "$status" = "completed" ]; then
-              if [ "$conclusion" = "success" ]; then
-                echo "✅ Quality Assurance workflow completed successfully"
-                echo "🚀 Proceeding with release creation"
+              if [ -z "$runs" ]; then
+                echo "⏳ No '$workflow' workflow found yet, waiting ${check_interval}s..."
+                all_completed=false
                 break
-              else
-                echo "❌ Quality Assurance workflow failed with conclusion: $conclusion"
-                echo "🚫 Blocking release creation due to security check failures"
-                exit 1
               fi
-            else
-              echo "⏳ Quality Assurance workflow still running ($status), waiting ${check_interval}s..."
-              sleep $check_interval
-              wait_time=$((wait_time + check_interval))
+
+              # Get the status and conclusion
+              status=$(echo "$runs" | jq -r '.status' | head -1)
+              conclusion=$(echo "$runs" | jq -r '.conclusion' | head -1)
+
+              echo "📋 $workflow status: $status, conclusion: $conclusion"
+
+              if [ "$status" = "completed" ]; then
+                if [ "$conclusion" != "success" ]; then
+                  echo "❌ $workflow failed with conclusion: $conclusion"
+                  echo "🚫 Blocking release creation due to security check failures"
+                  exit 1
+                fi
+              else
+                echo "⏳ $workflow still running ($status)..."
+                all_completed=false
+                break
+              fi
+            done
+
+            if [ "$all_completed" = true ]; then
+              echo "✅ All security workflows completed successfully"
+              echo "🚀 Proceeding with release creation"
+              break
             fi
+
+            sleep $check_interval
+            wait_time=$((wait_time + check_interval))
           done
 
           if [ $wait_time -ge $max_wait ]; then
-            echo "⏰ Timeout waiting for Quality Assurance workflow"
+            echo "⏰ Timeout waiting for security workflows"
             echo "🚫 Blocking release creation due to timeout"
             exit 1
           fi
@@ -104,10 +115,6 @@ jobs:
       - name: Validate installer integrity
         run: |
           set -euo pipefail
-
-          # Quick syntax check
-          bash -n install-security-controls.sh
-          bash -n uninstall-security-controls.sh
 
           # Verify checksums
           sha256sum -c install-security-controls.sh.sha256

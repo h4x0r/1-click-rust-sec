@@ -1,0 +1,283 @@
+name: "Security Scanning"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '17 18 * * 1'  # Weekly on Mondays
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # =============================================================================
+  # STATIC ANALYSIS - SAST Tools
+  # =============================================================================
+
+  codeql-analysis:
+    name: 🔍 CodeQL SAST Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - language: javascript-typescript
+          build-mode: none # CodeQL supports 'none', 'autobuild', and 'manual'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@afb54ba388a7dca6ecae48f608c4ff05ff4cc77a # v3.25.15
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: ${{ matrix.build-mode }}
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@afb54ba388a7dca6ecae48f608c4ff05ff4cc77a # v3.25.15
+      with:
+        category: "/language:${{matrix.language}}"
+
+  trivy-scan:
+    name: 🚫 Trivy Vulnerability Scanning (Blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@afb54ba388a7dca6ecae48f608c4ff05ff4cc77a # v3.25.15
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # =============================================================================
+  # SECRET DETECTION
+  # =============================================================================
+
+  secret-scanning:
+    name: 🚫 Comprehensive Secret Scanning (Blocking)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0  # Scan entire repository history
+
+      - name: Run Gitleaks Action
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # =============================================================================
+  # DEPENDENCY SECURITY
+  # =============================================================================
+
+  security-audit:
+    name: 🚫 Security Dependency Audit (Blocking)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # v1
+        with:
+          toolchain: stable
+
+      - name: Install cargo-deny
+        run: |
+          set -euo pipefail
+          # Install cargo-deny for comprehensive dependency auditing
+          cargo install --locked cargo-deny
+
+      - name: Run cargo-deny security audit
+        run: |
+          set -euo pipefail
+
+          # Create minimal deny.toml if it doesn't exist
+          if [[ ! -f "deny.toml" ]]; then
+            echo "Creating minimal deny.toml for security audit..."
+            cat > deny.toml << 'EOF'
+          [graph]
+          targets = []
+
+          [advisories]
+          vulnerability = "deny"
+          unmaintained = "warn"
+          yanked = "warn"
+          notice = "warn"
+
+          [licenses]
+          unlicensed = "deny"
+          allow = ["Apache-2.0", "MIT", "BSD-3-Clause", "ISC", "Unicode-DFS-2016"]
+          deny = ["GPL-2.0", "GPL-3.0", "AGPL-1.0", "AGPL-3.0"]
+
+          [bans]
+          multiple-versions = "warn"
+          wildcards = "warn"
+          deny = []
+
+          [sources]
+          unknown-registry = "warn"
+          unknown-git = "warn"
+          EOF
+          fi
+
+          # Check if there are any Rust crates to audit
+          if [[ -f "Cargo.lock" ]] && [[ $(grep -c "^name = " Cargo.lock 2>/dev/null || echo "0") -gt 1 ]]; then
+            # Run comprehensive security audit
+            echo "🔍 Running cargo-deny security audit..."
+            cargo deny check advisories
+          else
+            echo "📝 No Rust dependencies found to audit (empty workspace or no Cargo.lock)"
+            echo "✅ Skipping cargo-deny audit - no security dependencies to check"
+          fi
+
+      - name: Run dependency analysis
+        run: |
+          set -euo pipefail
+
+          echo "📊 Analyzing dependency licenses..."
+          cargo deny check licenses || true
+
+          echo "📊 Checking for banned dependencies..."
+          cargo deny check bans || true
+
+          echo "📊 Validating dependency sources..."
+          cargo deny check sources || true
+
+      - name: Upload security audit results
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        if: always()
+        with:
+          name: security-audit-report
+          path: |
+            deny.toml
+            Cargo.lock
+
+  # =============================================================================
+  # SUPPLY CHAIN SECURITY
+  # =============================================================================
+
+  supply-chain-security:
+    name: Supply Chain Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Validate GitHub Actions pinning
+        run: |
+          set -euo pipefail
+
+          echo "🔍 Validating GitHub Actions SHA pinning..."
+
+          # Use our own pinactlite tool if available
+          if [[ -x "./.security-controls/bin/pinactlite" ]]; then
+            ./.security-controls/bin/pinactlite pincheck --dir .github/workflows
+          else
+            echo "⚠️ Local pinactlite not found, performing manual checks..."
+
+            # Manual validation of workflow pinning
+            unpinned_actions=$(find .github/workflows -name "*.yml" -exec grep -l "@[a-zA-Z]" {} \; | wc -l | tr -d ' ')
+
+            if [[ $unpinned_actions -gt 0 ]]; then
+              echo "❌ Found potentially unpinned actions"
+              find .github/workflows -name "*.yml" -exec grep -H "@[a-zA-Z]" {} \; || true
+              exit 1
+            else
+              echo "✅ All actions appear to be SHA-pinned"
+            fi
+          fi
+
+      - name: Analyze dependency chain integrity
+        run: |
+          set -euo pipefail
+
+          echo "🔍 Analyzing supply chain integrity..."
+
+          # Check for lock files presence
+          if [[ -f "Cargo.lock" ]]; then
+            echo "✅ Cargo.lock found - dependencies are locked"
+          else
+            echo "⚠️ No Cargo.lock found - dependencies may be unstable"
+          fi
+
+          if [[ -f "package-lock.json" ]]; then
+            echo "✅ package-lock.json found - Node.js dependencies are locked"
+          fi
+
+          if [[ -f "yarn.lock" ]]; then
+            echo "✅ yarn.lock found - Yarn dependencies are locked"
+          fi
+
+          if [[ -f "requirements.txt" ]] || [[ -f "Pipfile.lock" ]]; then
+            echo "✅ Python dependency locks found"
+          fi
+
+          # Check for dependency confusion risks
+          if [[ -f "package.json" ]]; then
+            echo "🔍 Checking for potential dependency confusion..."
+            if grep -q '"name":.*"@' package.json; then
+              echo "✅ Scoped packages detected - reduced dependency confusion risk"
+            fi
+          fi
+
+      - name: Validate repository security settings
+        run: |
+          set -euo pipefail
+
+          echo "🔍 Validating repository security posture..."
+
+          # Check for security-focused configurations
+          security_configs=0
+
+          if [[ -f ".github/dependabot.yml" ]]; then
+            echo "✅ Dependabot configuration found"
+            security_configs=$((security_configs + 1))
+          fi
+
+          if [[ -f ".github/workflows/security-scan.yml" ]]; then
+            echo "✅ Security scanning workflow found"
+            security_configs=$((security_configs + 1))
+          fi
+
+          if [[ -f "deny.toml" ]]; then
+            echo "✅ Cargo deny configuration found"
+            security_configs=$((security_configs + 1))
+          fi
+
+          if [[ -f ".security-controls/config.env" ]]; then
+            echo "✅ Security controls configuration found"
+            security_configs=$((security_configs + 1))
+          fi
+
+          echo "📊 Security configurations found: $security_configs"
+
+          if [[ $security_configs -lt 2 ]]; then
+            echo "⚠️ Consider adding more security configurations"
+          else
+            echo "✅ Good security configuration coverage"
+          fi

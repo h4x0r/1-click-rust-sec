@@ -15,7 +15,7 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 [![GitHub Security](https://img.shields.io/badge/GitHub%20Security-6%20Features-blue.svg)](https://h4x0r.github.io/1-click-github-sec/)
 [![Performance](https://img.shields.io/badge/Pre--Push-%3C60s-orange.svg)](https://h4x0r.github.io/1-click-github-sec/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.6.2-purple.svg)](https://github.com/h4x0r/1-click-github-sec/releases)
+[![Version](https://img.shields.io/badge/Version-v0.6.3-purple.svg)](https://github.com/h4x0r/1-click-github-sec/releases)
 
 ---
 
@@ -25,8 +25,8 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 
 ```bash
 # Download installer and checksum
-curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.6.2/install-security-controls.sh
-curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.6.2/checksums.txt
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.6.3/install-security-controls.sh
+curl -O https://github.com/h4x0r/1-click-github-sec/releases/download/v0.6.3/checksums.txt
 
 # VERIFY checksum before execution (STRONGLY RECOMMENDED - critical security practice)
 sha256sum -c checksums.txt --ignore-missing
@@ -110,7 +110,7 @@ source venv/bin/activate
 
 ```bash
 # Verify release authenticity
-git tag -v v0.6.2
+git tag -v v0.6.3
 
 # Expected output:
 # gitsign: Good signature from [albert@securityronin.com]
