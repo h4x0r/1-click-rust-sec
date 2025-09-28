@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2025-09-28
+
+### 🔧 GPG Key Logic Enhancement Release
+
+**IMPROVEMENT** - Enhanced GPG key management to intelligently reuse existing keys and clarified CI workflow status for better development experience.
+
+### Enhanced
+- **🔑 Smart GPG Key Reuse**: Installer now intelligently reuses existing GPG keys when configured, only generating new ones when none exist
+- **🎯 Email Matching Logic**: Ensures generated GPG keys match Git user.email for proper GitHub verification
+- **📧 Existing Key Detection**: Checks both global and local Git configuration for signing keys before generation
+- **🔄 Configuration Priority**: Respects user's existing GPG setup while providing zero-friction fallback
+- **📋 CI Workflow Clarity**: Confirmed shellcheck warnings are non-blocking informational messages
+
+### Technical Details
+- Enhanced `upload_gpg_key_to_github()` function logic flow:
+  1. Check existing `user.signingkey` configuration first
+  2. Use existing key if found (respects user setup)
+  3. Generate new key only when none configured
+  4. Match email with Git user.email for GitHub verification
+- All shellcheck warnings are SC2086 info-level (color variable quoting)
+- CI workflows marked shellcheck as "non-blocking" intentionally
+
+### Breaking Changes
+- None - this enhances existing functionality while maintaining full backward compatibility
+
 ## [0.5.1] - 2025-09-28
 
 ### 🤖 Automated GPG Key Upload Release
