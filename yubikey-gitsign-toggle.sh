@@ -292,12 +292,14 @@ show_help() {
   cat <<EOF
 🔑 YubiKey Gitsign Toggle Script v${SCRIPT_VERSION}
 
+Supports two signing modes: YubiKey mode, software mode
+
 USAGE:
     $0 [COMMAND] [OPTIONS]
 
 COMMANDS:
-    enable              Enable YubiKey-backed Sigstore signing
-    disable             Disable YubiKey signing (restore previous config)
+    enable              Enable YubiKey mode (hardware-backed signing)
+    disable             Enable software mode (software-based signing)
     status              Show current signing configuration
     test                Test YubiKey signing with a test commit
     setup               Interactive setup wizard
@@ -482,13 +484,23 @@ enable_yubikey_signing() {
     print_status $BLUE "📁 Configuring for current repository only"
   fi
 
-  # Check if gitsign is already configured
+  # Check if true dual signing is configured
   if ! git config ${config_scope} --get commit.gpgsign >/dev/null 2>&1; then
-    log_warn "Gitsign is not configured. Please run the main installer first:"
-    print_status $YELLOW "⚠️ Gitsign not configured!"
-    print_status $BLUE "   Run the 1-click-github-sec installer first to set up gitsign:"
+    log_warn "True dual signing is not configured. Please run the main installer first:"
+    print_status $YELLOW "⚠️ True dual signing not configured!"
+    print_status $BLUE "   Run the 1-click-github-sec installer first to set up dual signing:"
     print_status $BLUE "   curl -sSL https://raw.githubusercontent.com/4n6h4x0r/1-click-github-sec/main/install-security-controls.sh | bash"
-    print_status $BLUE "   Then run this script to enable YubiKey requirement."
+    print_status $BLUE "   Then run this script to enable YubiKey mode."
+    handle_error $EXIT_CONFIG_ERROR "Configuration error"
+  fi
+
+  # Verify we have the correct dual signing setup
+  local gpg_format
+  gpg_format=$(git config ${config_scope} --get gpg.format || echo "")
+  if [[ "$gpg_format" != "openpgp" ]]; then
+    log_warn "Expected openpgp format for true dual signing, found: $gpg_format"
+    print_status $YELLOW "⚠️ Incompatible configuration detected!"
+    print_status $BLUE "   Please reinstall with the latest installer for true dual signing support"
     handle_error $EXIT_CONFIG_ERROR "Configuration error"
   fi
 
@@ -498,8 +510,10 @@ enable_yubikey_signing() {
     handle_error $EXIT_CONFIG_ERROR "Configuration error"
   fi
 
-  print_status $BLUE "🔐 Configuring YubiKey requirement for gitsign..."
+  print_status $BLUE "🔐 Configuring YubiKey mode for true dual signing..."
   log_info "Switching OIDC issuer to GitHub Actions for YubiKey authentication"
+  print_status $BLUE "   • GPG signatures: Will use YubiKey if GPG key is on hardware"
+  print_status $BLUE "   • Sigstore signatures: Will require YubiKey for OIDC authentication"
 
   # The key change: switch OIDC issuer to GitHub Actions which requires YubiKey
   safe_execute "git config ${config_scope} gitsign.oidc-issuer 'https://token.actions.githubusercontent.com'" "Setting OIDC issuer for YubiKey auth" || handle_error $EXIT_CONFIG_ERROR "Configuration error"
@@ -519,18 +533,23 @@ EOF
 
   atomic_write "$GITSIGN_CONFIG_FILE" "$status_content"
 
-  log_info "YubiKey requirement configuration completed successfully"
-  print_status $GREEN "✅ YubiKey requirement enabled for Sigstore signing!"
+  log_info "YubiKey mode configuration completed successfully"
+  print_status $GREEN "✅ YubiKey mode enabled for true dual signing!"
+  echo
+  print_status $BLUE "📋 Dual Signature Behavior:"
+  echo "   • GPG signature: Uses your configured signing key (YubiKey if available)"
+  echo "   • Sigstore signature: Requires YubiKey for GitHub OIDC authentication"
+  echo "   • Both signatures embedded in every commit automatically"
   echo
   print_status $BLUE "📋 Next Steps:"
   echo "   1. Ensure your YubiKey is registered with GitHub as a security key"
   echo "   2. Test signing: $0 test"
-  echo "   3. Make your first signed commit!"
+  echo "   3. Make your first dual-signed commit!"
   echo
   print_status $YELLOW "💡 YubiKey authentication:"
-  echo "   • GitHub will require YubiKey authentication for commits"
+  echo "   • GitHub will require YubiKey authentication for Sigstore signatures"
   echo "   • Touch your YubiKey when prompted during commit signing"
-  echo "   • To disable YubiKey requirement: $0 disable"
+  echo "   • To switch to software mode: $0 disable"
 }
 
 # Disable YubiKey requirement and restore regular Sigstore authentication
@@ -548,8 +567,10 @@ disable_yubikey_signing() {
     print_status $BLUE "📁 Disabling for current repository"
   fi
 
-  print_status $BLUE "🔓 Restoring regular Sigstore authentication..."
+  print_status $BLUE "🔓 Switching to software mode for true dual signing..."
   log_info "Switching OIDC issuer back to regular OAuth (no YubiKey required)"
+  print_status $BLUE "   • GPG signatures: Continue using configured signing key"
+  print_status $BLUE "   • Sigstore signatures: Use browser-based OAuth (no YubiKey)"
 
   # Switch back to regular OAuth issuer (no YubiKey required)
   safe_execute "git config ${config_scope} gitsign.oidc-issuer 'https://oauth2.sigstore.dev/auth'" "Restoring regular OAuth issuer" || log_warn "Failed to restore OIDC issuer"
@@ -569,9 +590,11 @@ EOF
 
   atomic_write "$GITSIGN_CONFIG_FILE" "$status_content"
 
-  log_info "YubiKey requirement disabled successfully"
-  print_status $GREEN "✅ YubiKey requirement disabled"
-  print_status $BLUE "💡 Commits will still be signed with Sigstore, but without YubiKey requirement"
+  log_info "Software mode enabled successfully"
+  print_status $GREEN "✅ Software mode enabled for true dual signing"
+  print_status $BLUE "💡 Both GPG and Sigstore signatures continue automatically"
+  print_status $BLUE "   • GPG signatures: GitHub 'Verified' badges"
+  print_status $BLUE "   • Sigstore signatures: Browser OAuth (no YubiKey required)"
 }
 
 # Show current signing status
@@ -635,23 +658,40 @@ show_status() {
     echo
   fi
 
-  # Determine overall status
-  if [[ $commit_signing == "true" ]] && [[ $gpg_format == "x509" ]] && [[ $gpg_program == "gitsign" ]]; then
-    print_status $GREEN "✅ YubiKey-backed Sigstore signing is ENABLED"
+  # Determine overall status for true dual signing
+  if [[ $commit_signing == "true" ]] && [[ $gpg_format == "openpgp" ]]; then
+    # Check if we have dual signing hook
+    if [[ -f ".git/hooks/post-commit" ]] && grep -q "x-sigstore-signature" ".git/hooks/post-commit" 2>/dev/null; then
+      print_status $GREEN "✅ True dual signing is ENABLED"
 
-    # Check if YubiKey is available
-    if command -v ykman &>/dev/null; then
-      if ykman list | grep -q "YubiKey"; then
-        print_status $GREEN "✅ YubiKey detected and ready"
+      # Determine mode based on OIDC issuer
+      if [[ "$oidc_issuer" == "https://token.actions.githubusercontent.com" ]]; then
+        print_status $GREEN "🔑 Mode: YubiKey mode (hardware-backed Sigstore)"
+
+        # Check if YubiKey is available
+        if command -v ykman &>/dev/null; then
+          if ykman list | grep -q "YubiKey"; then
+            print_status $GREEN "✅ YubiKey detected and ready"
+          else
+            print_status $YELLOW "⚠️  No YubiKey detected (insert YubiKey)"
+          fi
+        else
+          print_status $BLUE "💡 Install 'ykman' to check YubiKey presence"
+        fi
       else
-        print_status $YELLOW "⚠️  No YubiKey detected (insert YubiKey)"
+        print_status $GREEN "💻 Mode: Software mode (browser-based Sigstore)"
       fi
+
+      print_status $BLUE "📋 Signature Types:"
+      echo "   • GPG signatures: GitHub 'Verified' badges"
+      echo "   • Sigstore signatures: Transparency logging"
     else
-      print_status $BLUE "💡 Install 'ykman' to check YubiKey presence"
+      print_status $YELLOW "⚠️  GPG signing enabled but dual signing hook missing"
+      print_status $BLUE "   Run installer to enable true dual signing"
     fi
   elif [[ $commit_signing == "true" ]]; then
-    print_status $YELLOW "⚠️  Git signing enabled but NOT using YubiKey/Sigstore"
-    print_status $YELLOW "   Using format: $gpg_format, program: ${gpg_program:-default}"
+    print_status $YELLOW "⚠️  Git signing enabled but incompatible configuration"
+    print_status $YELLOW "   Format: $gpg_format, Expected: openpgp for dual signing"
   else
     print_status $RED "❌ Git commit signing is DISABLED"
   fi

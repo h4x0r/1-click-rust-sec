@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-09-28
+
+### 🔐 True Dual Signature System Release
+
+**MAJOR ENHANCEMENT** - Implemented true dual signature system that embeds both GPG and Sigstore signatures directly in Git commit objects, providing the security benefits of both signing methods with zero user friction.
+
+### Added
+- **🔑 True Dual Signing**: Both GPG and Sigstore signatures embedded in commit objects by default
+- **🤖 Automatic Hook System**: Post-commit hook automatically adds Sigstore signature to GPG-signed commits
+- **🔄 Seamless Integration**: Zero configuration required - dual signing happens automatically on every commit
+- **📦 Portable Signatures**: Both signatures travel with commits (unlike git notes approach)
+- **🛡️ Enhanced Security**: GPG signatures for GitHub verification + Sigstore signatures for transparency logging
+
+### Enhanced
+- **📋 YubiKey Toggle Compatibility**: Updated yubikey-gitsign-toggle.sh to work with true dual signing
+- **🎯 Two Modes Support**: Software mode (browser OAuth) and YubiKey mode (hardware-backed OAuth)
+- **💻 Default Configuration**: Installer now sets up true dual signing by default
+- **📖 Documentation Updates**: Updated all documentation to reflect true dual signature system
+- **🔍 Status Detection**: YubiKey toggle script correctly detects and displays dual signing status
+
+### Technical Details
+- Installer configures `gpg.format=openpgp` for GPG as primary signature
+- Post-commit hook adds `x-sigstore-signature` header with Sigstore signature
+- Both signatures embedded in commit object using standard Git format
+- YubiKey toggle only changes OIDC issuer for Sigstore authentication
+- Maintains full backward compatibility with existing Git tooling
+
+### Breaking Changes
+- None - this is additive functionality that enhances existing signing
+
 ## [0.4.12] - 2025-09-25
 
 ### 📖 Cryptographic Documentation Accuracy Release

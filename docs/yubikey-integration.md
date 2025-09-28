@@ -8,10 +8,25 @@ This guide explains how to use YubiKey hardware security keys with Sigstore for 
 
 ## 🎯 Overview
 
+### Dual Signing Modes
+
+This system supports **two signing modes**:
+
+**🔑 YubiKey Mode** (hardware-backed):
+- **Hardware Security**: Private keys never leave your YubiKey
+- **Phishing Resistance**: FIDO2/WebAuthn prevents credential theft
+- **Physical Presence**: Touch required for every signature
+- **Maximum Security**: Hardware root of trust
+
+**💻 Software Mode** (software-based):
+- **Convenience**: No hardware dependency
+- **Browser-based**: Standard OAuth flow via browser
+- **Accessibility**: Works on any device with browser
+- **Flexibility**: No physical token required
+
 ### What is YubiKey + Sigstore Signing?
 
-**YubiKey + Sigstore** combines:
-- **Hardware Security**: Private keys never leave your YubiKey
+Both modes provide:
 - **Keyless Signing**: No long-lived private keys to manage
 - **Short-lived Credentials**: Certificates valid for only 5-10 minutes
 - **Transparency**: All signatures logged publicly in Rekor
@@ -178,16 +193,16 @@ git log --show-signature -1 HEAD
 # gitsign: Certificate identity: https://github.com/your-username
 ```
 
-### **Toggle On/Off**
+### **Toggle Between Modes**
 
 ```bash
 # Check current status
 ./yubikey-gitsign-toggle.sh status
 
-# Disable temporarily
+# Switch to software mode (no YubiKey required)
 ./yubikey-gitsign-toggle.sh disable
 
-# Re-enable
+# Switch to YubiKey mode (hardware-backed)
 ./yubikey-gitsign-toggle.sh enable
 
 # Test signing
@@ -331,27 +346,27 @@ git config --global gitsign.rekor-url "https://rekor.your-company.com"
 
 ### **vs Traditional GPG**
 
-| Aspect | Traditional GPG | YubiKey + Sigstore |
-|--------|----------------|-------------------|
-| **Key Management** | Complex (backup, expiry, revocation) | None (keyless) |
-| **Hardware Security** | Optional (can use YubiKey) | Required (YubiKey mandatory) |
-| **Certificate Lifetime** | Years (until manually revoked) | Minutes (automatic expiry) |
-| **Identity Verification** | Web of trust / manual | OIDC provider verified |
-| **Transparency** | None | Public Rekor log |
-| **Phishing Resistance** | No (password-based) | Yes (FIDO2/WebAuthn) |
-| **Setup Complexity** | High | Medium |
-| **Enterprise Support** | Good | Excellent |
+| Aspect | Traditional GPG | YubiKey Mode | Software Mode |
+|--------|----------------|--------------|---------------|
+| **Key Management** | Complex (backup, expiry, revocation) | None (keyless) | None (keyless) |
+| **Hardware Security** | Optional (can use YubiKey) | Required (YubiKey mandatory) | None (software-based) |
+| **Certificate Lifetime** | Years (until manually revoked) | Minutes (automatic expiry) | Minutes (automatic expiry) |
+| **Identity Verification** | Web of trust / manual | OIDC provider verified | OIDC provider verified |
+| **Transparency** | None | Public Rekor log | Public Rekor log |
+| **Phishing Resistance** | No (password-based) | Yes (FIDO2/WebAuthn) | No (browser-based OAuth) |
+| **Setup Complexity** | High | Medium | Low |
+| **Enterprise Support** | Good | Excellent | Excellent |
 
 ### **vs SSH Signing**
 
-| Aspect | SSH Signing | YubiKey + Sigstore |
-|--------|-------------|-------------------|
-| **Hardware Support** | Yes (SSH keys on YubiKey) | Yes (YubiKey required) |
-| **Key Lifetime** | Long-lived SSH keys | Short-lived certificates |
-| **Identity Binding** | SSH key → GitHub account | OIDC token → Certificate |
-| **Transparency** | None | Public Rekor log |
-| **Verification** | GitHub knows your SSH key | Anyone can verify via Rekor |
-| **Compliance** | Basic | Enterprise-grade |
+| Aspect | SSH Signing | YubiKey Mode | Software Mode |
+|--------|-------------|--------------|---------------|
+| **Hardware Support** | Yes (SSH keys on YubiKey) | Yes (YubiKey required) | No (software-based) |
+| **Key Lifetime** | Long-lived SSH keys | Short-lived certificates | Short-lived certificates |
+| **Identity Binding** | SSH key → GitHub account | OIDC token → Certificate | OIDC token → Certificate |
+| **Transparency** | None | Public Rekor log | Public Rekor log |
+| **Verification** | GitHub knows your SSH key | Anyone can verify via Rekor | Anyone can verify via Rekor |
+| **Compliance** | Basic | Enterprise-grade | Enterprise-grade |
 
 ---
 

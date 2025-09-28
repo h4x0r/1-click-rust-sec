@@ -33,7 +33,7 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m' # No Color
 
 # Configuration
-readonly SCRIPT_VERSION="0.4.14"
+readonly SCRIPT_VERSION="0.5.0"
 # shellcheck disable=SC2034 # Placeholder for future use
 readonly REQUIRED_TOOLS_FILE="security-tools-requirements.txt"
 # shellcheck disable=SC2034 # Placeholder for future use
@@ -701,10 +701,11 @@ SECURITY CONTROLS INSTALLED:
     ❌ Advanced Security (GitHub Enterprise only)
 
     Cryptographic Signing & Verification:
-    🔑 gitsign - Keyless commit signing with Sigstore
+    🔑 True dual signature system (GPG + Sigstore)
+    🔑 GPG signatures for GitHub 'Verified' badges
+    🔑 Sigstore signatures for transparency logging
+    🔑 Automatic dual signing on every commit
     🔑 Certificate transparency via Rekor ledger
-    🔑 OIDC identity verification (GitHub/Google/Microsoft)
-    🔑 Short-lived certificates (10 minutes, auto-renewed)
     🔑 Public auditability of all signatures
     🔑 No GPG key management required
     🔑 Enhanced supply chain security
@@ -1280,6 +1281,73 @@ try_execute() {
   fi
 }
 
+# Install automatic dual signing hook
+install_dual_signing_hook() {
+  if [[ $DRY_RUN == true ]]; then
+    print_status $BLUE "   [DRY RUN] Would install dual signing hook"
+    return 0
+  fi
+
+  local hook_script=".git/hooks/post-commit"
+
+  # Create post-commit hook for automatic dual signing
+  cat > "$hook_script" << 'EOF'
+#!/bin/bash
+# Automatic True Dual Signature Hook
+# Adds Sigstore signature to GPG-signed commits
+
+# Exit if already dual-signed
+if git cat-file commit HEAD | grep -q "^x-sigstore-signature "; then
+    exit 0
+fi
+
+# Only proceed if commit has GPG signature
+if ! git cat-file commit HEAD | grep -q "^gpgsig "; then
+    exit 0
+fi
+
+# Create Sigstore signature
+TEMP_DIR=$(mktemp -d)
+COMMIT_HASH=$(git rev-parse HEAD)
+
+# Extract commit content (without signatures)
+git cat-file commit "$COMMIT_HASH" | \
+awk '/^gpgsig /{flag=1; next} flag && /^ /{next} flag && !/^ /{flag=0} !flag{print}' \
+> "$TEMP_DIR/base_commit"
+
+# Create Sigstore signature
+if timeout 60 gitsign --detach-sign --armor < "$TEMP_DIR/base_commit" > "$TEMP_DIR/sigstore_sig" 2>/dev/null; then
+    # Reconstruct commit with both signatures
+    {
+        git cat-file commit "$COMMIT_HASH" | awk '
+        /^gpgsig / { in_gpg=1; print; next }
+        in_gpg && /^ / { print; next }
+        in_gpg && !/^ / {
+            in_gpg=0
+            print "x-sigstore-signature -----BEGIN SIGNED MESSAGE-----"
+            while ((getline line < "'$TEMP_DIR'/sigstore_sig") > 0) {
+                print " " line
+            }
+            print " -----END SIGNED MESSAGE-----"
+            print $0
+            next
+        }
+        !in_gpg { print }
+        '
+    } > "$TEMP_DIR/dual_commit"
+
+    # Replace commit object
+    NEW_HASH=$(git hash-object -t commit -w "$TEMP_DIR/dual_commit")
+    git update-ref HEAD "$NEW_HASH"
+fi
+
+rm -rf "$TEMP_DIR"
+EOF
+
+  chmod +x "$hook_script"
+  print_status $GREEN "✅ Automatic dual signing hook installed"
+}
+
 # Configure gitsign for manual authentication with URL/code fallback
 configure_gitsign_manual_auth() {
   print_status $YELLOW "🔧 Configuring gitsign for manual authentication..."
@@ -1289,11 +1357,13 @@ configure_gitsign_manual_auth() {
     return 0
   fi
 
-  # Enable commit and tag signing
+  # Configure true dual signing (GPG + Sigstore)
+  print_status $BLUE "🔐 Configuring true dual signature system..."
+
+  # Set up GPG as primary signing method
   try_execute "git config --global commit.gpgsign true" "" "⚠️ Failed to enable commit signing"
   try_execute "git config --global tag.gpgsign true" "" "⚠️ Failed to enable tag signing"
-  try_execute "git config --global gpg.format x509" "" "⚠️ Failed to set GPG format"
-  try_execute "git config --global gpg.x509.program gitsign" "" "⚠️ Failed to set gitsign as x509 program"
+  try_execute "git config --global gpg.format openpgp" "" "⚠️ Failed to set GPG format"
 
   # Configure Sigstore endpoints
   try_execute "git config --global gitsign.fulcio-url 'https://fulcio.sigstore.dev'" "" "⚠️ Failed to set Fulcio URL"
@@ -1306,10 +1376,14 @@ configure_gitsign_manual_auth() {
   try_execute "git config --global gitsign.autocloseTimeout 20" "" "⚠️ Failed to set timeout"
   try_execute "git config --global gitsign.connectorID 'https://github.com/login/oauth'" "" "⚠️ Failed to set connector ID"
 
-  print_status $GREEN "✅ Gitsign configured with balanced security and usability"
-  print_status $BLUE "   • Browser auto-closes after 20 seconds (enough time for auth)"
-  print_status $BLUE "   • Uses GitHub OAuth for identity verification"
-  print_status $BLUE "   • Ephemeral certificates with transparency logging"
+  # Install automatic dual signing hook
+  install_dual_signing_hook
+
+  print_status $GREEN "✅ True dual signature system configured"
+  print_status $BLUE "   • GPG signatures for GitHub 'Verified' badges"
+  print_status $BLUE "   • Sigstore signatures for transparency logging"
+  print_status $BLUE "   • Automatic dual signing on every commit"
+  print_status $BLUE "   • Browser auto-closes after 20 seconds"
 
   # Test gitsign configuration and provide troubleshooting guidance
   if command -v gitsign &>/dev/null; then
