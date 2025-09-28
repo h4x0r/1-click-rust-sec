@@ -33,7 +33,7 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m' # No Color
 
 # Configuration
-readonly SCRIPT_VERSION="0.5.0"
+readonly SCRIPT_VERSION="0.5.1"
 # shellcheck disable=SC2034 # Placeholder for future use
 readonly REQUIRED_TOOLS_FILE="security-tools-requirements.txt"
 # shellcheck disable=SC2034 # Placeholder for future use
@@ -1348,6 +1348,140 @@ EOF
   print_status $GREEN "✅ Automatic dual signing hook installed"
 }
 
+# Upload GPG public key to GitHub for verification badges
+upload_gpg_key_to_github() {
+  print_status $BLUE "🔑 Setting up GitHub GPG key verification..."
+
+  if [[ $DRY_RUN == true ]]; then
+    print_status $BLUE "   [DRY RUN] Would upload GPG key to GitHub"
+    return 0
+  fi
+
+  # Check if gh CLI is available
+  if ! command -v gh &>/dev/null; then
+    print_status $YELLOW "⚠️ GitHub CLI not found - skipping automatic GPG key upload"
+    print_status $BLUE "   Manual setup: https://github.com/settings/keys"
+    return 0
+  fi
+
+  # Check if user is authenticated
+  if ! gh auth status &>/dev/null; then
+    print_status $YELLOW "⚠️ GitHub CLI not authenticated - skipping automatic GPG key upload"
+    print_status $BLUE "   Run: gh auth login"
+    print_status $BLUE "   Then: https://github.com/settings/keys"
+    return 0
+  fi
+
+  # Get the configured signing key
+  local signing_key
+  signing_key=$(git config --global user.signingkey 2>/dev/null || git config user.signingkey 2>/dev/null || echo "")
+
+  if [[ -z "$signing_key" ]]; then
+    print_status $YELLOW "⚠️ No GPG signing key configured - generating one..."
+
+    # Get user email for GPG key generation
+    local user_email
+    user_email=$(git config --global user.email 2>/dev/null || git config user.email 2>/dev/null)
+    local user_name
+    user_name=$(git config --global user.name 2>/dev/null || git config user.name 2>/dev/null)
+
+    if [[ -z "$user_email" || -z "$user_name" ]]; then
+      print_status $YELLOW "⚠️ Git user.email or user.name not configured"
+      print_status $BLUE "   Run: git config --global user.email 'your-email@example.com'"
+      print_status $BLUE "   Run: git config --global user.name 'Your Name'"
+      print_status $BLUE "   Then: https://github.com/settings/keys"
+      return 0
+    fi
+
+    # Generate GPG key non-interactively
+    print_status $BLUE "   Generating GPG key for $user_name <$user_email>..."
+
+    local gpg_config=$(cat <<EOF
+%echo Generating GPG key for Git signing
+Key-Type: RSA
+Key-Length: 4096
+Subkey-Type: RSA
+Subkey-Length: 4096
+Name-Real: $user_name
+Name-Email: $user_email
+Expire-Date: 2y
+%no-protection
+%commit
+%echo Done
+EOF
+)
+
+    if echo "$gpg_config" | gpg --batch --generate-key 2>/dev/null; then
+      # Get the newly generated key ID
+      signing_key=$(gpg --list-secret-keys --keyid-format LONG "$user_email" 2>/dev/null | grep "sec" | sed 's/.*\/\([A-F0-9]*\).*/\1/' | head -1)
+
+      if [[ -n "$signing_key" ]]; then
+        # Configure Git to use the new key
+        git config --global user.signingkey "$signing_key"
+        print_status $GREEN "✅ Generated and configured GPG key: $signing_key"
+      else
+        print_status $YELLOW "⚠️ Failed to retrieve generated key ID"
+        return 0
+      fi
+    else
+      print_status $YELLOW "⚠️ Failed to generate GPG key"
+      print_status $BLUE "   Manual setup: https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key"
+      return 0
+    fi
+  fi
+
+  # Export the public key
+  local public_key
+  if ! public_key=$(gpg --armor --export "$signing_key" 2>/dev/null); then
+    print_status $YELLOW "⚠️ Failed to export GPG public key"
+    print_status $BLUE "   Manual export: gpg --armor --export $signing_key"
+    print_status $BLUE "   Upload at: https://github.com/settings/keys"
+    return 0
+  fi
+
+  # Check if we have the required scope
+  print_status $BLUE "   Checking GitHub API permissions..."
+  if ! gh api /user/gpg_keys &>/dev/null; then
+    print_status $YELLOW "⚠️ GitHub token lacks GPG key permissions"
+    print_status $BLUE "   Requesting additional permissions..."
+
+    # Request the required scopes
+    if gh auth refresh -h github.com -s admin:gpg_key &>/dev/null; then
+      print_status $GREEN "✅ GitHub permissions updated"
+    else
+      print_status $YELLOW "⚠️ Failed to update GitHub permissions"
+      print_status $BLUE "   Manual upload required: https://github.com/settings/keys"
+      return 0
+    fi
+  fi
+
+  # Check if key is already uploaded
+  local existing_keys
+  if existing_keys=$(gh api /user/gpg_keys 2>/dev/null); then
+    local key_fingerprint
+    key_fingerprint=$(gpg --fingerprint "$signing_key" 2>/dev/null | grep -A 1 "pub" | tail -1 | tr -d ' ')
+
+    if echo "$existing_keys" | grep -q "$key_fingerprint"; then
+      print_status $GREEN "✅ GPG key already uploaded to GitHub"
+      return 0
+    fi
+  fi
+
+  # Upload the GPG key
+  print_status $BLUE "   Uploading GPG key to GitHub..."
+  local upload_result
+  if upload_result=$(gh api /user/gpg_keys -X POST -f armored_public_key="$public_key" 2>/dev/null); then
+    print_status $GREEN "✅ GPG key uploaded to GitHub successfully"
+    print_status $BLUE "   Your commits will now show 'Verified' badges"
+    print_status $BLUE "   View your keys: https://github.com/settings/keys"
+  else
+    print_status $YELLOW "⚠️ Failed to upload GPG key automatically"
+    print_status $BLUE "   Manual upload: https://github.com/settings/keys"
+    print_status $BLUE "   Key to upload:"
+    echo "$public_key"
+  fi
+}
+
 # Configure gitsign for manual authentication with URL/code fallback
 configure_gitsign_manual_auth() {
   print_status $YELLOW "🔧 Configuring gitsign for manual authentication..."
@@ -1378,6 +1512,9 @@ configure_gitsign_manual_auth() {
 
   # Install automatic dual signing hook
   install_dual_signing_hook
+
+  # Auto-upload GPG key to GitHub for verification badges
+  upload_gpg_key_to_github
 
   print_status $GREEN "✅ True dual signature system configured"
   print_status $BLUE "   • GPG signatures for GitHub 'Verified' badges"

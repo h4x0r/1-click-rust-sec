@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2025-09-28
+
+### 🤖 Automated GPG Key Upload Release
+
+**ENHANCEMENT** - Added fully automated GPG key upload to GitHub for instant "Verified" badge setup with zero manual configuration required.
+
+### Added
+- **🔑 Automated GPG Key Upload**: Installer automatically uploads GPG public key to GitHub via API
+- **🤖 Smart Key Generation**: Auto-generates 4096-bit RSA GPG keys when none exist
+- **🔐 GitHub Integration**: Seamlessly requests and uses `admin:gpg_key` permissions
+- **🛡️ Duplicate Prevention**: Checks existing keys to avoid redundant uploads
+- **⚡ Zero Configuration**: Users get "Verified" badges without any manual GitHub setup
+- **🔄 Graceful Fallback**: Provides manual instructions when automation isn't possible
+
+### Enhanced
+- **📦 Single-Script Architecture**: GPG key management embedded directly in installer
+- **🎯 CLAUDE.md Compliance**: Follows "security by default, no thinking required" principle
+- **💻 User Experience**: Complete GPG verification setup in single installer run
+- **🔍 Smart Detection**: Handles existing keys, authentication, and permission requirements
+- **📖 Error Guidance**: Clear manual instructions when automation fails
+
+### Technical Details
+- Uses GitHub REST API `/user/gpg_keys` endpoint for key upload
+- Requests `admin:gpg_key` scope automatically via `gh auth refresh`
+- Generates keys with 2-year expiration and proper email matching
+- Validates key fingerprints to prevent duplicate uploads
+- Maintains full backward compatibility with existing workflows
+
+### Breaking Changes
+- None - this is additive functionality that enhances existing GPG setup
+
 ## [0.5.0] - 2025-09-28
 
 ### 🔐 True Dual Signature System Release
