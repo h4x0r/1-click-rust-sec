@@ -1396,7 +1396,8 @@ upload_gpg_key_to_github() {
     # Generate GPG key non-interactively
     print_status $BLUE "   Generating GPG key for $user_name <$user_email>..."
 
-    local gpg_config=$(cat <<EOF
+    local gpg_config
+    gpg_config=$(cat <<EOF
 %echo Generating GPG key for Git signing
 Key-Type: RSA
 Key-Length: 4096
@@ -1469,8 +1470,7 @@ EOF
 
   # Upload the GPG key
   print_status $BLUE "   Uploading GPG key to GitHub..."
-  local upload_result
-  if upload_result=$(gh api /user/gpg_keys -X POST -f armored_public_key="$public_key" 2>/dev/null); then
+  if gh api /user/gpg_keys -X POST -f armored_public_key="$public_key" >/dev/null 2>&1; then
     print_status $GREEN "✅ GPG key uploaded to GitHub successfully"
     print_status $BLUE "   Your commits will now show 'Verified' badges"
     print_status $BLUE "   View your keys: https://github.com/settings/keys"
