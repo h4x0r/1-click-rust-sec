@@ -353,18 +353,18 @@ validate_embedded_docs() {
     check_result "FAIL" "Installer missing architecture documentation"
   fi
 
-  # Pattern 2: YubiKey integration guide
-  if grep -q "YubiKey + Sigstore Integration Guide" "$INSTALLER_SCRIPT"; then
-    check_result "PASS" "Installer contains YubiKey integration guide"
-
-    # Verify it creates yubikey-integration.md
-    if grep -q 'yubi_file="\$DOCS_DIR/yubikey-integration\.md"' "$INSTALLER_SCRIPT"; then
-      check_result "PASS" "Installer creates lowercase yubikey-integration.md file"
-    else
-      check_result "WARN" "Installer may create uppercase filename (check consistency)"
-    fi
+  # Pattern 2: 4-mode signing support (consolidated approach)
+  if grep -q "COMMAND_MODE.*enable-yubikey" "$INSTALLER_SCRIPT" && grep -q "COMMAND_MODE.*switch-to-gitsign" "$INSTALLER_SCRIPT"; then
+    check_result "PASS" "Installer contains 4-mode signing support"
   else
-    check_result "FAIL" "Installer missing YubiKey integration guide"
+    check_result "WARN" "Installer may be missing 4-mode signing commands"
+  fi
+
+  # Verify embedded YubiKey documentation was removed (consolidated approach)
+  if grep -q "YubiKey + Sigstore Integration Guide" "$INSTALLER_SCRIPT"; then
+    check_result "WARN" "Installer still contains embedded YubiKey docs (should be consolidated)"
+  else
+    check_result "PASS" "Installer correctly uses consolidated documentation approach"
   fi
 
   # Pattern 3: Check README.md was removed (should NOT be present)
@@ -377,26 +377,27 @@ validate_embedded_docs() {
   # Compare installer-embedded docs with repository docs
   log_info "🔄 Checking sync between installer and repository docs..."
 
-  # Compare YubiKey guides
-  if [[ -f "docs/yubikey-integration.md" ]]; then
-    local repo_yubikey_sections
-    repo_yubikey_sections=$(grep -c "^## " docs/yubikey-integration.md || echo "0")
-
-    local installer_yubikey_sections
-    installer_yubikey_sections=$(sed -n '/cat <<.YUBI_EOF/,/^YUBI_EOF$/p' "$INSTALLER_SCRIPT" | grep -c "^## " || echo "0")
-
-    if [[ $installer_yubikey_sections -gt 0 && $repo_yubikey_sections -gt 0 ]]; then
-      local coverage=$((installer_yubikey_sections * 100 / repo_yubikey_sections))
-      if [[ $coverage -ge 70 ]]; then
-        check_result "PASS" "YubiKey guide sync: $coverage% coverage ($installer_yubikey_sections/$repo_yubikey_sections sections)"
-      else
-        check_result "WARN" "YubiKey guide may need sync: $coverage% coverage ($installer_yubikey_sections/$repo_yubikey_sections sections)"
-      fi
+  # Check consolidated 4-mode signing documentation
+  if [[ -f "docs/installation.md" ]]; then
+    # Check if installation.md contains 4-mode signing configuration
+    if grep -q "4.* Modes Available" docs/installation.md && grep -q "gitsign + YubiKey" docs/installation.md; then
+      check_result "PASS" "Installation guide contains consolidated 4-mode signing documentation"
     else
-      check_result "WARN" "Could not compare YubiKey guide sections"
+      check_result "WARN" "Installation guide may be missing 4-mode signing content"
     fi
   else
-    check_result "WARN" "Repository YubiKey guide not found at docs/yubikey-integration.md"
+    check_result "WARN" "Installation guide not found at docs/installation.md"
+  fi
+
+  # Check architecture.md has technical signing details
+  if [[ -f "docs/architecture.md" ]]; then
+    if grep -q "Mode.*gitsign.*YubiKey" docs/architecture.md; then
+      check_result "PASS" "Architecture guide contains technical signing implementation details"
+    else
+      check_result "WARN" "Architecture guide may be missing technical signing details"
+    fi
+  else
+    check_result "WARN" "Architecture guide not found at docs/architecture.md"
   fi
 
   # Compare architecture guides

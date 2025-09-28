@@ -462,7 +462,7 @@ Repository Security Chain:
 ### Internal Documentation
 - [Security Controls Architecture](architecture.md) - Technical design
 - [Installation Guide](installation.md) - Setup instructions
-- [YubiKey Guide](yubikey-integration.md) - YubiKey integration
+- [4-Mode Signing Guide](installation.md#4-configure-commit-signing-4-modes-available) - Complete signing configuration
 - [Workflow Sources](https://github.com/h4x0r/1-click-github-sec/tree/main/.github/workflows) - GitHub Actions workflows
 
 ### External References

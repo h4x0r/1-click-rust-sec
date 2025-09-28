@@ -482,7 +482,7 @@ Multiple Related Tasks = BATCH PROCESS 📦
    # ✅ CORRECT - Direct file references
    [Installation Guide](installation.md)
    [Security Architecture](architecture.md)
-   [YubiKey Integration](yubikey-integration.md)
+   [4-Mode Signing Configuration](installation.md#4-configure-commit-signing-4-modes-available)
 
    # ❌ INCORRECT - Directory-style (breaks lychee)
    [Installation Guide](installation/)
