@@ -94,7 +94,7 @@ source venv/bin/activate
 
 ### 🔧 Power Users
 - **[Security Architecture](https://h4x0r.github.io/1-click-github-sec/architecture)** - How everything works
-- **[Complete Signing Guide](https://h4x0r.github.io/1-click-github-sec/signing-guide)** - 4-mode setup, GPG vs gitsign, verification
+- **[Complete Signing Guide](https://github.com/h4x0r/1-click-github-sec/blob/main/docs/signing-guide.md)** - 4-mode setup, GPG vs gitsign, verification
 - **[Cryptographic Verification](https://h4x0r.github.io/1-click-github-sec/cryptographic-verification)** - Advanced verification procedures
 
 ### 👥 Contributors
