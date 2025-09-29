@@ -502,6 +502,18 @@ main() {
   validate_embedded_docs
   echo
 
+  # Validate documentation site links (if validate-docs-links.sh exists)
+  if [[ -f "scripts/validate-docs-links.sh" ]]; then
+    log_info "🔗 Validating documentation site links..."
+    if ./scripts/validate-docs-links.sh README.md CLAUDE.md 2>/dev/null; then
+      check_result "PASS" "All documentation site links are accessible"
+    else
+      check_result "WARN" "Some documentation site links may not be accessible (deployment in progress?)"
+      log_info "💡 Run './scripts/check-docs-deployment.sh --wait' to wait for deployment"
+    fi
+    echo
+  fi
+
   # Generate final report
   generate_summary
 }
