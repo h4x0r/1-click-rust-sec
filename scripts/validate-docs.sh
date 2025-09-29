@@ -502,14 +502,19 @@ main() {
   validate_embedded_docs
   echo
 
-  # Validate documentation site links (if validate-docs-links.sh exists)
+  # Validate documentation site links (complementary to lychee CI check)
   if [[ -f "scripts/validate-docs-links.sh" ]]; then
-    log_info "🔗 Validating documentation site links..."
+    log_info "🔗 Pre-validating documentation site links..."
+    log_info "ℹ️  Note: Comprehensive link validation runs via lychee in CI"
+
     if ./scripts/validate-docs-links.sh README.md CLAUDE.md 2>/dev/null; then
-      check_result "PASS" "All documentation site links are accessible"
+      check_result "PASS" "Documentation site links are accessible (pre-deployment check)"
     else
-      check_result "WARN" "Some documentation site links may not be accessible (deployment in progress?)"
-      log_info "💡 Run './scripts/check-docs-deployment.sh --wait' to wait for deployment"
+      check_result "WARN" "Some documentation site links not accessible - GitHub Pages may be deploying"
+      log_info "💡 Solutions:"
+      log_info "   • Wait for deployment: ./scripts/check-docs-deployment.sh --wait --timeout 720"
+      log_info "   • CI will catch all link issues via lychee after deployment"
+      log_info "   • For immediate validation: lychee docs/**/*.md README.md"
     fi
     echo
   fi

@@ -14,7 +14,12 @@
 # limitations under the License.
 
 # Documentation Links Validator
-# Validates that all documentation site links are accessible before committing/releasing
+# Pre-deployment validation for GitHub Pages documentation links
+#
+# PURPOSE: Complementary to lychee CI validation
+# - Pre-push: Quick check for new documentation files before GitHub Pages deployment
+# - lychee (CI): Comprehensive link validation after deployment
+# - Use case: Prevent timing issues when adding new documentation files
 
 set -euo pipefail
 

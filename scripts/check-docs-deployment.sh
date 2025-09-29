@@ -14,13 +14,18 @@
 # limitations under the License.
 
 # GitHub Pages Deployment Checker
-# Validates that documentation files are accessible on the live docs site before updating links
+# Waits for GitHub Pages deployment and validates documentation accessibility
+#
+# PURPOSE: Deployment timing validation
+# - Prevents 404 errors during GitHub Pages deployment lag (typically 30s-12min)
+# - Use before updating documentation site URLs in source files
+# - Complements lychee CI validation by handling deployment timing
 
 set -euo pipefail
 
 # Configuration
 DOCS_BASE_URL="https://h4x0r.github.io/1-click-github-sec"
-MAX_WAIT_TIME=300 # 5 minutes maximum wait
+MAX_WAIT_TIME=720 # 12 minutes maximum wait (covers 90% of deployments)
 CHECK_INTERVAL=30 # Check every 30 seconds
 TIMEOUT=10        # HTTP request timeout
 
