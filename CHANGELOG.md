@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.10] - 2025-09-29
+
+### 🔗 Link Validation & Deployment Framework
+
+**VALIDATION FRAMEWORK RELEASE** - Comprehensive GitHub Pages deployment validation to prevent timing issues.
+
+### Link Validation Enhancements
+- **🔗 Complementary Strategy**: Implemented non-overlapping link validation approach
+- **⏰ Deployment Timing**: Added GitHub Pages deployment checker with 12-minute timeout
+- **📊 Data-Driven Timeouts**: Based on deployment analysis (90% complete within 12 minutes)
+- **🔍 Pre-Deployment Validation**: Quick check for new documentation files before GitHub Pages lag
+- **🛠️ Multiple Solutions**: Clear remediation paths for deployment timing issues
+
+### Framework Components
+- **GitHub Pages Deployment Checker**: Wait for deployment with retry logic and GitHub API monitoring
+- **Documentation Links Validator**: Extract and validate docs site URLs with MkDocs navigation check
+- **Enhanced validate-docs.sh**: Integrated pre-deployment validation with CI fallback guidance
+- **Comprehensive Documentation**: Clear purpose separation vs. existing lychee CI validation
+
+### Technical Improvements
+- **⚡ Smart Timeouts**: 720s timeout covers 90% of GitHub Pages deployments
+- **🔄 Retry Logic**: 30s intervals with GitHub API status monitoring
+- **📋 Multiple Validation Modes**: Individual files, batch processing, wait mode
+- **🎯 Focused Scope**: Only h4x0r.github.io links (complementary to comprehensive lychee)
+- **🛡️ Quality Standards**: All scripts pass shellcheck with proper Apache 2.0 licensing
+
+### Complementary Tool Strategy
+- **lychee (CI)**: Comprehensive link validation after deployment (all links)
+- **validate-docs-links.sh**: Pre-deployment validation for new documentation files
+- **check-docs-deployment.sh**: Deployment timing validation with GitHub API integration
+- **Clear Separation**: Non-overlapping responsibilities, reduced complexity
+
+### Usage Examples
+```bash
+# Wait for new file deployment
+./scripts/check-docs-deployment.sh --wait new-file-name
+
+# Pre-validate documentation links
+./scripts/validate-docs-links.sh README.md
+
+# Comprehensive validation (includes pre-deployment check)
+./scripts/validate-docs.sh
+```
+
+Prevents GitHub Pages timing issues while maintaining comprehensive CI coverage through lychee.
+
 ## [0.6.8] - 2025-09-29
 
 ### 📚 Documentation Architecture Optimization
