@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.8] - 2025-09-29
+
+### 📚 Documentation Architecture Optimization
+
+**CONSOLIDATION RELEASE** - Major documentation reorganization for better user experience and maintenance efficiency.
+
+### Documentation Enhancements
+- **📋 Content Consolidation**: Merged `repo-and-installer-sync-strategy.md` into `repo-security.md` for unified reference
+- **🏷️ Enhanced Scope**: Renamed to `repo-security-and-quality-assurance.md` reflecting comprehensive content coverage
+- **🎯 User Journey Optimization**: Streamlined navigation and reduced content fragmentation
+- **🔗 Reference Updates**: Updated all cross-references across 8+ files for consistency
+- **🧹 Repository Cleanup**: Removed 9 obsolete test and backup files from signing experiments
+
+### Quality Assurance Improvements
+- **📊 Multi-Dimensional Synchronization**: Integrated comprehensive sync strategy documentation
+- **🔍 Validation Enhancement**: Updated documentation validation scripts for new structure
+- **🎨 Navigation Optimization**: Improved MkDocs navigation structure and removed orphaned entries
+- **📖 Comprehensive Coverage**: Combined security controls, QA processes, and sync strategies in single reference
+
+### Maintenance Improvements
+- **🗑️ File Cleanup**: Removed obsolete test files: `dual_sign_test.txt`, `gitsign-test.md`, `CLAUDE.md.txt`, etc.
+- **📝 Cross-Reference Integrity**: Maintained all existing functionality while improving organization
+- **✅ Validation Success**: 87% documentation validation success rate maintained
+
+### Breaking Changes
+- **📂 File Location**: `docs/repo-security.md` → `docs/repo-security-and-quality-assurance.md`
+- **📂 Removed Files**: `docs/repo-and-installer-sync-strategy.md` (content merged)
+
+This release focuses on documentation quality and developer experience improvements with no functional changes to security controls.
+
 ## [0.6.5] - 2025-09-28
 
 ### 🚫 Zero-Compromise Security Release

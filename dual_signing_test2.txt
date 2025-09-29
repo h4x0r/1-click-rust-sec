@@ -1,8 +1,0 @@
-# True Dual Signing - Second Test
-
-Now using correct GPG configuration:
-- Repository-level gpg.format=openpgp
-- Should create GPG signature first
-- Then add gitsign via post-commit hook
-
-Testing real dual signing implementation.

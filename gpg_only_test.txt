@@ -1,3 +1,0 @@
-# Test GPG-only signing
-
-This commit should be signed with GPG only for GitHub verification.

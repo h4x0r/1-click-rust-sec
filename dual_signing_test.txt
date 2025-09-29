@@ -1,7 +1,0 @@
-# True Dual Signing Test
-
-This commit should be signed with:
-1. GPG signature (for GitHub verification)  
-2. Sigstore signature (for transparency log)
-
-Both signatures provide complementary security benefits.

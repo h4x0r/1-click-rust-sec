@@ -254,7 +254,7 @@ By contributing, you agree that your contributions will be licensed under Apache
 
 - **Questions**: Open a [GitHub Issue](https://github.com/h4x0r/1-click-github-sec/issues)
 - **Bugs**: Open an [Issue](https://github.com/h4x0r/1-click-github-sec/issues)
-- **Security**: See [Repository Security](repo-security.md)
+- **Security**: See [Repository Security & Quality Assurance](repo-security-and-quality-assurance.md)
 
 ## 🏆 Recognition
 

@@ -54,8 +54,8 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 | Guide | Level | What You'll Learn |
 |-------|-------|-------------------|
 | **[Security Architecture →](architecture.md)** | Advanced | How everything works together |
-| **[Cryptographic Verification →](cryptographic-verification.md)** | Intermediate | Signed commits, releases & transparency |
-| **[4-Mode Signing →](installation.md#4-configure-commit-signing-4-modes-available)** | Expert | Complete signing configuration |
+| **[Complete Signing Guide →](signing-guide.md)** | Intermediate | 4-mode setup, GPG vs gitsign, verification |
+| **[Cryptographic Verification →](cryptographic-verification.md)** | Expert | Advanced verification procedures |
 
 ---
 
@@ -64,7 +64,7 @@ Supports **Rust, Node.js, Python, Go, and generic projects** with 35+ security c
 | Guide | Role | What You'll Learn |
 |-------|------|-------------------|
 | **[Contributing →](contributing.md)** | Contributors | Development setup and guidelines |
-| **[Repository Security →](repo-security.md)** | Maintainers | This repo's security implementation |
+| **[Repository Security & Quality Assurance →](repo-security-and-quality-assurance.md)** | Maintainers | This repo's security implementation |
 | **[Design Principles →](design-principles.md)** | Architects | Core design decisions |
 
 ---

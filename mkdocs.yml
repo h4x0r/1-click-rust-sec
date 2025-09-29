@@ -1,4 +1,4 @@
-site_name: 1-Click GitHub Security v0.6.5
+site_name: 1-Click GitHub Security v0.6.8
 repo_url: https://github.com/h4x0r/1-click-github-sec
 site_description: Security controls for multi-language GitHub projects
 site_author: Albert Hui <albert@securityronin.com>
@@ -42,9 +42,9 @@ nav:
     - Uninstall Guide: uninstall.md
   - 🔧 Power User Guides:
     - Security Architecture: architecture.md
+    - Complete Signing Guide: signing-guide.md
     - Cryptographic Verification: cryptographic-verification.md
   - 👥 Development:
     - Contributing: contributing.md
-    - Repository Security: repo-security.md
+    - Repository Security & Quality Assurance: repo-security-and-quality-assurance.md
     - Design Principles: design-principles.md
-    - Sync Strategy: repo-and-installer-sync-strategy.md

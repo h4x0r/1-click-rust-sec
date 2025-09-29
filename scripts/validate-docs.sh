@@ -175,19 +175,19 @@ validate_workflows() {
   local actual_workflows
   actual_workflows=$(find "$workflow_dir" -name "*.yml" | wc -l | tr -d ' ')
 
-  # Check docs/repo-security.md workflow count
-  if [[ -f "docs/repo-security.md" ]]; then
-    if grep -q "specialized workflows\|workflow" docs/repo-security.md; then
+  # Check docs/repo-security-and-quality-assurance.md workflow count
+  if [[ -f "docs/repo-security-and-quality-assurance.md" ]]; then
+    if grep -q "specialized workflows\|workflow" docs/repo-security-and-quality-assurance.md; then
       if [[ $actual_workflows -ge 4 ]]; then # More flexible threshold
-        check_result "PASS" "docs/repo-security.md documents workflows (found $actual_workflows)"
+        check_result "PASS" "docs/repo-security-and-quality-assurance.md documents workflows (found $actual_workflows)"
       else
         check_result "WARN" "Found only $actual_workflows workflows (may be minimal setup)"
       fi
     else
-      check_result "WARN" "docs/repo-security.md workflow documentation not found"
+      check_result "WARN" "docs/repo-security-and-quality-assurance.md workflow documentation not found"
     fi
   else
-    check_result "WARN" "docs/repo-security.md not found"
+    check_result "WARN" "docs/repo-security-and-quality-assurance.md not found"
   fi
 
   # Validate individual workflow documentation
@@ -197,11 +197,11 @@ validate_workflows() {
   log_info "📋 Found workflows: ${workflows[*]}"
 
   for workflow in "${workflows[@]}"; do
-    if [[ -f "docs/repo-security.md" ]]; then
-      if grep -q "$workflow" docs/repo-security.md; then
-        check_result "PASS" "Workflow $workflow documented in docs/repo-security.md"
+    if [[ -f "docs/repo-security-and-quality-assurance.md" ]]; then
+      if grep -q "$workflow" docs/repo-security-and-quality-assurance.md; then
+        check_result "PASS" "Workflow $workflow documented in docs/repo-security-and-quality-assurance.md"
       else
-        check_result "WARN" "Workflow $workflow not documented in docs/repo-security.md"
+        check_result "WARN" "Workflow $workflow not documented in docs/repo-security-and-quality-assurance.md"
       fi
     fi
   done

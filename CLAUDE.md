@@ -460,7 +460,7 @@ Multiple Related Tasks = BATCH PROCESS 📦
 - ✅ Validation tools run to confirm no broken links or references
 - ✅ CI workflows tested to ensure they pass after changes
 
-**Lesson**: File structural changes are **multi-dimensional operations** that require systematic impact analysis across all project components. The synchronization complexity described in `docs/repo-and-installer-sync-strategy.md` applies to file management operations as well.
+**Lesson**: File structural changes are **multi-dimensional operations** that require systematic impact analysis across all project components. The synchronization complexity described in `docs/repo-security-and-quality-assurance.md` applies to file management operations as well.
 
 ### Documentation Link Format Standards (GitHub + MkDocs)
 
